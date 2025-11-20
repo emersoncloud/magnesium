@@ -1,0 +1,59 @@
+Refined Implementation Plan
+Here is the upgraded roadmap. I have bolded the additions to your original list.
+
+Phase 1: Infrastructure & Auth
+[ ] Init Next.js + Tailwind + Lucide.
+
+[ ] Setup Vercel Postgres (Primary DB).
+
+[ ] Setup Vercel KV (Cache/Live Feed).
+
+[ ] Configure NextAuth.js (Google Provider).
+
+Phase 2: The "Gym State" (Core Data)
+[ ] Define Walls constants (static data).
+
+[ ] Create Routes CRUD (Create, Read, Update, Delete).
+
+Logic: When a route is created in Postgres, push a simplified version to a Vercel KV list for fast homepage loading.
+
+[ ] Build "Grade Distribution" Visualization for Setters.
+
+Phase 3: The Social Layer
+[ ] Route Page:
+
+Fetch Route Details (Server Component).
+
+Fetch Comments/Activity (Client Component/Suspense).
+
+[ ] "Send" Logic:
+
+User clicks "Flash" -> Writes to Postgres -> Updates "Ticks" count in KV (atomic increment).
+
+[ ] Activity Feed: A global page showing "Recent sends by the community."
+
+Phase 4: Advanced UI/UX
+[ ] Optimistic UI: When a user comments, show it immediately (via React useOptimistic) before the server responds.
+
+[ ] Skeleton Loading: Climbing gyms often have bad reception. Use Skeletons heavily while data fetches.
+
+[ ] PWA Manifest: Add manifest.json so users can install it to their home screen like a native app.
+
+5. Suggested Folder Structure (Next.js App Router)
+Plaintext
+
+app/
+├── (marketing)/           # Landing page
+├── (app)/                 # Protected app routes
+│   ├── feed/              # Global activity feed
+│   ├── gym/               # Interactive map of walls
+│   ├── route/[id]/        # The specific route details
+│   │   ├── page.tsx       # Server Component (Route Data)
+│   │   └── actions.ts     # Server Actions (Log Send, Comment)
+│   ├── profile/           # User tick list
+│   └── admin/             # Setter tools
+├── api/                   # Webhooks / Cron jobs
+└── lib/
+    ├── db.ts              # Postgres client
+    ├── kv.ts              # Redis client
+    └── auth.ts            # NextAuth config

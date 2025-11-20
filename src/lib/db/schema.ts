@@ -15,6 +15,8 @@ export const routes = pgTable("routes", {
 export const activityLogs = pgTable("activity_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   user_id: text("user_id").notNull(),
+  user_name: text("user_name"),
+  user_image: text("user_image"),
   route_id: uuid("route_id").references(() => routes.id).notNull(),
   action_type: text("action_type").notNull(), // "SEND" | "FLASH" | "COMMENT" | "VOTE"
   content: text("content"),

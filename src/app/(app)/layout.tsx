@@ -13,8 +13,7 @@ export default async function AppLayout({
 
   return (
     <SettingsProvider>
-      <div className="min-h-screen pb-24 md:pb-0 md:pt-20 relative bg-slate-50">
-        {/* Global Technical Grid Background */}
+      <div className="min-h-screen pb-24 relative bg-slate-50">
         <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0" 
              style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '40px 40px' }} 
         />

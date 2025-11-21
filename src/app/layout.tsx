@@ -5,7 +5,7 @@ import "./globals.css";
 const outfit = Outfit({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Rockmill Magnesium",
+  title: "Rock Mill Magnesium",
   description: "Premium Climbing Route Management",
   manifest: "/manifest.json",
 };

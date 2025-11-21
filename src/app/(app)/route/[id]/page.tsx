@@ -1,10 +1,12 @@
 import { getRoute, getRouteActivity, getPersonalNote } from "@/app/actions";
 import { WALLS } from "@/lib/constants/walls";
 import Link from "next/link";
-import { ArrowLeft, Star, Calendar, User, Activity, Hash, MapPin } from "lucide-react";
+import { ArrowLeft, Star, Calendar, User, Activity, Hash, MapPin, Info, GripHorizontal, Zap } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
 import { auth } from "@/lib/auth";
 import RouteActivity from "@/components/RouteActivity";
 import StarRating from "@/components/StarRating";
+import GradeVoting from "@/components/GradeVoting";
 import { cn } from "@/lib/utils";
 
 export default async function RoutePage({ params }: { params: Promise<{ id: string }> }) {
@@ -29,6 +31,10 @@ export default async function RoutePage({ params }: { params: Promise<{ id: stri
 
   const ratings = activity.filter(a => a.action_type === "RATING" && a.content).map(a => parseInt(a.content!));
   const avgRating = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : null;
+
+  const gradeVotes = activity.filter(a => a.action_type === "VOTE" && a.content).map(a => parseInt(a.content!));
+  const myVoteLog = activity.find(a => a.user_id === session?.user?.email && a.action_type === "VOTE");
+  const myVote = myVoteLog ? parseInt(myVoteLog.content || "0") : null;
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24">
@@ -75,6 +81,24 @@ export default async function RoutePage({ params }: { params: Promise<{ id: stri
                   <div className="text-2xl font-bold text-slate-400 flex items-center gap-2">
                     <span className="h-px w-8 bg-slate-300" />
                     {route.grade}
+                  </div>
+                )}
+
+                {/* Style & Hold Type Badges */}
+                {(route.style || route.hold_type) && (
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {route.style && (
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 gap-1 pl-2">
+                        <Zap className="w-3 h-3" />
+                        {route.style}
+                      </Badge>
+                    )}
+                    {route.hold_type && (
+                      <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 gap-1 pl-2">
+                        <GripHorizontal className="w-3 h-3" />
+                        {route.hold_type}
+                      </Badge>
+                    )}
                   </div>
                 )}
               </div>
@@ -133,18 +157,37 @@ export default async function RoutePage({ params }: { params: Promise<{ id: stri
               </div>
             </div>
 
+            {/* Grade Voting Module */}
+            <GradeVoting routeId={id} initialVotes={gradeVotes} userVote={myVote} />
+
             {/* Setter Notes Module */}
-            {route.setter_notes && (
+            {(route.setter_notes || route.setter_beta) && (
               <div className="bg-slate-900 text-slate-200 p-6 shadow-lg relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                   <User className="w-24 h-24" />
                 </div>
-                <h3 className="font-mono text-xs uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
-                  <Hash className="w-3 h-3" /> Setter Notes
-                </h3>
-                <p className="font-mono text-sm leading-relaxed relative z-10">
-                  "{route.setter_notes}"
-                </p>
+                
+                {route.setter_notes && (
+                  <div className="mb-6">
+                    <h3 className="font-mono text-xs uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
+                      <Hash className="w-3 h-3" /> Setter Notes
+                    </h3>
+                    <p className="font-mono text-sm leading-relaxed relative z-10">
+                      "{route.setter_notes}"
+                    </p>
+                  </div>
+                )}
+
+                {route.setter_beta && (
+                  <div>
+                    <h3 className="font-mono text-xs uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
+                      <Info className="w-3 h-3" /> Intended Beta
+                    </h3>
+                    <p className="font-mono text-sm leading-relaxed relative z-10 text-yellow-400/80 italic">
+                      "{route.setter_beta}"
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

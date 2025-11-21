@@ -138,6 +138,22 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
               </div>
             </div>
 
+            {/* Extra Details: Style & Hold Type */}
+            {(selectedRoute.style || selectedRoute.hold_type) && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                {selectedRoute.style && (
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                    Style: {selectedRoute.style}
+                  </Badge>
+                )}
+                {selectedRoute.hold_type && (
+                  <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                    Holds: {selectedRoute.hold_type}
+                  </Badge>
+                )}
+              </div>
+            )}
+
             <Link href={`/route/${selectedRoute.id}`} className="block">
               <Button className="w-full" size="lg">
                 View Route Details

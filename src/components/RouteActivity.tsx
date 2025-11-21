@@ -1,8 +1,8 @@
 "use client";
 
 import { useOptimistic, useRef, useState, useTransition } from "react";
-import { logActivity, savePersonalNote, logAttempt } from "@/app/actions";
-import { Send, Zap, MessageSquare, Eye, EyeOff, StickyNote, CheckCircle2 } from "lucide-react";
+import { logActivity, savePersonalNote, logAttempt, updateActivity, deleteActivity } from "@/app/actions";
+import { Send, Zap, MessageSquare, Eye, EyeOff, StickyNote, CheckCircle2, Pencil, Trash2, X, Check } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -39,13 +39,26 @@ export default function RouteActivity({
   const formRef = useRef<HTMLFormElement>(null);
   const [optimisticActivity, addOptimisticActivity] = useOptimistic(
     initialActivity,
-    (state, newActivity: ActivityLog) => [newActivity, ...state]
+    (state, action: { type: "ADD" | "UPDATE" | "DELETE", log?: ActivityLog, id?: string }) => {
+      switch (action.type) {
+        case "ADD":
+          return [action.log!, ...state];
+        case "UPDATE":
+          return state.map(a => a.id === action.log!.id ? action.log! : a);
+        case "DELETE":
+          return state.filter(a => a.id !== action.id);
+        default:
+          return state;
+      }
+    }
   );
   const [isPending, startTransition] = useTransition();
   const [personalNote, setPersonalNote] = useState(initialPersonalNote);
   const [isSavingNote, setIsSavingNote] = useState(false);
   const [isBeta, setIsBeta] = useState(false);
   const [revealedBeta, setRevealedBeta] = useState<Set<string>>(new Set());
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
 
   async function handleAction(actionType: string, content: string, metadata: { is_beta?: boolean } = {}) {
     if (!user) return;
@@ -63,7 +76,7 @@ export default function RouteActivity({
     };
 
     startTransition(async () => {
-      addOptimisticActivity(newLog);
+      addOptimisticActivity({ type: "ADD", log: newLog });
       
       // Server Action
       await logActivity({
@@ -92,6 +105,30 @@ export default function RouteActivity({
   async function handleAttempt() {
     if (!user) return;
     await logAttempt(routeId);
+  }
+
+  async function handleUpdate(id: string) {
+    if (!editContent.trim()) return;
+    
+    const log = optimisticActivity.find(a => a.id === id);
+    if (!log) return;
+
+    const updatedLog = { ...log, content: editContent };
+    setEditingId(null);
+
+    startTransition(async () => {
+      addOptimisticActivity({ type: "UPDATE", log: updatedLog });
+      await updateActivity(id, editContent);
+    });
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Are you sure you want to delete this comment?")) return;
+
+    startTransition(async () => {
+      addOptimisticActivity({ type: "DELETE", id });
+      await deleteActivity(id);
+    });
   }
 
   const sends = optimisticActivity.filter(a => a.action_type === "SEND" || a.action_type === "FLASH");
@@ -221,46 +258,89 @@ export default function RouteActivity({
         <div className="space-y-8 pl-4 border-l-2 border-slate-100">
           {comments.map((log) => {
             const isHidden = log.metadata?.is_beta && !revealedBeta.has(log.id);
+            const isOwner = user && log.user_id === user.id;
+            const isEditing = editingId === log.id;
             
             return (
               <div key={log.id} className="relative pl-6 animate-in fade-in slide-in-from-left-2 duration-300">
                 {/* Timeline Dot */}
                 <div className="absolute -left-[5px] top-1.5 w-2 h-2 bg-slate-300 rounded-full ring-4 ring-white" />
 
-                <div className="flex items-baseline gap-3 mb-1">
-                  <Link href={`/profile/${encodeURIComponent(log.user_id)}`} className="font-bold text-sm hover:underline">
-                    {log.user_name || "Unknown"}
-                  </Link>
-                  <span className="text-xs text-slate-400">
-                    {log.created_at ? new Date(log.created_at).toLocaleDateString() : "Just now"}
-                  </span>
-                  {log.metadata?.is_beta && (
-                    <span className="text-[9px] font-bold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">BETA</span>
+                <div className="flex items-baseline justify-between mb-1">
+                  <div className="flex items-baseline gap-3">
+                    <Link href={`/profile/${encodeURIComponent(log.user_id)}`} className="font-bold text-sm hover:underline">
+                      {log.user_name || "Unknown"}
+                    </Link>
+                    <span className="text-xs text-slate-400">
+                      {log.created_at ? new Date(log.created_at).toLocaleDateString() : "Just now"}
+                    </span>
+                    {log.metadata?.is_beta && (
+                      <span className="text-[9px] font-bold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">BETA</span>
+                    )}
+                  </div>
+                  {isOwner && !isEditing && (
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={() => {
+                          setEditingId(log.id);
+                          setEditContent(log.content || "");
+                        }}
+                        className="text-slate-400 hover:text-blue-600"
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(log.id)}
+                        className="text-slate-400 hover:text-red-600"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
                   )}
                 </div>
                 
-                <div className="text-sm text-slate-600 leading-relaxed">
-                  {isHidden ? (
-                    <button 
-                      onClick={() => toggleBeta(log.id)}
-                      className="flex items-center gap-2 text-slate-400 hover:text-black transition-colors italic"
-                    >
-                      <EyeOff className="w-3 h-3" />
-                      <span>Spoiler hidden. Click to reveal.</span>
-                    </button>
+                <div className="text-sm text-slate-600 leading-relaxed group min-h-[24px]">
+                  {isEditing ? (
+                    <div className="flex gap-2 items-start">
+                      <input
+                        type="text"
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        className="flex-1 border-b border-blue-500 bg-slate-50 px-2 py-1 focus:outline-none"
+                        autoFocus
+                      />
+                      <button onClick={() => handleUpdate(log.id)} className="text-green-600 hover:bg-green-50 p-1 rounded">
+                        <Check className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => setEditingId(null)} className="text-red-600 hover:bg-red-50 p-1 rounded">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
                   ) : (
-                    <div className="relative group">
-                      <p>{log.content}</p>
-                      {log.metadata?.is_beta && (
+                    <>
+                      {isHidden ? (
                         <button 
                           onClick={() => toggleBeta(log.id)}
-                          className="absolute -right-6 top-0 opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-black"
-                          title="Hide beta"
+                          className="flex items-center gap-2 text-slate-400 hover:text-black transition-colors italic"
                         >
-                          <Eye className="w-3 h-3" />
+                          <EyeOff className="w-3 h-3" />
+                          <span>Spoiler hidden. Click to reveal.</span>
                         </button>
+                      ) : (
+                        <div className="relative group">
+                          <p>{log.content}</p>
+                          {log.metadata?.is_beta && (
+                            <button 
+                              onClick={() => toggleBeta(log.id)}
+                              className="absolute -right-6 top-0 opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-black"
+                              title="Hide beta"
+                            >
+                              <Eye className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
                       )}
-                    </div>
+                    </>
                   )}
                 </div>
               </div>

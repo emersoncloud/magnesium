@@ -31,6 +31,8 @@ const RouteSchema = z.object({
   attributes: z.array(z.string()).optional(),
   setter_notes: z.string().optional(),
   difficulty_label: z.string().optional(),
+  style: z.string().optional(),
+  hold_type: z.string().optional(),
 });
 
 export async function createRoute(data: typeof routes.$inferInsert) {
@@ -166,6 +168,8 @@ export async function getGlobalActivity() {
     wall_id: routes.wall_id,
     setter_name: routes.setter_name,
     set_date: routes.set_date,
+    style: routes.style,
+    hold_type: routes.hold_type,
   })
     .from(activityLogs)
     .leftJoin(routes, eq(activityLogs.route_id, routes.id))
@@ -189,6 +193,8 @@ export async function getUserActivity(userId: string) {
     wall_id: routes.wall_id,
     setter_name: routes.setter_name,
     set_date: routes.set_date,
+    style: routes.style,
+    hold_type: routes.hold_type,
   })
     .from(activityLogs)
     .leftJoin(routes, eq(activityLogs.route_id, routes.id))
@@ -203,86 +209,86 @@ export async function ingestRoutes() {
   }
 
   try {
-    const sheetData = await getSheetData();
+    const rows = await getSheetData();
     let count = 0;
     let archivedCount = 0;
 
-    for (const [tabName, rows] of Object.entries(sheetData)) {
-      // Find matching wall ID
-      const wall = WALLS.find((w) => w.name.toLowerCase() === tabName.toLowerCase());
-      if (!wall) {
-        console.warn(`No matching wall found for tab: ${tabName}`);
+    // Get all currently active routes
+    const activeRoutes = await db.select().from(routes).where(eq(routes.status, "active"));
+    const processedRouteIds = new Set<string>();
+
+    for (const row of rows) {
+      // Row format: [ZONE, ROUTE, COLOR, GRADE, STYLE, HOLD TYPE, SETTER, DATE]
+      const [zoneStr, label, color, grade, style, holdType, setter, dateStr] = row;
+
+      if (!grade || !color || !zoneStr) continue;
+
+      // Map Zone to Wall ID
+      const zoneIndex = parseInt(zoneStr) - 1;
+      if (isNaN(zoneIndex) || zoneIndex < 0 || zoneIndex >= WALLS.length) {
+        console.warn(`Invalid zone: ${zoneStr}`);
         continue;
       }
+      const wall = WALLS[zoneIndex];
 
-      // Get all currently active routes for this wall
-      const activeRoutes = await db.select().from(routes).where(
-        and(
-          eq(routes.wall_id, wall.id),
-          eq(routes.status, "active")
-        )
+      // Parse date
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) {
+        date.setTime(Date.now());
+      } else {
+        const currentYear = new Date().getFullYear();
+        date.setFullYear(currentYear);
+      }
+      const dateIso = date.toISOString().split('T')[0]; // YYYY-MM-DD
+
+      // Check for existing route with EXACT match on key properties
+      const existingRoute = activeRoutes.find(r =>
+        r.wall_id === wall.id &&
+        r.grade === grade &&
+        r.color === color &&
+        r.difficulty_label === (label || null) &&
+        r.set_date === dateIso // Strict date match
       );
 
-      const processedRouteIds = new Set<string>();
-
-      for (const row of rows) {
-        // Row format seems to be: [LABEL, COLOR, GRADE, SETTER, SET DATE] based on logs
-        const [label, color, grade, setter, dateStr] = row;
-        const name = ""; // Name seems to be missing or is the label
-
-        if (!grade || !color) continue;
-
-        // Parse date
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) {
-          date.setTime(Date.now());
-        } else {
-          const currentYear = new Date().getFullYear();
-          date.setFullYear(currentYear);
+      if (existingRoute) {
+        // Route exists - update mutable fields if changed
+        if (existingRoute.style !== (style || null) || existingRoute.hold_type !== (holdType || null)) {
+             await db.update(routes).set({
+                 style: style || null,
+                 hold_type: holdType || null
+             }).where(eq(routes.id, existingRoute.id));
         }
-        const dateIso = date.toISOString().split('T')[0]; // YYYY-MM-DD
+        processedRouteIds.add(existingRoute.id);
+      } else {
+        // New route detected
+        const newRoute = await db.insert(routes).values({
+          wall_id: wall.id,
+          grade: grade,
+          color: color,
+          setter_name: setter || "Unknown",
+          set_date: dateIso,
+          status: "active",
+          attributes: [],
+          difficulty_label: label || null,
+          style: style || null,
+          hold_type: holdType || null,
+        }).returning({ id: routes.id });
 
-        // Check for existing route with EXACT match on key properties
-        const existingRoute = activeRoutes.find(r =>
-          r.grade === grade &&
-          r.color === color &&
-          r.difficulty_label === (label || null) &&
-          r.set_date === dateIso // Strict date match
-        );
-
-        if (existingRoute) {
-          // Route exists and matches exactly - keep it active
-          // We can update mutable fields like setter name if needed, but for now just mark as processed
-          processedRouteIds.add(existingRoute.id);
-        } else {
-          // New route detected (or significant change to existing one)
-          const newRoute = await db.insert(routes).values({
-            wall_id: wall.id,
-            grade: grade,
-            color: color,
-            setter_name: setter || "Unknown",
-            set_date: dateIso,
-            status: "active",
-            attributes: name ? [name] : [],
-            difficulty_label: label || null,
-          }).returning({ id: routes.id });
-
-          count++;
-          processedRouteIds.add(newRoute[0].id);
-        }
+        count++;
+        processedRouteIds.add(newRoute[0].id);
       }
+    }
 
-      // Archive routes that were not in the sheet
-      for (const route of activeRoutes) {
-        if (!processedRouteIds.has(route.id)) {
-          await db.update(routes)
-            .set({
-              status: "archived",
-              removed_at: new Date()
-            })
-            .where(eq(routes.id, route.id));
-          archivedCount++;
-        }
+    // Archive routes that were not in the sheet
+    for (const route of activeRoutes) {
+      if (!processedRouteIds.has(route.id)) {
+        await db.update(routes)
+          .set({
+            status: "archived",
+            removed_at: new Date()
+          })
+          .where(eq(routes.id, route.id));
+        archivedCount++;
       }
     }
 
@@ -332,6 +338,68 @@ export async function rateRoute(routeId: string, rating: number) {
   revalidatePath("/routes");
 }
 
+export async function updateActivity(activityId: string, content: string, metadata?: any) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const activity = await db.query.activityLogs.findFirst({
+    where: eq(activityLogs.id, activityId),
+  });
+
+  if (!activity) throw new Error("Activity not found");
+  if (activity.user_id !== session.user.id) throw new Error("Unauthorized");
+
+  await db.update(activityLogs)
+    .set({ content, metadata: metadata || activity.metadata })
+    .where(eq(activityLogs.id, activityId));
+
+  revalidatePath(`/route/${activity.route_id}`);
+}
+
+export async function deleteActivity(activityId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const activity = await db.query.activityLogs.findFirst({
+    where: eq(activityLogs.id, activityId),
+  });
+
+  if (!activity) throw new Error("Activity not found");
+  if (activity.user_id !== session.user.id && !isAdmin(session.user.email)) throw new Error("Unauthorized");
+
+  await db.delete(activityLogs).where(eq(activityLogs.id, activityId));
+
+  revalidatePath(`/route/${activity.route_id}`);
+}
+
+export async function voteGrade(routeId: string, vote: number) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  if (![-1, 0, 1].includes(vote)) throw new Error("Invalid vote");
+
+  // Delete existing vote
+  await db.delete(activityLogs).where(
+    and(
+      eq(activityLogs.user_id, session.user.id),
+      eq(activityLogs.route_id, routeId),
+      eq(activityLogs.action_type, "VOTE")
+    )
+  );
+
+  // Insert new vote
+  await db.insert(activityLogs).values({
+    user_id: session.user.id,
+    user_name: session.user.name,
+    user_image: session.user.image,
+    route_id: routeId,
+    action_type: "VOTE",
+    content: vote.toString(),
+  });
+
+  revalidatePath(`/route/${routeId}`);
+}
+
 export type BrowserRoute = {
   id: string;
   wall_id: string;
@@ -341,6 +409,8 @@ export type BrowserRoute = {
   set_date: string;
   attributes: string[];
   difficulty_label: string | null;
+  style: string | null;
+  hold_type: string | null;
   avg_rating: number;
   comment_count: number;
   user_status: "SEND" | "FLASH" | null;
@@ -382,6 +452,8 @@ export async function getBrowserRoutes(): Promise<BrowserRoute[]> {
       set_date: route.set_date, // Ensure string
       attributes: route.attributes || [],
       difficulty_label: route.difficulty_label,
+      style: route.style,
+      hold_type: route.hold_type,
       avg_rating: 0,
       comment_count: 0,
       user_status: null,

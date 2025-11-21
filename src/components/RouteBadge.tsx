@@ -23,6 +23,8 @@ interface RouteBadgeProps {
   set_date: string;
   avg_rating?: number;
   comment_count?: number;
+  style?: string | null;
+  hold_type?: string | null;
 }
 
 export function RouteBadge({ 
@@ -98,6 +100,21 @@ export function RouteBadge({
                 <span className="text-slate-400 font-mono uppercase">Set Date</span>
                 <span className="font-bold">{route.set_date ? new Date(route.set_date).toLocaleDateString() : "Unknown"}</span>
               </div>
+              {(route.style || route.hold_type) && (
+                <div className="pt-2 mt-2 border-t border-slate-100 flex flex-wrap gap-2">
+                  {route.style && (
+                    <Badge variant="secondary" className="text-[10px] px-1 h-5 bg-blue-50 text-blue-700 hover:bg-blue-100">
+                      {route.style}
+                    </Badge>
+                  )}
+                  {route.hold_type && (
+                    <Badge variant="secondary" className="text-[10px] px-1 h-5 bg-orange-50 text-orange-700 hover:bg-orange-100">
+                      {route.hold_type}
+                    </Badge>
+                  )}
+                </div>
+              )}
+
             </div>
           </div>
         </TooltipContent>

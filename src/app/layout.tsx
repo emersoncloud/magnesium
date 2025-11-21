@@ -5,8 +5,8 @@ import "./globals.css";
 const outfit = Outfit({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Route Mill",
-  description: "Climbing Gym Route Management",
+  title: "Rockmill Magnesium",
+  description: "Premium Climbing Route Management",
   manifest: "/manifest.json",
 };
 
@@ -19,6 +19,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta name="apple-mobile-web-app-title" content="Magnesium" />
+      </head>
       <body className={`${outfit.className} bg-slate-50 text-slate-900 antialiased`}>
         {children}
         <Toaster />

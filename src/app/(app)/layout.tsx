@@ -1,9 +1,6 @@
-import Link from "next/link";
-import { auth, isAdmin } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { LogOut } from "lucide-react";
 import NavBar from "@/components/NavBar";
 import { SettingsProvider } from "@/context/SettingsContext";
+import { auth, isAdmin } from "@/lib/auth";
 
 
 export default async function AppLayout({

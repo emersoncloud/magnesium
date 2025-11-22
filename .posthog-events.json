@@ -1,0 +1,77 @@
+[
+  {
+    "event_name": "user_signed_in",
+    "description": "User successfully signed in with Google OAuth",
+    "file_path": "src/lib/auth.ts"
+  },
+  {
+    "event_name": "route_sent",
+    "description": "User logged a successful send of a climbing route",
+    "file_path": "src/components/RouteActivity.tsx"
+  },
+  {
+    "event_name": "route_flashed",
+    "description": "User logged flashing a climbing route on first attempt",
+    "file_path": "src/components/RouteActivity.tsx"
+  },
+  {
+    "event_name": "route_attempted",
+    "description": "User logged an attempt on a climbing route",
+    "file_path": "src/components/RouteActivity.tsx"
+  },
+  {
+    "event_name": "route_rated",
+    "description": "User rated a climbing route (1-5 stars)",
+    "file_path": "src/components/StarRating.tsx"
+  },
+  {
+    "event_name": "grade_voted",
+    "description": "User voted on route difficulty (soft/fair/hard)",
+    "file_path": "src/components/GradeVoting.tsx"
+  },
+  {
+    "event_name": "comment_posted",
+    "description": "User posted a comment on a route",
+    "file_path": "src/components/RouteActivity.tsx"
+  },
+  {
+    "event_name": "personal_note_saved",
+    "description": "User saved a personal note on a route",
+    "file_path": "src/components/RouteActivity.tsx"
+  },
+  {
+    "event_name": "route_viewed",
+    "description": "User viewed a route details page (top of conversion funnel)",
+    "file_path": "src/components/RouteDetails.tsx"
+  },
+  {
+    "event_name": "routes_filtered",
+    "description": "User applied filters to browse routes",
+    "file_path": "src/components/RouteBrowser.tsx"
+  },
+  {
+    "event_name": "routes_sorted",
+    "description": "User sorted routes by a specific field",
+    "file_path": "src/components/RouteBrowser.tsx"
+  },
+  {
+    "event_name": "sync_initiated",
+    "description": "Admin initiated route sync from Google Sheets",
+    "file_path": "src/components/RouteSyncView.tsx"
+  },
+  {
+    "event_name": "sync_completed",
+    "description": "Route sync completed successfully",
+    "file_path": "src/components/RouteSyncView.tsx"
+  },
+  {
+    "event_name": "sync_failed",
+    "description": "Route sync failed with error",
+    "file_path": "src/components/RouteSyncView.tsx"
+  },
+  {
+    "event_name": "profile_viewed",
+    "description": "User viewed their own or another user's profile",
+    "file_path": "src/app/(app)/profile/[userId]/page.tsx"
+  }
+]

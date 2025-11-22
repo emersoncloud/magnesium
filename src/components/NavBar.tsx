@@ -2,22 +2,27 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Map, List, Activity, User as UserIcon, Settings } from "lucide-react";
+import { Map, List, Activity, User as UserIcon, Settings, Settings2, Megaphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
-
+import { SettingsProvider, useSettings } from "@/context/SettingsContext";
 import { User } from "next-auth";
+import { Switch } from "./ui/Switch";
+import posthog from "posthog-js";
 
 export default function NavBar({ user, isAdmin }: { user?: User | null, isAdmin?: boolean }) {
   const pathname = usePathname();
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
-
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [showBeta, setShowBeta] = useState(true);
+  const { gradeDisplay, toggleGradeDisplay } = useSettings();
+  
   const navItems = [
-    { name: "Sets", href: "/sets", icon: Map },
+    { name: "Map", href: "/gym", icon: Map },
     { name: "Routes", href: "/routes", icon: List },
     { name: "Feed", href: "/feed", icon: Activity },
     ...(user ? [{ name: "Profile", href: `/profile/${user.id}`, icon: UserIcon }] : []),
-    ...(isAdmin ? [{ name: "Sync", href: "/sync", icon: Settings }] : []),
+    ...(isAdmin ? [{ name: "Admin", href: "/admin", icon: Settings }] : []),
   ];
 
   // Determine active item (handle sub-routes if needed, e.g. /profile/123)
@@ -49,6 +54,44 @@ export default function NavBar({ user, isAdmin }: { user?: User | null, isAdmin?
           </Link>
         );
       })}
+      {/* Floating Action Button for Settings */}
+      <div className="fixed bottom-24 right-6 z-50 flex flex-col items-end gap-4">
+        {isSettingsOpen && (
+          <div className="bg-white border-2 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-2 animate-in slide-in-from-bottom-5 fade-in duration-200 min-w-[200px]">
+             <div className="flex flex-col gap-4">
+               <div className="flex items-center justify-between gap-4">
+                 <span className="font-mono text-xs uppercase font-bold">V-Scale / Diff</span>
+                 <Switch 
+                    checked={gradeDisplay === "difficulty"} 
+                    onCheckedChange={() => toggleGradeDisplay()}
+                    className="data-[state=checked]:bg-rockmill"
+                 />
+               </div>
+               <div className="flex items-center justify-between gap-4">
+                 <span className="font-mono text-xs uppercase font-bold">Show Beta</span>
+                 <Switch 
+                    checked={showBeta} 
+                    onCheckedChange={setShowBeta}
+                    className="data-[state=checked]:bg-rockmill"
+                 />
+               </div>
+               <button 
+               id="beta-button"
+                 className="w-full bg-rockmill text-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center hover:translate-y-1 hover:shadow-none transition-all"
+                
+               > Feedback&nbsp;
+                 <Megaphone className={`w-6 h-6 transition-transform duration-300`} />
+               </button>
+             </div>
+          </div>
+        )}
+        <button 
+          onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+          className="w-14 h-14 bg-rockmill text-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center hover:translate-y-1 hover:shadow-none transition-all"
+        >
+          <Settings2 className={`w-6 h-6 transition-transform duration-300 ${isSettingsOpen ? "rotate-180" : ""}`} />
+        </button>
+      </div>
     </nav>
   );
 }

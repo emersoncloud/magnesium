@@ -14,6 +14,7 @@ import { RouteBadge } from "@/components/RouteBadge";
 import { Switch } from "@/components/ui/Switch";
 import { Badge } from "@/components/ui/Badge";
 import { SetCard } from "@/components/SetCard";
+import posthog from "posthog-js";
 
 // Types
 type Route = {
@@ -88,12 +89,12 @@ function MarketingContent({
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link href="/sets">
-                <Button size="lg" variant="primary" className="h-16 px-10 text-base bg-black hover:bg-slate-800 text-white border-none">
+                <Button onClick={() => posthog.capture('marketing_page_view_live_routes_button_click')} size="lg" variant="primary" className="h-16 px-10 text-base bg-black hover:bg-slate-800 text-white border-none">
                   View Live Routes
                 </Button>
               </Link>
               <Link href="/login">
-                <Button size="lg" variant="secondary" className="h-16 px-10 text-base">
+                <Button onClick={() => posthog.capture('marketing_page_start_logging_button_click')} size="lg" variant="secondary" className="h-16 px-10 text-base">
                   Start Logging
                 </Button>
               </Link>

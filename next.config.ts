@@ -1,7 +1,19 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  rewrites: async () => {
+    return [
+      {
+        source: "/beta/:path*",
+        destination: "https://us.i.posthog.com/:path*",
+      },
+      {
+        source: "/beta/static/:path*",
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+      },
+    ];
+  },
+  skipTrailingSlashRedirect: true, 
 };
 
 export default nextConfig;

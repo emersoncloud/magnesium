@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Mountain, Activity, TrendingUp, BarChart3, Settings2, Check, Zap, Star, MessageSquare } from "lucide-react";
+import { Mountain, Activity, TrendingUp, BarChart3, Settings2, Check, Zap, Star, MessageSquare, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { LoginButton } from "@/components/LoginButton";
 import { Card } from "@/components/ui/Card";
@@ -26,7 +26,7 @@ type Route = {
   set_date: string;
 };
 
-type ActivityItem = any; 
+type ActivityItem = any;
 
 interface MarketingPageContentProps {
   routes: Route[];
@@ -37,11 +37,11 @@ interface MarketingPageContentProps {
   gymStats: { totalRoutes: number; gradeCount: number };
 }
 
-function MarketingContent({ 
-  routes, 
-  recentActivity, 
-  exampleUserActivity, 
-  recentSend, 
+function MarketingContent({
+  routes,
+  recentActivity,
+  exampleUserActivity,
+  recentSend,
   newSet,
   gymStats
 }: MarketingPageContentProps) {
@@ -53,8 +53,8 @@ function MarketingContent({
   return (
     <div className="flex flex-col min-h-screen relative bg-slate-50 font-sans selection:bg-rockmill selection:text-white overflow-x-hidden">
       {/* Global Technical Grid Background */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0" 
-           style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '40px 40px' }} 
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0"
+        style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '40px 40px' }}
       />
 
       {/* Navigation */}
@@ -64,7 +64,7 @@ function MarketingContent({
           <span className="text-2xl font-black font-rockmill tracking-tighter sm:hidden text-rockmill">RM<span className="text-slate-400">Mg</span></span>
         </Link>
         <nav className="ml-auto flex gap-6 items-center">
-          
+
           <LoginButton />
         </nav>
       </header>
@@ -72,7 +72,7 @@ function MarketingContent({
       <main className="flex-1 pt-20">
         {/* Hero Section - Component Composition */}
         <section className="relative w-full min-h-[90vh] flex flex-col lg:flex-row items-center justify-center container mx-auto px-4 md:px-6 gap-12 lg:gap-24">
-          
+
           {/* Hero Text */}
           <div className="flex-1 text-center lg:text-left z-10 pt-10 lg:pt-0">
             <div className="inline-block mb-6 px-4 py-1 border-2 border-black bg-rockmill transform -skew-x-12 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -86,7 +86,7 @@ function MarketingContent({
             <p className="max-w-xl text-lg md:text-xl text-slate-600 font-medium mb-10 leading-relaxed mx-auto lg:mx-0 text-balance">
               View the live routes set at Rock Mill. Track your sends and attempts to build your personal profile. Comment and rate routes to provide feedback to the setters.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link href="/sets">
                 <Button onClick={() => posthog.capture('marketing_page_view_live_routes_button_click')} size="lg" variant="primary" className="h-16 px-10 text-base bg-black hover:bg-slate-800 text-white border-none">
@@ -104,7 +104,7 @@ function MarketingContent({
           {/* Hero Visuals - Skewed Component Composition */}
           <div className="flex-1 relative w-full max-w-[600px] lg:h-[500px] mt-12 lg:mt-0 flex flex-col gap-8 items-center lg:block">
             {/* Floating Elements */}
-            
+
             {/* Recent Send Card */}
             {recentSend && (
               <div className="lg:absolute lg:top-10 lg:left-0 z-20 transform lg:-rotate-6 hover:rotate-0 transition-transform duration-500 group">
@@ -115,15 +115,15 @@ function MarketingContent({
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-black text-white flex items-center justify-center font-bold rounded-full overflow-hidden">
-                       {recentSend.user_image ? (
-                         <img src={recentSend.user_image} className="w-full h-full object-cover" />
-                       ) : (
-                         recentSend.user_name?.[0] || "?"
-                       )}
+                      {recentSend.user_image ? (
+                        <img src={recentSend.user_image} className="w-full h-full object-cover" />
+                      ) : (
+                        recentSend.user_name?.[0] || "?"
+                      )}
                     </div>
                     <div>
                       <div className="font-bold text-sm mb-1">{recentSend.user_name || "Climber"}</div>
-                      <RouteBadge 
+                      <RouteBadge
                         route={{
                           id: recentSend.route_id,
                           grade: recentSend.route_grade,
@@ -143,23 +143,23 @@ function MarketingContent({
 
             {/* sets Stats Card */}
             <div className="lg:absolute lg:top-1/2 lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:-translate-y-1/2 z-10 hover:scale-105 transition-transform duration-500">
-               <Card className="w-80 p-6 text-white border-2 border-rockmill shadow-[16px_16px_0px_0px_rgba(0,0,0,0.3)]">
-                 <div className="flex items-center gap-2 mb-4 text-rockmill">
-                   <TrendingUp className="w-5 h-5" />
-                   <span className="font-mono uppercase tracking-widest text-xs">Gym Stats</span>
-                 </div>
-                 <div className="text-4xl text-black mb-1">{gymStats.totalRoutes} <span className="text-black text-lg">Routes</span></div>
-                 <div className="text-sm text-black mb-4">Across {gymStats.gradeCount} difficulties</div>
-                 <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                   <div className="h-full bg-rockmill w-3/4" />
-                 </div>
-               </Card>
+              <Card className="w-80 p-6 text-white border-2 border-rockmill shadow-[16px_16px_0px_0px_rgba(0,0,0,0.3)]">
+                <div className="flex items-center gap-2 mb-4 text-rockmill">
+                  <TrendingUp className="w-5 h-5" />
+                  <span className="font-mono uppercase tracking-widest text-xs">Gym Stats</span>
+                </div>
+                <div className="text-4xl text-black mb-1">{gymStats.totalRoutes} <span className="text-black text-lg">Routes</span></div>
+                <div className="text-sm text-black mb-4">Across {gymStats.gradeCount} difficulties</div>
+                <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-rockmill w-3/4" />
+                </div>
+              </Card>
             </div>
 
             {/* New Set Card */}
             {newSet && (
               <div className="lg:absolute lg:bottom-10 lg:right-0 z-20 transform lg:rotate-3 hover:rotate-0 transition-transform duration-500">
-                <SetCard 
+                <SetCard
                   wallName={newSet.wallName}
                   routeCount={newSet.count}
                   date={newSet.date}
@@ -168,7 +168,7 @@ function MarketingContent({
                 />
               </div>
             )}
-            
+
             {/* Background Decorative Elements */}
             <div className="absolute inset-0 bg-rockmill/10 rounded-full blur-3xl -z-10" />
           </div>
@@ -197,7 +197,7 @@ function MarketingContent({
                   <span>Deep Analytics</span>
                 </div>
                 <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">
-                  Know Your<br/>Climbing Style.
+                  Know Your<br />Climbing Style.
                 </h2>
                 <p className="text-lg text-slate-600">
                   Magnesium automatically analyzes your sends to visualize your grade pyramid, consistency, and style preferences.
@@ -211,7 +211,7 @@ function MarketingContent({
                   ))}
                 </ul>
               </div>
-              
+
               <div className="flex-1 w-full space-y-6">
                 <div className="grid gap-6">
                   <GradeChart activity={exampleUserActivity} externalMode={gradeDisplay === "v-scale" ? "V-SCALE" : "DIFFICULTY"} hideControls />
@@ -244,53 +244,53 @@ function MarketingContent({
                     </div>
                     <div className="text-xs text-slate-400 font-mono">{new Date(item.created_at!).toLocaleDateString()}</div>
                   </div>
-                  
+
                   <div className="flex-1">
                     {item.action_type === "SEND" && (
-                        <div className="bg-green-50 border border-green-100 p-3 rounded text-center">
-                            <div className="text-green-600 font-black uppercase tracking-tighter text-lg">SENT</div>
-                            <div className="text-xs font-bold text-slate-700">{item.route_label || "Route"}</div>
-                        </div>
+                      <div className="bg-green-50 border border-green-100 p-3 rounded text-center">
+                        <div className="text-green-600 font-black uppercase tracking-tighter text-lg">SENT</div>
+                        <div className="text-xs font-bold text-slate-700">{item.route_label || "Route"}</div>
+                      </div>
                     )}
                     {item.action_type === "FLASH" && (
-                        <div className="bg-yellow-50 border border-yellow-100 p-3 rounded text-center">
-                            <div className="text-yellow-600 font-black uppercase tracking-tighter text-lg">FLASHED</div>
-                            <div className="text-xs font-bold text-slate-700">{item.route_label || "Route"}</div>
-                        </div>
+                      <div className="bg-yellow-50 border border-yellow-100 p-3 rounded text-center">
+                        <div className="text-yellow-600 font-black uppercase tracking-tighter text-lg">FLASHED</div>
+                        <div className="text-xs font-bold text-slate-700">{item.route_label || "Route"}</div>
+                      </div>
                     )}
                     {item.action_type === "COMMENT" && (
-                        <div className="bg-slate-50 border border-slate-100 p-3 rounded">
-                             <div className="flex items-center gap-1 text-slate-400 text-xs font-mono uppercase mb-1">
-                                <MessageSquare className="w-3 h-3" /> Comment
-                             </div>
-                             <div className="text-sm text-slate-700 italic">
-                                {item.content}
-                             </div>
+                      <div className="bg-slate-50 border border-slate-100 p-3 rounded">
+                        <div className="flex items-center gap-1 text-slate-400 text-xs font-mono uppercase mb-1">
+                          <MessageSquare className="w-3 h-3" /> Comment
                         </div>
+                        <div className="text-sm text-slate-700 italic">
+                          {item.content}
+                        </div>
+                      </div>
                     )}
                     {item.action_type === "RATING" && (
-                        <div className="bg-slate-50 border border-slate-100 p-3 rounded text-center">
-                             <div className="flex justify-center gap-1 text-yellow-400 mb-1">
-                                {[...Array(5)].map((_, i) => (
-                                    <Star key={i} className={`w-4 h-4 ${i < parseInt(item.content) ? "fill-current" : "text-slate-200"}`} />
-                                ))}
-                             </div>
-                             <div className="text-xs font-bold text-slate-700">{item.route_label || "Route"}</div>
+                      <div className="bg-slate-50 border border-slate-100 p-3 rounded text-center">
+                        <div className="flex justify-center gap-1 text-yellow-400 mb-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className={`w-4 h-4 ${i < parseInt(item.content) ? "fill-current" : "text-slate-200"}`} />
+                          ))}
                         </div>
+                        <div className="text-xs font-bold text-slate-700">{item.route_label || "Route"}</div>
+                      </div>
                     )}
                   </div>
 
                   {item.route_grade && (
                     <div className="flex justify-end">
-                       <Badge variant="outline" className="font-mono text-[10px] border-black">
-                         {item.route_grade}
-                       </Badge>
+                      <Badge variant="outline" className="font-mono text-[10px] border-black">
+                        {item.route_grade}
+                      </Badge>
                     </div>
                   )}
                 </Card>
               ))}
             </div>
-            
+
             <div className="text-center mt-12">
               <Link href="/sets">
                 <Button variant="secondary" className="border-2 border-black bg-transparent hover:bg-black hover:text-white">
@@ -319,34 +319,41 @@ function MarketingContent({
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
         {isSettingsOpen && (
           <div className="bg-white border-2 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-2 animate-in slide-in-from-bottom-5 fade-in duration-200 min-w-[200px]">
-             <div className="flex flex-col gap-4">
-               <div className="flex items-center justify-between gap-4">
-                 <span className="font-mono text-xs uppercase font-bold">V-Scale / Diff</span>
-                 <Switch 
-                    checked={gradeDisplay === "difficulty"} 
-                    onCheckedChange={() => toggleGradeDisplay()}
-                    className="data-[state=checked]:bg-rockmill"
-                 />
-               </div>
-               <div className="flex items-center justify-between gap-4">
-                 <span className="font-mono text-xs uppercase font-bold">Show Beta</span>
-                 <Switch 
-                    checked={showBeta} 
-                    onCheckedChange={setShowBeta}
-                    className="data-[state=checked]:bg-rockmill"
-                 />
-               </div>
-             </div>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between gap-4">
+                <span className="font-mono text-xs uppercase font-bold">V-Scale / Diff</span>
+                <Switch
+                  checked={gradeDisplay === "difficulty"}
+                  onCheckedChange={() => toggleGradeDisplay()}
+                  className="data-[state=checked]:bg-rockmill"
+                />
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <span className="font-mono text-xs uppercase font-bold">Show Beta</span>
+                <Switch
+                  checked={showBeta}
+                  onCheckedChange={setShowBeta}
+                  className="data-[state=checked]:bg-rockmill"
+                />
+              </div>
+              <button
+                id="beta-button"
+                className="w-full bg-rockmill text-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center hover:translate-y-1 hover:shadow-none transition-all"
+
+              > Feedback&nbsp;
+                <Megaphone className={`w-6 h-6 transition-transform duration-300`} />
+              </button>
+            </div>
           </div>
         )}
-        <button 
+        <button
           onClick={() => setIsSettingsOpen(!isSettingsOpen)}
           className="w-14 h-14 bg-rockmill text-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center hover:translate-y-1 hover:shadow-none transition-all"
         >
           <Settings2 className={`w-6 h-6 transition-transform duration-300 ${isSettingsOpen ? "rotate-180" : ""}`} />
         </button>
       </div>
-      
+
       <style jsx global>{`
         @keyframes marquee {
           0% { transform: translateX(0); }

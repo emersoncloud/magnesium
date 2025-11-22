@@ -63,22 +63,14 @@ function MarketingContent({
           <span className="text-2xl font-black font-rockmill tracking-tighter sm:hidden text-rockmill">RM<span className="text-slate-400">Mg</span></span>
         </Link>
         <nav className="ml-auto flex gap-6 items-center">
-          <Link className="text-xs font-mono uppercase tracking-widest hover:underline underline-offset-4 hover:text-rockmill transition-colors hidden md:block" href="#routes">
-            Routes
-          </Link>
-          <Link className="text-xs font-mono uppercase tracking-widest hover:underline underline-offset-4 hover:text-rockmill transition-colors hidden md:block" href="#analytics">
-            Analytics
-          </Link>
-          <Link className="text-xs font-mono uppercase tracking-widest hover:underline underline-offset-4 hover:text-rockmill transition-colors hidden md:block" href="#community">
-            Community
-          </Link>
+          
           <LoginButton />
         </nav>
       </header>
 
       <main className="flex-1 pt-20">
         {/* Hero Section - Component Composition */}
-        <section className="relative w-full min-h-[90vh] flex flex-col lg:flex-row items-center justify-center container px-4 md:px-6 py-12 gap-12 lg:gap-24">
+        <section className="relative w-full min-h-[90vh] flex flex-col lg:flex-row items-center justify-center container mx-auto px-4 md:px-6 gap-12 lg:gap-24">
           
           {/* Hero Text */}
           <div className="flex-1 text-center lg:text-left z-10 pt-10 lg:pt-0">
@@ -87,7 +79,7 @@ function MarketingContent({
                 // Live Data
               </span>
             </div>
-            <h1 className="text-3xl md:text-8xl font-black tracking-tighter text-black mb-8 leading-[0.9] text-balance">
+            <h1 className="text-3xl md:text-8xl font-black tracking-tighter mb-8 text-balance">
               A community logbook for Rock Mill climbers
             </h1>
             <p className="max-w-xl text-lg md:text-xl text-slate-600 font-medium mb-10 leading-relaxed mx-auto lg:mx-0 text-balance">
@@ -150,14 +142,14 @@ function MarketingContent({
 
             {/* sets Stats Card */}
             <div className="lg:absolute lg:top-1/2 lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:-translate-y-1/2 z-10 hover:scale-105 transition-transform duration-500">
-               <Card className="w-80 p-6 bg-zinc-900 text-white border-2 border-rockmill shadow-[16px_16px_0px_0px_rgba(0,0,0,0.3)]">
+               <Card className="w-80 p-6 text-white border-2 border-rockmill shadow-[16px_16px_0px_0px_rgba(0,0,0,0.3)]">
                  <div className="flex items-center gap-2 mb-4 text-rockmill">
                    <TrendingUp className="w-5 h-5" />
                    <span className="font-mono uppercase tracking-widest text-xs">Gym Stats</span>
                  </div>
-                 <div className="text-4xl font-black mb-1">{gymStats.totalRoutes} <span className="text-slate-500 text-lg">Routes</span></div>
-                 <div className="text-sm text-slate-400 mb-4">Across {gymStats.gradeCount} grades</div>
-                 <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
+                 <div className="text-4xl text-black mb-1">{gymStats.totalRoutes} <span className="text-black text-lg">Routes</span></div>
+                 <div className="text-sm text-black mb-4">Across {gymStats.gradeCount} difficulties</div>
+                 <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
                    <div className="h-full bg-rockmill w-3/4" />
                  </div>
                </Card>
@@ -196,7 +188,7 @@ function MarketingContent({
 
         {/* Analytics Showcase (Example Profile) */}
         <section id="analytics" className="py-24 bg-white border-b-2 border-black">
-          <div className="container px-4 md:px-6">
+          <div className="container mx-auto px-4 md:px-6">
             <div className="flex flex-col md:flex-row gap-12 items-start">
               <div className="flex-1 space-y-6 sticky top-24">
                 <div className="inline-flex items-center gap-2 text-rockmill font-mono uppercase tracking-widest text-sm">
@@ -231,7 +223,7 @@ function MarketingContent({
 
         {/* Live Community Feed */}
         <section id="community" className="py-24 bg-slate-100 border-b-2 border-black">
-          <div className="container px-4 md:px-6">
+          <div className="container mx-auto px-4 md:px-6">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4">Community Pulse</h2>
               <p className="text-slate-500 font-mono uppercase tracking-widest">
@@ -310,7 +302,7 @@ function MarketingContent({
       </main>
 
       <footer className="bg-white border-t-2 border-black py-12">
-        <div className="container px-4 md:px-6">
+        <div className="container mx-auto px-4 md:px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
               <span className="text-3xl font-black font-rockmill tracking-tighter text-rockmill transform -skew-x-12 inline-block">

@@ -33,7 +33,7 @@ export default async function LandingPage() {
 
   // 4. Calculate Gym Stats
   const totalRoutes = rawRoutes.length;
-  const uniqueGrades = new Set(rawRoutes.map(r => r.grade)).size;
+  const uniqueGrades = new Set(rawRoutes.map(r => r.difficulty_label)).size;
 
   // 5. Find Newest Set
   // Group routes by wall and find the one with the most recent set_date

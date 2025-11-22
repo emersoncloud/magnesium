@@ -7,7 +7,11 @@ import { revalidatePath } from "next/cache";
 import { redis } from "@/lib/kv";
 import { getSheetData } from "@/lib/google-sheets";
 import { WALLS } from "@/lib/constants/walls";
-import { auth, isAdmin } from "@/lib/auth";
+import { auth, isAdmin, signOut } from "@/lib/auth";
+
+export async function logout() {
+  await signOut({ redirectTo: "/" });
+}
 
 export async function getRoutes() {
   return await db.select().from(routes).orderBy(desc(routes.created_at));
@@ -42,7 +46,7 @@ export async function createRoute(data: typeof routes.$inferInsert) {
   const validated = RouteSchema.parse(data);
   await db.insert(routes).values(validated);
   revalidatePath("/sets");
-  revalidatePath("/admin");
+  revalidatePath("/sync");
 }
 
 export async function updateRoute(id: string, data: Partial<typeof routes.$inferInsert>) {
@@ -53,7 +57,7 @@ export async function updateRoute(id: string, data: Partial<typeof routes.$infer
   await db.update(routes).set(validated).where(eq(routes.id, id));
   revalidatePath(`/route/${id}`);
   revalidatePath("/sets");
-  revalidatePath("/admin");
+  revalidatePath("/sync");
 }
 
 export async function deleteRoute(id: string) {
@@ -63,7 +67,7 @@ export async function deleteRoute(id: string) {
   if (!id) throw new Error("ID is required");
   await db.delete(routes).where(eq(routes.id, id));
   revalidatePath("/sets");
-  revalidatePath("/admin");
+  revalidatePath("/sync");
 }
 
 export async function getGradeDistribution() {
@@ -293,7 +297,7 @@ export async function ingestRoutes() {
     }
 
     revalidatePath("/sets");
-    revalidatePath("/admin");
+    revalidatePath("/sync");
     return { success: true, count, archivedCount };
   } catch (error: any) {
     console.error("Ingestion failed:", error);
@@ -487,4 +491,130 @@ export async function getBrowserRoutes(): Promise<BrowserRoute[]> {
       user_status: userStatusMap.get(route.id) || null,
     }))
     .sort((a, b) => new Date(b.set_date).getTime() - new Date(a.set_date).getTime());
+}
+
+export type SyncPreview = {
+  newRoutes: any[];
+  existingRoutes: any[];
+  missingRoutes: any[];
+};
+
+export async function previewSync(): Promise<SyncPreview> {
+  const session = await auth();
+  if (!isAdmin(session?.user?.email)) {
+    throw new Error("Unauthorized");
+  }
+
+  const rows = await getSheetData();
+  const activeRoutes = await db.select().from(routes).where(eq(routes.status, "active"));
+  
+  const newRoutes: any[] = [];
+  const existingRoutes: any[] = [];
+  const processedRouteIds = new Set<string>();
+
+  for (const row of rows) {
+    // Row format: [ZONE, ROUTE, COLOR, GRADE, STYLE, HOLD TYPE, SETTER, DATE]
+    const [zoneStr, label, color, grade, style, holdType, setter, dateStr] = row;
+
+    if (!grade || !color || !zoneStr) continue;
+
+    // Map Zone to Wall ID
+    const zoneIndex = parseInt(zoneStr) - 1;
+    if (isNaN(zoneIndex) || zoneIndex < 0 || zoneIndex >= WALLS.length) {
+      continue;
+    }
+    const wall = WALLS[zoneIndex];
+
+    // Parse date
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+      date.setTime(Date.now());
+    } else {
+      const currentYear = new Date().getFullYear();
+      date.setFullYear(currentYear);
+    }
+    const dateIso = date.toISOString().split('T')[0]; // YYYY-MM-DD
+
+    // Check for existing route with EXACT match on key properties
+    const existingRoute = activeRoutes.find(r =>
+      r.wall_id === wall.id &&
+      r.grade === grade &&
+      r.color === color &&
+      r.difficulty_label === (label || null) &&
+      r.set_date === dateIso // Strict date match
+    );
+
+    const routeData = {
+      wall_id: wall.id,
+      grade,
+      color,
+      setter_name: setter || "Unknown",
+      set_date: dateIso,
+      difficulty_label: label || null,
+      style: style || null,
+      hold_type: holdType || null,
+    };
+
+    if (existingRoute) {
+      existingRoutes.push({ ...existingRoute, ...routeData, id: existingRoute.id });
+      processedRouteIds.add(existingRoute.id);
+    } else {
+      newRoutes.push(routeData);
+    }
+  }
+
+  const missingRoutes = activeRoutes.filter(r => !processedRouteIds.has(r.id));
+
+  return { newRoutes, existingRoutes, missingRoutes };
+}
+
+export async function confirmSync() {
+  const session = await auth();
+  if (!isAdmin(session?.user?.email)) {
+    throw new Error("Unauthorized");
+  }
+
+  // Re-run logic to be safe and stateless
+  const { newRoutes, existingRoutes, missingRoutes } = await previewSync();
+  
+  let count = 0;
+  let archivedCount = 0;
+  let updatedCount = 0;
+
+  // Insert New
+  for (const route of newRoutes) {
+    await db.insert(routes).values({
+      ...route,
+      status: "active",
+      attributes: [],
+    });
+    count++;
+  }
+
+  // Archive Missing
+  for (const route of missingRoutes) {
+    await db.update(routes)
+      .set({
+        status: "archived",
+        removed_at: new Date()
+      })
+      .where(eq(routes.id, route.id));
+    archivedCount++;
+  }
+
+  // Update Existing (Mutable fields)
+  for (const route of existingRoutes) {
+     // We could optimize this to only update if changed, but for now just update mutable fields
+     await db.update(routes).set({
+         style: route.style,
+         hold_type: route.hold_type,
+         setter_name: route.setter_name // Allow updating setter name too
+     }).where(eq(routes.id, route.id));
+     updatedCount++;
+  }
+
+  revalidatePath("/sets");
+  revalidatePath("/sync");
+  
+  return { success: true, count, archivedCount, updatedCount };
 }

@@ -17,7 +17,7 @@ export default function NavBar({ user, isAdmin }: { user?: User | null, isAdmin?
     { name: "Routes", href: "/routes", icon: List },
     { name: "Feed", href: "/feed", icon: Activity },
     ...(user ? [{ name: "Profile", href: `/profile/${user.id}`, icon: UserIcon }] : []),
-    ...(isAdmin ? [{ name: "Admin", href: "/admin", icon: Settings }] : []),
+    ...(isAdmin ? [{ name: "Sync", href: "/sync", icon: Settings }] : []),
   ];
 
   // Determine active item (handle sub-routes if needed, e.g. /profile/123)

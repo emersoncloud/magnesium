@@ -1,45 +1,50 @@
-import { getRoute, getRouteActivity, getPersonalNote } from "@/app/actions";
-import { WALLS } from "@/lib/constants/walls";
+"use client";
+
 import Link from "next/link";
 import { ArrowLeft, Star, Calendar, User, Activity, Hash, MapPin, Info, GripHorizontal, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
-import { auth } from "@/lib/auth";
 import RouteActivity from "@/components/RouteActivity";
 import StarRating from "@/components/StarRating";
 import GradeVoting from "@/components/GradeVoting";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { BrowserRoute } from "@/app/actions";
 
-export default async function RoutePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const route = await getRoute(id);
-  if (!route) return <div>Route not found</div>;
+type RouteDetailsViewProps = {
+  route: any; // Using any for now to avoid complex type imports, ideally should be Route type
+  wall: any;
+  activity: any[];
+  personalNote: string;
+  user: any;
+  avgRating: string | null;
+  ratingsCount: number;
+  myRating: number;
+  gradeVotes: number[];
+  myVote: number | null;
+};
 
-  const wall = WALLS.find((w) => w.id === route.wall_id);
-  const activity = await getRouteActivity(id);
-  const personalNote = await getPersonalNote(id);
-  const session = await auth();
-  
-  const user = session?.user?.email ? {
-    id: session.user.id || session.user.email, // Fallback to email if ID missing (shouldn't happen with new auth)
-    email: session.user.email,
-    name: session.user.name || null,
-    image: session.user.image || null,
-  } : null;
-
-  const myRatingLog = activity.find(a => a.user_id === session?.user?.email && a.action_type === "RATING");
-  const myRating = myRatingLog ? parseInt(myRatingLog.content || "0") : 0;
-
-  const ratings = activity.filter(a => a.action_type === "RATING" && a.content).map(a => parseInt(a.content!));
-  const avgRating = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : null;
-
-  const gradeVotes = activity.filter(a => a.action_type === "VOTE" && a.content).map(a => parseInt(a.content!));
-  const myVoteLog = activity.find(a => a.user_id === session?.user?.email && a.action_type === "VOTE");
-  const myVote = myVoteLog ? parseInt(myVoteLog.content || "0") : null;
-
+export default function RouteDetailsView({
+  route,
+  wall,
+  activity,
+  personalNote,
+  user,
+  avgRating,
+  ratingsCount,
+  myRating,
+  gradeVotes,
+  myVote,
+}: RouteDetailsViewProps) {
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
+    <motion.div 
+      layoutId={`route-card-${route.id}`}
+      className="min-h-screen pb-24 transition-colors duration-500 bg-white" 
+      style={{ backgroundColor: route.color }}
+      initial={{ borderRadius: 12 }}
+      animate={{ borderRadius: 0 }}
+    >
       {/* Global Grid Background */}
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-0" />
+      <div className="fixed inset-0 bg-[linear-gradient(to_right,#00000012_1px,transparent_1px),linear-gradient(to_bottom,#00000012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-0 mix-blend-overlay" />
 
       <div className="relative z-10 max-w-4xl mx-auto pt-8 px-4 md:px-8">
         
@@ -73,9 +78,11 @@ export default async function RoutePage({ params }: { params: Promise<{ id: stri
                   </span>
                 </div>
                 
-                <h1 className="text-7xl md:text-8xl font-black tracking-tighter text-black leading-none mb-2">
-                  {route.difficulty_label || route.grade}
-                </h1>
+                <motion.div layoutId={`route-grade-${route.id}`}>
+                  <h1 className="text-7xl md:text-8xl font-black tracking-tighter text-black leading-none mb-2">
+                    {route.difficulty_label || route.grade}
+                  </h1>
+                </motion.div>
                 
                 {route.difficulty_label && (
                   <div className="text-2xl font-bold text-slate-400 flex items-center gap-2">
@@ -146,19 +153,19 @@ export default async function RoutePage({ params }: { params: Promise<{ id: stri
               </div>
               
               <div className="text-xs text-slate-500 font-mono mb-6">
-                Based on {ratings.length} climber logs
+                Based on {ratingsCount} climber logs
               </div>
 
               <div className="pt-6 border-t border-slate-100">
                 <h4 className="font-bold text-sm mb-3">Your Assessment</h4>
                 <div className="flex justify-center">
-                  <StarRating routeId={id} initialRating={myRating} />
+                  <StarRating routeId={route.id} initialRating={myRating} />
                 </div>
               </div>
             </div>
 
             {/* Grade Voting Module */}
-            <GradeVoting routeId={id} initialVotes={gradeVotes} userVote={myVote} />
+            <GradeVoting routeId={route.id} initialVotes={gradeVotes} userVote={myVote} />
 
             {/* Setter Notes Module */}
             {(route.setter_notes || route.setter_beta) && (
@@ -208,7 +215,7 @@ export default async function RoutePage({ params }: { params: Promise<{ id: stri
               
               <div className="p-6">
                 <RouteActivity 
-                  routeId={id} 
+                  routeId={route.id} 
                   initialActivity={activity} 
                   initialPersonalNote={personalNote || ""}
                   user={user}
@@ -219,6 +226,6 @@ export default async function RoutePage({ params }: { params: Promise<{ id: stri
 
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

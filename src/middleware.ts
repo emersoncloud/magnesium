@@ -6,7 +6,7 @@ export default auth((req) => {
     req.nextUrl.pathname.startsWith('/routes') ||
     req.nextUrl.pathname.startsWith('/feed') ||
     req.nextUrl.pathname.startsWith('/profile') ||
-    req.nextUrl.pathname.startsWith('/admin');
+    req.nextUrl.pathname.startsWith('/sync');
 
   if (isOnDashboard) {
     if (isLoggedIn) return;

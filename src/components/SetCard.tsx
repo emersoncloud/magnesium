@@ -12,15 +12,16 @@ interface SetCardProps {
 }
 
 const COLOR_MAP: Record<string, string> = {
-  "Red": "bg-red-500",
-  "Blue": "bg-blue-500",
-  "Green": "bg-green-500",
-  "Yellow": "bg-yellow-500",
-  "Black": "bg-black",
-  "White": "bg-white",
-  "Purple": "bg-purple-500",
-  "Orange": "bg-orange-500",
-  "Pink": "bg-pink-500",
+  "Purple": "bg-[var(--color-route-purple)]",
+  "Pink": "bg-[var(--color-route-pink)]",
+  "Blue": "bg-[var(--color-route-blue)]",
+  "Yellow": "bg-[var(--color-route-yellow)]",
+  "Orange": "bg-[var(--color-route-orange)]",
+  "Black": "bg-[var(--color-route-black)]",
+  "White": "bg-[var(--color-route-white)]",
+  "Green": "bg-[var(--color-route-green)]",
+  "Tan": "bg-[var(--color-route-tan)]",
+  "Wood": "bg-[var(--color-route-wood)]",
 };
 
 export function SetCard({ wallName, routeCount, date, colors = [], wallId, className }: SetCardProps) {
@@ -36,22 +37,22 @@ export function SetCard({ wallName, routeCount, date, colors = [], wallId, class
           </div>
         )}
       </div>
-      
+
       <div className="space-y-4">
         <div className="flex items-center justify-between text-sm font-mono text-slate-500">
           <span>{date ? new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : "No Date"}</span>
           <span className="font-bold text-black">{routeCount} Routes</span>
         </div>
-        
+
         <div className="flex gap-1 justify-end h-3">
           {colors.slice(0, 5).map((colorName, i) => (
-             <div 
-               key={i} 
-               className={cn(
-                 "h-3 w-3 rounded-full border border-slate-200 shadow-sm transition-all duration-500 group-hover:w-4", 
-                 COLOR_MAP[colorName] || "bg-gray-400"
-               )} 
-             />
+            <div
+              key={i}
+              className={cn(
+                "h-3 w-3 rounded-full border border-slate-200 shadow-sm transition-all duration-500 group-hover:w-4",
+                COLOR_MAP[colorName] || "bg-gray-400"
+              )}
+            />
           ))}
         </div>
       </div>

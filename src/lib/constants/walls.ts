@@ -20,5 +20,5 @@ export const GRADES = [
 ] as const;
 
 export const COLORS = [
-  "Red", "Blue", "Green", "Yellow", "Black", "White", "Purple", "Orange", "Pink"
+  "Purple", "Pink", "Blue", "Yellow", "Orange", "Black", "White", "Green", "Tan", "Wood"
 ] as const;

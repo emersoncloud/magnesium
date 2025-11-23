@@ -30,72 +30,89 @@ export default function SeasonsLeaderboard({
         const rank = index + 1;
 
         return (
-          <Card
+          <div
             key={entry.userId}
             className={cn(
-              "p-4 flex items-center gap-4 transition-all hover:scale-[1.01]",
-              isCurrentUser
-                ? "border-yellow-400/50 bg-yellow-50/10 shadow-lg shadow-yellow-900/5"
-                : "border-slate-800/50 bg-slate-900/40"
+              "relative group transition-all duration-200 hover:-translate-y-1",
+              isCurrentUser ? "z-10" : "z-0"
             )}
           >
-            {/* Rank */}
-            <div className="w-8 flex justify-center">
-              {rank === 1 ? (
-                <Trophy className="w-6 h-6 text-yellow-400" />
-              ) : rank === 2 ? (
-                <Medal className="w-6 h-6 text-slate-300" />
-              ) : rank === 3 ? (
-                <Award className="w-6 h-6 text-amber-600" />
-              ) : (
-                <span className="text-lg font-bold text-slate-500">#{rank}</span>
-              )}
-            </div>
+            {/* Card Background & Border */}
+            <div className={cn(
+              "absolute inset-0 border-2 border-black transition-all duration-200",
+              isCurrentUser
+                ? "bg-yellow-50 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+                : "bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
+            )} />
 
-            {/* User Info */}
-            <Link href={`/profile/${entry.userId}`} className="flex items-center gap-3 flex-1 group">
-              <div className="relative w-10 h-10 rounded-full overflow-hidden bg-slate-800 border border-slate-700">
-                {entry.userImage ? (
-                  <Image
-                    src={entry.userImage}
-                    alt={entry.userName || "User"}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-500 font-bold text-xs">
-                    {entry.userName?.substring(0, 2).toUpperCase() || "??"}
+            {/* Content */}
+            <div className="relative p-4 flex items-center gap-4">
+              {/* Rank Badge */}
+              <div className={cn(
+                "w-12 h-12 flex items-center justify-center font-black text-xl border-2 border-black transform -skew-x-12",
+                rank === 1 ? "bg-yellow-400 text-black" :
+                  rank === 2 ? "bg-slate-200 text-black" :
+                    rank === 3 ? "bg-orange-300 text-black" :
+                      "bg-white text-slate-400"
+              )}>
+                <span className="transform skew-x-12">
+                  {rank === 1 ? <Trophy className="w-5 h-5" /> :
+                    rank === 2 ? <Medal className="w-5 h-5" /> :
+                      rank === 3 ? <Award className="w-5 h-5" /> :
+                        `#${rank}`}
+                </span>
+              </div>
+
+              {/* User Info */}
+              <Link href={`/profile/${entry.userId}`} className="flex items-center gap-4 flex-1 group/link">
+                <div className="relative w-10 h-10 border-2 border-black overflow-hidden bg-slate-100">
+                  {entry.userImage ? (
+                    <Image
+                      src={entry.userImage}
+                      alt={entry.userName || "User"}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400 font-black text-sm">
+                      {entry.userName?.substring(0, 2).toUpperCase() || "??"}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className={cn(
+                    "font-black uppercase tracking-tight text-lg leading-none group-hover/link:text-yellow-600 transition-colors",
+                    isCurrentUser ? "text-black" : "text-slate-800"
+                  )}>
+                    {entry.userName || "Anonymous Climber"}
+                    {isCurrentUser && <span className="ml-2 text-[10px] bg-black text-white px-1.5 py-0.5 rounded-sm align-middle tracking-widest font-mono">YOU</span>}
                   </div>
-                )}
-              </div>
-              <div>
-                <div className="font-bold text-slate-200 group-hover:text-yellow-400 transition-colors">
-                  {entry.userName || "Anonymous Climber"}
+                  <div className="text-xs font-mono text-slate-500 uppercase tracking-widest mt-1">
+                    Best: <span className="font-bold text-black">{entry.topGrade || "-"}</span>
+                  </div>
                 </div>
-                <div className="text-xs text-slate-500 flex items-center gap-2">
-                  <span>Best: {entry.topGrade || "-"}</span>
-                </div>
-              </div>
-            </Link>
+              </Link>
 
-            {/* Stats */}
-            <div className="flex items-center gap-6 text-right">
-              <div className="hidden sm:block">
-                <div className="text-xs text-slate-500 uppercase tracking-wider font-bold">Sends</div>
-                <div className="font-mono text-slate-300">{entry.sends}</div>
-              </div>
-              <div className="hidden sm:block">
-                <div className="text-xs text-slate-500 uppercase tracking-wider font-bold">Flashes</div>
-                <div className="font-mono text-slate-300">{entry.flashes}</div>
-              </div>
-              <div className="w-20">
-                <div className="text-xs text-slate-500 uppercase tracking-wider font-bold">Score</div>
-                <div className="text-xl font-black text-yellow-500 font-mono">
-                  {entry.score.toLocaleString()}
+              {/* Stats Grid */}
+              <div className="flex items-center gap-6 text-right">
+                <div className="hidden sm:block">
+                  <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-0.5">Sends</div>
+                  <div className="font-mono font-bold text-black">{entry.sends}</div>
+                </div>
+                <div className="hidden sm:block">
+                  <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-0.5">Flashes</div>
+                  <div className="font-mono font-bold text-black">{entry.flashes}</div>
+                </div>
+                <div className="w-24 pl-4 border-l-2 border-slate-100">
+                  <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-0.5">Score</div>
+                  <div className="text-2xl font-black text-black leading-none tracking-tighter">
+                    {entry.score.toLocaleString()}
+                  </div>
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
         );
       })}
     </div>

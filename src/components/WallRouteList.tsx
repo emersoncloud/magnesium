@@ -3,7 +3,7 @@
 import { BrowserRoute } from "@/app/actions";
 import Link from "next/link";
 import { Star, MessageSquare, Zap, CheckCircle2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getRouteColor } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 /**
@@ -100,7 +100,7 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
                   layoutId={`route-card-${route.id}`}
                   className="w-full h-full shadow-lg transition-all duration-300 ease-out group-hover:scale-110 group-hover:shadow-2xl group-hover:rotate-0"
                   style={{
-                    backgroundColor: route.color,
+                    backgroundColor: getRouteColor(route.color),
                     borderRadius: styles.borderRadius,
                     // Apply rotation and scale to the blob itself
                     transform: `rotate(${styles.rotate}deg) scale(${styles.scale})`

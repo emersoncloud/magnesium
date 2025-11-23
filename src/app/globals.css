@@ -37,6 +37,19 @@ body {
 
 @theme {
   --color-rockmill: #E1261D;
+
+  /* Route Colors */
+  --color-route-purple: #7E297E;
+  --color-route-pink: #DB518C;
+  --color-route-blue: #468CCB;
+  --color-route-yellow: #F4EC1A;
+  --color-route-orange: #F58120;
+  --color-route-black: #040706;
+  --color-route-white: #FCFDFF;
+  --color-route-green: #0D8040;
+  --color-route-tan: #CAA46D;
+  --color-route-wood: #F2EBD7;
+
   --animate-shimmer: shimmer 2s infinite linear;
 
   @keyframes shimmer {

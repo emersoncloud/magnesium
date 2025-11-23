@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import RouteActivity from "@/components/RouteActivity";
 import StarRating from "@/components/StarRating";
 import GradeVoting from "@/components/GradeVoting";
+import { cn, getRouteColor } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 import { InferSelectModel } from "drizzle-orm";
@@ -57,7 +58,7 @@ export default function RouteDetailsView({
     <motion.div
       layoutId={`route-card-${route.id}`}
       className="min-h-screen pb-24 transition-colors duration-500 bg-white"
-      style={{ backgroundColor: route.color }}
+      style={{ backgroundColor: getRouteColor(route.color) }}
       initial={{ borderRadius: 12 }}
       animate={{ borderRadius: 0 }}
     >
@@ -69,7 +70,7 @@ export default function RouteDetailsView({
         {/* Navigation Command */}
         <Link
           href={`/sets/${route.wall_id}`}
-          className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-slate-400 hover:text-black transition-colors mb-8 group"
+          className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-slate-400 hover:text-rockmill transition-colors mb-8 group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           <span>Return to Set // {wall?.name}</span>
@@ -89,7 +90,7 @@ export default function RouteDetailsView({
                 <div className="flex items-center gap-3 mb-4">
                   <div
                     className="h-3 w-24 transform -skew-x-12"
-                    style={{ backgroundColor: route.color.toLowerCase() }}
+                    style={{ backgroundColor: getRouteColor(route.color) }}
                   />
                   <span className="font-mono text-xs text-slate-400 uppercase tracking-widest">
                     ID: {route.id.slice(0, 8)}
@@ -151,7 +152,7 @@ export default function RouteDetailsView({
 
             {/* Rating Module */}
             <div className="bg-white border border-slate-200 p-6 shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1 h-full bg-yellow-400" />
+              <div className="absolute top-0 left-0 w-1 h-full bg-rockmill" />
               <h3 className="font-mono text-xs uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
                 <Star className="w-3 h-3" /> Community Rating
               </h3>

@@ -7,7 +7,7 @@ const outfit = Outfit({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: {
     default: "Rock Mill Magnesium",
-    template: "%s | Rock Mill Magnesium",
+    template: "%s | Mg",
   },
   description: "Climbing community site for Rock Mill. Track your progress and share your climbs.",
   manifest: "/manifest.json",

@@ -19,15 +19,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [gradeDisplay, setGradeDisplay] = useState<GradeDisplay>("v-scale");
   const [shareActivity, setShareActivity] = useState(true);
 
-  // Load from local storage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("route-mill-grade-display");
-    if ((saved === "v-scale" || saved === "difficulty") && saved !== gradeDisplay) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setGradeDisplay(saved);
-    }
-  }, [gradeDisplay]);
-
   useEffect(() => {
     const savedShare = localStorage.getItem("route-mill-share-activity");
     if (savedShare !== null) {

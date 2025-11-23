@@ -7,6 +7,7 @@ import { useState, useMemo } from "react";
 import { ArrowUpDown, Check, Zap, Star, MessageSquare, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { getRouteColor } from "@/lib/utils";
 
 type SortField = "grade" | "color" | "wall_id" | "avg_rating" | "comment_count" | "set_date" | "setter_name" | "style" | "hold_type";
 type SortDirection = "asc" | "desc";
@@ -202,7 +203,7 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full shadow-sm ring-1 ring-slate-100" style={{ backgroundColor: route.color.toLowerCase() }}></span>
+                      <span className="w-3 h-3 rounded-full shadow-sm ring-1 ring-slate-100" style={{ backgroundColor: getRouteColor(route.color) }}></span>
                       <span className="capitalize text-slate-600">{route.color}</span>
                     </div>
                   </td>

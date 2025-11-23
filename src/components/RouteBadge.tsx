@@ -3,7 +3,7 @@
 import React from "react";
 import { useSettings } from "@/context/SettingsContext";
 import { Badge } from "@/components/ui/Badge";
-import { cn } from "@/lib/utils";
+import { cn, getRouteColor } from "@/lib/utils";
 import { WALLS } from "@/lib/constants/walls";
 import {
   Tooltip,
@@ -27,12 +27,12 @@ interface RouteBadgeProps {
   hold_type?: string | null;
 }
 
-export function RouteBadge({ 
-  route, 
-  className = "", 
-  showWallName = true 
-}: { 
-  route: RouteBadgeProps; 
+export function RouteBadge({
+  route,
+  className = "",
+  showWallName = true
+}: {
+  route: RouteBadgeProps;
   className?: string;
   showWallName?: boolean;
 }) {
@@ -48,11 +48,11 @@ export function RouteBadge({
         <TooltipTrigger asChild>
           <div className={cn("inline-flex items-center group cursor-help", className)}>
             {/* Color Indicator - The Shard */}
-            <div 
-              className="h-5 w-3 transform -skew-x-12 border-2 border-black border-r-0" 
-              style={{ backgroundColor: route.color }}
+            <div
+              className="h-5 w-3 transform -skew-x-12 border-2 border-black border-r-0"
+              style={{ backgroundColor: getRouteColor(route.color) }}
             />
-            
+
             {/* Grade Label */}
             <div className="h-5 px-2 bg-white border-2 border-black flex items-center justify-center transform -skew-x-12 min-w-[2.5rem]">
               <span className="transform skew-x-12 font-mono text-xs font-bold uppercase tracking-wider">
@@ -78,15 +78,15 @@ export function RouteBadge({
                   {route.difficulty_label || route.grade}
                 </h4>
                 <div className="flex items-center gap-2 mt-1">
-                   <div className="w-2 h-2 rounded-full border border-black" style={{ backgroundColor: route.color }} />
-                   <span className="text-xs font-mono text-slate-500 uppercase">{route.color} Route</span>
+                  <div className="w-2 h-2 rounded-full border border-black" style={{ backgroundColor: getRouteColor(route.color) }} />
+                  <span className="text-xs font-mono text-slate-500 uppercase">{route.color} Route</span>
                 </div>
               </div>
               <Badge variant="outline" className="text-[10px] h-5">
                 {route.grade}
               </Badge>
             </div>
-            
+
             <div className="space-y-2 border-t-2 border-slate-100 pt-2 mt-2">
               <div className="flex justify-between text-xs">
                 <span className="text-slate-400 font-mono uppercase">Location</span>

@@ -2,7 +2,7 @@
 
 import { voteGrade } from "@/app/actions";
 import { cn } from "@/lib/utils";
-import { ThumbsDown, ThumbsUp, Minus } from "lucide-react";
+import { ThumbsDown, ThumbsUp, Minus, Turtle, Rabbit, Smile } from "lucide-react";
 import { useOptimistic, useTransition } from "react";
 
 type GradeVote = -1 | 0 | 1; // -1: Soft, 0: Fair, 1: Hard
@@ -67,8 +67,8 @@ export default function GradeVoting({
               : "border-slate-100 hover:border-green-200 text-slate-500 hover:text-green-600"
           )}
         >
-          <ThumbsDown className="w-5 h-5 mb-1" />
-          <span className="text-[10px] font-bold uppercase tracking-wider">Soft</span>
+          <Turtle className="w-5 h-5 mb-1" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">Easier</span>
         </button>
 
         <button
@@ -81,7 +81,7 @@ export default function GradeVoting({
               : "border-slate-100 hover:border-blue-200 text-slate-500 hover:text-blue-600"
           )}
         >
-          <Minus className="w-5 h-5 mb-1" />
+          <Smile className="w-5 h-5 mb-1" />
           <span className="text-[10px] font-bold uppercase tracking-wider">Fair</span>
         </button>
 
@@ -95,15 +95,15 @@ export default function GradeVoting({
               : "border-slate-100 hover:border-red-200 text-slate-500 hover:text-red-600"
           )}
         >
-          <ThumbsUp className="w-5 h-5 mb-1" />
-          <span className="text-[10px] font-bold uppercase tracking-wider">Hard</span>
+          <Rabbit className="w-5 h-5 mb-1" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">Tougher</span>
         </button>
       </div>
 
       {/* Progress Bars */}
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-xs">
-          <span className="w-8 text-right font-mono text-slate-400">Soft</span>
+          <span className="w-8 text-right font-mono text-slate-400">Easier</span>
           <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
             <div
               className="h-full bg-green-500 transition-all duration-500"
@@ -125,7 +125,7 @@ export default function GradeVoting({
         </div>
 
         <div className="flex items-center gap-2 text-xs">
-          <span className="w-8 text-right font-mono text-slate-400">Hard</span>
+          <span className="w-8 text-right font-mono text-slate-400">Tougher</span>
           <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
             <div
               className="h-full bg-red-500 transition-all duration-500"

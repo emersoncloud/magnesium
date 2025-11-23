@@ -45,11 +45,6 @@ function MarketingContent({
   newSet,
   gymStats
 }: MarketingPageContentProps) {
-  const { gradeDisplay, toggleGradeDisplay } = useSettings();
-  const [showBeta, setShowBeta] = useState(true);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-
-
   return (
     <div className="flex flex-col min-h-screen relative bg-slate-50 font-sans selection:bg-rockmill selection:text-white overflow-x-hidden">
       {/* Global Technical Grid Background */}
@@ -215,7 +210,7 @@ function MarketingContent({
 
               <div className="flex-1 w-full space-y-6">
                 <div className="grid gap-6">
-                  <GradeChart activity={exampleUserActivity} externalMode={gradeDisplay === "v-scale" ? "V-SCALE" : "DIFFICULTY"} hideControls />
+                  <GradeChart activity={exampleUserActivity} externalMode={"DIFFICULTY"} hideControls />
                   <StyleBreakdown activity={exampleUserActivity} />
                 </div>
               </div>
@@ -315,45 +310,6 @@ function MarketingContent({
           </div>
         </div>
       </footer>
-
-      {/* Floating Action Button for Settings */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
-        {isSettingsOpen && (
-          <div className="bg-white border-2 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-2 animate-in slide-in-from-bottom-5 fade-in duration-200 min-w-[200px]">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between gap-4">
-                <span className="font-mono text-xs uppercase font-bold">V-Scale / Diff</span>
-                <Switch
-                  checked={gradeDisplay === "difficulty"}
-                  onCheckedChange={() => toggleGradeDisplay()}
-                  className="data-[state=checked]:bg-rockmill"
-                />
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="font-mono text-xs uppercase font-bold">Show Beta</span>
-                <Switch
-                  checked={showBeta}
-                  onCheckedChange={setShowBeta}
-                  className="data-[state=checked]:bg-rockmill"
-                />
-              </div>
-              <button
-                id="beta-button"
-                className="w-full bg-rockmill text-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center hover:translate-y-1 hover:shadow-none transition-all"
-
-              > Feedback&nbsp;
-                <Megaphone className={`w-6 h-6 transition-transform duration-300`} />
-              </button>
-            </div>
-          </div>
-        )}
-        <button
-          onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-          className="w-14 h-14 bg-rockmill text-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center hover:translate-y-1 hover:shadow-none transition-all"
-        >
-          <Settings2 className={`w-6 h-6 transition-transform duration-300 ${isSettingsOpen ? "rotate-180" : ""}`} />
-        </button>
-      </div>
 
       <style jsx global>{`
         @keyframes marquee {

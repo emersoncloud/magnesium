@@ -9,12 +9,15 @@ interface SettingsContextType {
   setGradeDisplay: (display: GradeDisplay) => void;
   toggleGradeDisplay: () => void;
   showDifficulty: boolean;
+  shareActivity: boolean;
+  toggleShareActivity: () => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [gradeDisplay, setGradeDisplay] = useState<GradeDisplay>("v-scale");
+  const [shareActivity, setShareActivity] = useState(true);
 
   // Load from local storage on mount
   useEffect(() => {
@@ -25,19 +28,34 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [gradeDisplay]);
 
+  useEffect(() => {
+    const savedShare = localStorage.getItem("route-mill-share-activity");
+    if (savedShare !== null) {
+      setShareActivity(savedShare === "true");
+    }
+  }, []);
+
   // Save to local storage on change
   useEffect(() => {
     localStorage.setItem("route-mill-grade-display", gradeDisplay);
   }, [gradeDisplay]);
 
+  useEffect(() => {
+    localStorage.setItem("route-mill-share-activity", String(shareActivity));
+  }, [shareActivity]);
+
   const toggleGradeDisplay = () => {
     setGradeDisplay((prev) => (prev === "v-scale" ? "difficulty" : "v-scale"));
+  };
+
+  const toggleShareActivity = () => {
+    setShareActivity((prev) => !prev);
   };
 
   const showDifficulty = gradeDisplay === "difficulty";
 
   return (
-    <SettingsContext.Provider value={{ gradeDisplay, setGradeDisplay, toggleGradeDisplay, showDifficulty }}>
+    <SettingsContext.Provider value={{ gradeDisplay, setGradeDisplay, toggleGradeDisplay, showDifficulty, shareActivity, toggleShareActivity }}>
       {children}
     </SettingsContext.Provider>
   );

@@ -1,9 +1,11 @@
 "use client";
 
 import { useOptimistic, useRef, useState, useTransition } from "react";
-import { logActivity, savePersonalNote, logAttempt, updateActivity, deleteActivity } from "@/app/actions";
-import { Send, Zap, MessageSquare, Eye, EyeOff, StickyNote, CheckCircle2, Pencil, Trash2, X, Check } from "lucide-react";
+import { logActivity, savePersonalNote, logAttempt, updateActivity, deleteActivity, proposeGrade, removeGradeProposal, toggleFlash } from "@/app/actions";
+import { useSettings } from "@/context/SettingsContext";
+import { Send, Zap, MessageSquare, Eye, EyeOff, StickyNote, CheckCircle2, Pencil, Trash2, X, Check, Plus, Minus } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 type ActivityLog = {
   id: string;
@@ -13,7 +15,8 @@ type ActivityLog = {
   route_id: string;
   action_type: string;
   content: string | null;
-  metadata: { is_beta?: boolean } | null;
+  metadata: { is_beta?: boolean; proposed_grade?: string } | null;
+  is_public?: boolean;
   created_at: Date | null;
 };
 
@@ -24,16 +27,20 @@ type UserSession = {
   image: string | null;
 };
 
+const GRADES = ["VB", "V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11", "V12"];
+
 export default function RouteActivity({
   routeId,
   initialActivity,
   initialPersonalNote,
-  user
+  user,
+  routeGrade
 }: {
   routeId: string;
   initialActivity: ActivityLog[];
   initialPersonalNote: string;
   user: UserSession | null;
+  routeGrade: string;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [optimisticActivity, addOptimisticActivity] = useOptimistic(
@@ -52,14 +59,16 @@ export default function RouteActivity({
     }
   );
   const [isPending, startTransition] = useTransition();
+  const { shareActivity } = useSettings();
   const [personalNote, setPersonalNote] = useState(initialPersonalNote);
   const [isSavingNote, setIsSavingNote] = useState(false);
   const [isBeta, setIsBeta] = useState(false);
+  const [isPublic, setIsPublic] = useState(shareActivity);
   const [revealedBeta, setRevealedBeta] = useState<Set<string>>(new Set());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
 
-  async function handleAction(actionType: string, content: string, metadata: { is_beta?: boolean } = {}) {
+  async function handleAction(actionType: string, content: string, metadata: { is_beta?: boolean } = {}, isPublic = true) {
     if (!user) return;
 
     const newLog: ActivityLog = {
@@ -71,6 +80,7 @@ export default function RouteActivity({
       action_type: actionType,
       content: content,
       metadata,
+      is_public: isPublic,
       created_at: new Date(),
     };
 
@@ -86,12 +96,14 @@ export default function RouteActivity({
         action_type: actionType,
         content: content,
         metadata,
+        is_public: isPublic,
       });
     });
 
     if (actionType === "COMMENT") {
       formRef.current?.reset();
       setIsBeta(false);
+      setIsPublic(shareActivity);
     }
   }
 
@@ -103,7 +115,23 @@ export default function RouteActivity({
 
   async function handleAttempt() {
     if (!user) return;
-    await logAttempt(routeId);
+
+    const newLog: ActivityLog = {
+      id: Math.random().toString(),
+      user_id: user.id,
+      user_name: user.name,
+      user_image: user.image,
+      route_id: routeId,
+      action_type: "ATTEMPT",
+      content: null,
+      metadata: {},
+      created_at: new Date(),
+    };
+
+    startTransition(async () => {
+      addOptimisticActivity({ type: "ADD", log: newLog });
+      await logAttempt(routeId);
+    });
   }
 
   async function handleUpdate(id: string) {
@@ -121,8 +149,8 @@ export default function RouteActivity({
     });
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Are you sure you want to delete this comment?")) return;
+  async function handleDelete(id: string, confirmDelete = true) {
+    if (confirmDelete && !confirm("Are you sure you want to delete this?")) return;
 
     startTransition(async () => {
       addOptimisticActivity({ type: "DELETE", id });
@@ -130,8 +158,75 @@ export default function RouteActivity({
     });
   }
 
+  async function handleToggleFlash(isActive: boolean) {
+    if (!user) return;
+
+    startTransition(async () => {
+      if (isActive) {
+        // Optimistically remove
+        const flashLog = optimisticActivity.find(a => a.action_type === "FLASH" && a.user_id === user.id);
+        if (flashLog) {
+          addOptimisticActivity({ type: "DELETE", id: flashLog.id });
+        }
+      } else {
+        // Optimistically add
+        const newLog: ActivityLog = {
+          id: Math.random().toString(),
+          user_id: user.id,
+          user_name: user.name,
+          user_image: user.image,
+          route_id: routeId,
+          action_type: "FLASH",
+          content: null,
+          metadata: {},
+          created_at: new Date(),
+        };
+        addOptimisticActivity({ type: "ADD", log: newLog });
+      }
+      await toggleFlash(routeId, !isActive);
+    });
+  }
+
+  async function handleProposeGrade(grade: string) {
+    if (!user) return;
+
+    const existingProposal = optimisticActivity.find(a => a.action_type === "PROPOSE_GRADE" && a.user_id === user.id);
+    const isSameGrade = existingProposal?.content === grade;
+
+    startTransition(async () => {
+      if (existingProposal) {
+        addOptimisticActivity({ type: "DELETE", id: existingProposal.id });
+      }
+
+      if (!isSameGrade) {
+        const newLog: ActivityLog = {
+          id: Math.random().toString(),
+          user_id: user.id,
+          user_name: user.name,
+          user_image: user.image,
+          route_id: routeId,
+          action_type: "PROPOSE_GRADE",
+          content: grade,
+          metadata: { proposed_grade: grade },
+          created_at: new Date(),
+        };
+        addOptimisticActivity({ type: "ADD", log: newLog });
+        await proposeGrade(routeId, grade);
+      } else {
+        await removeGradeProposal(routeId);
+      }
+    });
+  }
+
   const sends = optimisticActivity.filter(a => a.action_type === "SEND" || a.action_type === "FLASH");
   const comments = optimisticActivity.filter(a => a.action_type === "COMMENT");
+
+  const mySends = optimisticActivity.filter(a => a.action_type === "SEND" && a.user_id === user?.id);
+  const myAttempts = optimisticActivity.filter(a => a.action_type === "ATTEMPT" && a.user_id === user?.id);
+  const myFlash = optimisticActivity.find(a => a.action_type === "FLASH" && a.user_id === user?.id);
+  const myProposal = optimisticActivity.find(a => a.action_type === "PROPOSE_GRADE" && a.user_id === user?.id);
+
+  const hasSendOrFlash = mySends.length > 0 || !!myFlash;
 
   const toggleBeta = (id: string) => {
     const newRevealed = new Set(revealedBeta);
@@ -143,34 +238,158 @@ export default function RouteActivity({
     setRevealedBeta(newRevealed);
   };
 
+  const currentGradeIndex = GRADES.indexOf(routeGrade);
+  // If route grade isn't in our V-scale list (e.g. 5.10a), we just show the whole list? 
+  // Or maybe we treat it as "unknown" position.
+  // Requirement: "show the different v grades to the left and right... of the current difficulty"
+  // Let's assume if it's not found, we just show the list.
+
   return (
     <div className="space-y-12">
       {/* Control Panel */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Send Control */}
+        {mySends.length > 0 ? (
+          <div className="h-12 flex items-center justify-between bg-white border-2 border-black px-1">
+            <button
+              disabled={!user || isPending}
+              onClick={() => {
+                const lastSend = mySends[0];
+                if (lastSend) handleDelete(lastSend.id, false);
+              }}
+              className="w-10 h-full flex items-center justify-center hover:bg-slate-100 disabled:opacity-30 transition-colors"
+            >
+              <Minus className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-2 font-bold uppercase tracking-wider text-sm">
+              <Send className="w-4 h-4" />
+              <span>Send</span>
+              <span className="bg-black text-white text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                {mySends.length}
+              </span>
+            </div>
+
+            <button
+              disabled={!user || isPending}
+              onClick={() => handleAction("SEND", "")}
+              className="w-10 h-full flex items-center justify-center hover:bg-slate-100 disabled:opacity-30 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => handleAction("SEND", "")}
+            disabled={!user || isPending}
+            className="h-12 bg-white border-2 border-black hover:bg-black hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm"
+          >
+            <Send className="w-4 h-4" /> Log Send
+          </button>
+        )}
+
+        {/* Flash Toggle */}
         <button
-          onClick={() => handleAction("SEND", "")}
+          onClick={() => handleToggleFlash(!!myFlash)}
           disabled={!user || isPending}
-          className="h-12 bg-white border-2 border-black hover:bg-black hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm"
+          className={cn(
+            "h-12 border-2 transition-all duration-200 flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm",
+            myFlash
+              ? "bg-yellow-400 border-yellow-400 text-black shadow-[0_0_15px_rgba(250,204,21,0.5)]"
+              : "bg-white border-black hover:bg-yellow-50 hover:border-yellow-400 hover:text-black disabled:opacity-50"
+          )}
         >
-          <Send className="w-4 h-4" /> Log Send
+          <Zap className={cn("w-4 h-4", myFlash && "fill-black")} />
+          {myFlash ? "Flashed!" : "Log Flash"}
         </button>
 
-        <button
-          onClick={() => handleAction("FLASH", "")}
-          disabled={!user || isPending}
-          className="h-12 bg-white border-2 border-black hover:bg-yellow-400 hover:border-yellow-400 hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm"
-        >
-          <Zap className="w-4 h-4" /> Log Flash
-        </button>
+        {/* Attempt Control */}
+        {myAttempts.length > 0 ? (
+          <div className="h-12 flex items-center justify-between bg-white border-2 border-black px-1">
+            <button
+              disabled={!user || isPending}
+              onClick={() => {
+                const lastAttempt = myAttempts[0];
+                if (lastAttempt) handleDelete(lastAttempt.id, false);
+              }}
+              className="w-10 h-full flex items-center justify-center hover:bg-slate-100 disabled:opacity-30 transition-colors"
+            >
+              <Minus className="w-4 h-4" />
+            </button>
 
-        <button
-          onClick={handleAttempt}
-          disabled={!user || isPending}
-          className="h-12 bg-white border-2 border-black hover:bg-slate-200 hover:border-slate-200 hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm"
-        >
-          <CheckCircle2 className="w-4 h-4" /> Log Attempt
-        </button>
+            <div className="flex items-center gap-2 font-bold uppercase tracking-wider text-sm">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Attempt</span>
+              <span className="bg-slate-200 text-slate-700 text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                {myAttempts.length}
+              </span>
+            </div>
+
+            <button
+              disabled={!user || isPending}
+              onClick={handleAttempt}
+              className="w-10 h-full flex items-center justify-center hover:bg-slate-100 disabled:opacity-30 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={handleAttempt}
+            disabled={!user || isPending}
+            className="h-12 bg-white border-2 border-black hover:bg-slate-200 hover:border-slate-200 hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm"
+          >
+            <CheckCircle2 className="w-4 h-4" /> Log Attempt
+          </button>
+        )}
       </div>
+
+      {/* Grade Proposal Section */}
+      {hasSendOrFlash && (
+        <div className="bg-slate-50 border border-slate-200 p-6 rounded-lg animate-in fade-in slide-in-from-top-4">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
+            <Check className="w-3 h-3" /> Propose Grade
+          </h3>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {GRADES.map((grade, i) => {
+              const isCurrent = grade === routeGrade;
+              const isSelected = myProposal?.content === grade;
+
+              // If current grade is in list, we split left/right. 
+              // But the UI request says "show the different v grades to the left and right... of the current difficulty".
+              // This implies a visual layout.
+              // Let's just render them in order, but style the "Current" one differently (not a button).
+
+              if (isCurrent) {
+                return (
+                  <div key={grade} className="px-4 py-2 bg-black text-white font-black text-lg rounded shadow-lg mx-2 transform scale-110">
+                    {grade}
+                  </div>
+                );
+              }
+
+              return (
+                <button
+                  key={grade}
+                  onClick={() => handleProposeGrade(grade)}
+                  disabled={isPending}
+                  className={cn(
+                    "px-3 py-1.5 text-sm font-bold rounded transition-all",
+                    isSelected
+                      ? "bg-blue-600 text-white shadow-md scale-105"
+                      : "bg-white border border-slate-200 text-slate-500 hover:border-blue-400 hover:text-blue-600"
+                  )}
+                >
+                  {grade}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-center text-[10px] text-slate-400 mt-4 font-mono">
+            Select a grade if you feel the route is graded incorrectly.
+          </p>
+        </div>
+      )}
 
       {/* Personal Notes */}
       {user && (
@@ -219,7 +438,7 @@ export default function RouteActivity({
             action={async (formData) => {
               const content = formData.get("content") as string;
               if (!content) return;
-              await handleAction("COMMENT", content, { is_beta: isBeta });
+              await handleAction("COMMENT", content, { is_beta: isBeta }, isPublic);
             }}
           >
             <div className="flex gap-4">
@@ -240,15 +459,26 @@ export default function RouteActivity({
               </button>
             </div>
             {user && (
-              <label className="flex items-center gap-2 text-xs text-slate-500 cursor-pointer mt-2 w-fit hover:text-black transition-colors">
-                <input
-                  type="checkbox"
-                  checked={isBeta}
-                  onChange={(e) => setIsBeta(e.target.checked)}
-                  className="rounded border-slate-300 text-black focus:ring-0"
-                />
-                <span>Contains Beta</span>
-              </label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 text-xs text-slate-500 cursor-pointer mt-2 w-fit hover:text-black transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={isBeta}
+                    onChange={(e) => setIsBeta(e.target.checked)}
+                    className="rounded border-slate-300 text-black focus:ring-0"
+                  />
+                  <span>Contains Beta</span>
+                </label>
+                <label className="flex items-center gap-2 text-xs text-slate-500 cursor-pointer mt-2 w-fit hover:text-black transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={isPublic}
+                    onChange={(e) => setIsPublic(e.target.checked)}
+                    className="rounded border-slate-300 text-black focus:ring-0"
+                  />
+                  <span>Share to Feed</span>
+                </label>
+              </div>
             )}
           </form>
         </div>
@@ -351,7 +581,7 @@ export default function RouteActivity({
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

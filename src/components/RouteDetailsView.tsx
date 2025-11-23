@@ -166,11 +166,11 @@ export default function RouteDetailsView({
               </div>
 
               <div className="text-xs text-slate-500 font-mono mb-6">
-                Based on {ratingsCount} climber logs
+                from {ratingsCount} climber{ratingsCount === 1 ? "" : "s"}
               </div>
 
               <div className="pt-6 border-t border-slate-100">
-                <h4 className="font-bold text-sm mb-3">Your Assessment</h4>
+                <h4 className="font-bold text-sm mb-3">Rate the Route</h4>
                 <div className="flex justify-center">
                   <StarRating routeId={route.id} initialRating={myRating} />
                 </div>
@@ -217,7 +217,7 @@ export default function RouteDetailsView({
             <div className="bg-white border border-slate-200 shadow-sm min-h-[500px]">
               <div className="bg-slate-50 border-b border-slate-200 p-4 flex items-center justify-between">
                 <h3 className="font-mono text-xs uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                  <Activity className="w-3 h-3" /> Activity Stream
+                  <Activity className="w-3 h-3" /> Recent Activity
                 </h3>
                 <div className="flex gap-1">
                   <div className="w-2 h-2 rounded-full bg-red-500" />
@@ -232,6 +232,7 @@ export default function RouteDetailsView({
                   initialActivity={activity}
                   initialPersonalNote={personalNote || ""}
                   user={user}
+                  routeGrade={route.grade}
                 />
               </div>
             </div>

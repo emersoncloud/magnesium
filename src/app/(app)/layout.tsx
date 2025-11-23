@@ -1,4 +1,5 @@
 import NavBar from "@/components/NavBar";
+import SettingsFab from "@/components/SettingsFab";
 import { SettingsProvider } from "@/context/SettingsContext";
 import { auth, isAdmin } from "@/lib/auth";
 
@@ -14,11 +15,12 @@ export default async function AppLayout({
   return (
     <SettingsProvider>
       <div className="min-h-screen pb-24 relative bg-slate-50">
-        <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0" 
-             style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '40px 40px' }} 
+        <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0"
+          style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '40px 40px' }}
         />
         {/* Floating Glass Navbar */}
         <NavBar user={session?.user} isAdmin={admin} />
+        <SettingsFab />
 
         <main className="px-4 pt-8 md:pt-0 max-w-6xl mx-auto relative z-10">
           {children}

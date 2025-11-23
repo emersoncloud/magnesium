@@ -119,8 +119,11 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
 
                     {/* Grade */}
-                    <motion.div layoutId={`route-grade-${route.id}`} className="relative z-10">
-                      <span className="text-3xl md:text-5xl font-black text-black/80 drop-shadow-sm">
+                    <motion.div
+                      layoutId={`route-grade-${route.id}`}
+                      className="relative z-10 bg-white/40 backdrop-blur-[2px] rounded-xl p-2 min-w-[60px] flex flex-col items-center justify-center shadow-sm"
+                    >
+                      <span className="text-3xl md:text-5xl font-black text-black/80 drop-shadow-sm leading-none">
                         {route.grade}
                       </span>
                       {route.difficulty_label && (

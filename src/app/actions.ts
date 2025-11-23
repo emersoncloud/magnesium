@@ -83,7 +83,10 @@ export async function getGradeDistribution() {
 }
 
 export async function logActivity(data: typeof activityLogs.$inferInsert) {
-  await db.insert(activityLogs).values(data);
+  await db.insert(activityLogs).values({
+    ...data,
+    is_public: data.is_public ?? true,
+  });
 
   // Increment tick count in KV if it's a send or flash
   if (data.action_type === "SEND" || data.action_type === "FLASH") {
@@ -177,6 +180,7 @@ export async function getGlobalActivity() {
   })
     .from(activityLogs)
     .leftJoin(routes, eq(activityLogs.route_id, routes.id))
+    .where(eq(activityLogs.is_public, true))
     .orderBy(desc(activityLogs.created_at))
     .limit(50);
 }
@@ -202,7 +206,10 @@ export async function getUserActivity(userId: string) {
   })
     .from(activityLogs)
     .leftJoin(routes, eq(activityLogs.route_id, routes.id))
-    .where(eq(activityLogs.user_id, userId))
+    .where(and(
+      eq(activityLogs.user_id, userId),
+      eq(activityLogs.is_public, true)
+    ))
     .orderBy(desc(activityLogs.created_at));
 }
 
@@ -404,6 +411,86 @@ export async function voteGrade(routeId: string, vote: number) {
   });
 
   revalidatePath(`/route/${routeId}`);
+}
+
+export async function proposeGrade(routeId: string, grade: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  // Delete existing proposal
+  await db.delete(activityLogs).where(
+    and(
+      eq(activityLogs.user_id, session.user.id),
+      eq(activityLogs.route_id, routeId),
+      eq(activityLogs.action_type, "PROPOSE_GRADE")
+    )
+  );
+
+  // Insert new proposal
+  await db.insert(activityLogs).values({
+    user_id: session.user.id,
+    user_name: session.user.name,
+    user_image: session.user.image,
+    route_id: routeId,
+    action_type: "PROPOSE_GRADE",
+    content: grade,
+    metadata: { proposed_grade: grade }
+  });
+
+  revalidatePath(`/route/${routeId}`);
+}
+
+export async function removeGradeProposal(routeId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  await db.delete(activityLogs).where(
+    and(
+      eq(activityLogs.user_id, session.user.id),
+      eq(activityLogs.route_id, routeId),
+      eq(activityLogs.action_type, "PROPOSE_GRADE")
+    )
+  );
+
+  revalidatePath(`/route/${routeId}`);
+}
+
+export async function toggleFlash(routeId: string, isFlash: boolean) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  if (isFlash) {
+    // Check if already flashed to avoid duplicates
+    const existing = await db.query.activityLogs.findFirst({
+      where: and(
+        eq(activityLogs.user_id, session.user.id),
+        eq(activityLogs.route_id, routeId),
+        eq(activityLogs.action_type, "FLASH")
+      )
+    });
+
+    if (!existing) {
+      await logActivity({
+        user_id: session.user.id,
+        user_name: session.user.name,
+        user_image: session.user.image,
+        route_id: routeId,
+        action_type: "FLASH",
+        content: null,
+      });
+    }
+  } else {
+    // Remove flash
+    await db.delete(activityLogs).where(
+      and(
+        eq(activityLogs.user_id, session.user.id),
+        eq(activityLogs.route_id, routeId),
+        eq(activityLogs.action_type, "FLASH")
+      )
+    );
+    revalidatePath(`/route/${routeId}`);
+    revalidatePath("/feed");
+  }
 }
 
 export type BrowserRoute = {

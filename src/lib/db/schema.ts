@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, date, jsonb, timestamp, index } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, date, jsonb, timestamp, index, boolean } from "drizzle-orm/pg-core";
 
 export const routes = pgTable("routes", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -26,7 +26,8 @@ export const activityLogs = pgTable("activity_logs", {
   route_id: uuid("route_id").references(() => routes.id).notNull(),
   action_type: text("action_type").notNull(), // "SEND" | "FLASH" | "COMMENT" | "VOTE" | "ATTEMPT"
   content: text("content"),
-  metadata: jsonb("metadata").$type<{ is_beta?: boolean }>().default({}),
+  metadata: jsonb("metadata").$type<{ is_beta?: boolean; proposed_grade?: string }>().default({}),
+  is_public: boolean("is_public").default(true).notNull(),
   created_at: timestamp("created_at").defaultNow(),
 }, (table) => {
   return {

@@ -1,18 +1,15 @@
 "use client";
 
-import Link from "next/link";
-import { Activity, TrendingUp, BarChart3, Settings2, Star, MessageSquare, Megaphone } from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import { LoginButton } from "@/components/LoginButton";
-import { Card } from "@/components/ui/Card";
 import GradeChart from "@/components/GradeChart";
-import StyleBreakdown from "@/components/StyleBreakdown";
-import { SettingsProvider, useSettings } from "@/context/SettingsContext";
-import { useState } from "react";
+import { LoginButton } from "@/components/LoginButton";
 import { RouteBadge } from "@/components/RouteBadge";
-import { Switch } from "@/components/ui/Switch";
-import { Badge } from "@/components/ui/Badge";
 import { SetCard } from "@/components/SetCard";
+import StyleBreakdown from "@/components/StyleBreakdown";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { SettingsProvider } from "@/context/SettingsContext";
+import { Activity, BarChart3, TrendingUp } from "lucide-react";
+import Link from "next/link";
 import posthog from "posthog-js";
 import FeedList from "./FeedList";
 
@@ -86,12 +83,12 @@ function MarketingContent({
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link href="/sets">
                 <Button onClick={() => posthog.capture('marketing_page_view_live_routes_button_click')} size="lg" variant="primary" className="h-16 px-10 text-base bg-black hover:bg-slate-800 text-white border-none">
-                  View Live Routes
+                  View the Routes
                 </Button>
               </Link>
               <Link href="/login">
                 <Button onClick={() => posthog.capture('marketing_page_start_logging_button_click')} size="lg" variant="secondary" className="h-16 px-10 text-base">
-                  Start Logging
+                  Start your Logbook
                 </Button>
               </Link>
             </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Activity, Library, List, Settings, Trophy, User as UserIcon } from "lucide-react";
+import { Activity, Library, Dumbbell, Settings, Trophy, User as UserIcon } from "lucide-react";
 import { User } from "next-auth";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -20,14 +20,37 @@ export default function NavBar({ user, isAdmin }: { user?: User | null, isAdmin?
 
   const navItems = [
     { name: "Sets", href: "/sets", icon: Library, Mountain: MidnightLightning },
-    { name: "Routes", href: "/routes", icon: List, Mountain: Dreamtime },
+    { name: "Train", href: "/train", icon: Dumbbell, Mountain: Dreamtime },
     { name: "Seasons", href: "/seasons", icon: Trophy, Mountain: TheRhino },
     { name: "Feed", href: "/feed", icon: Activity, Mountain: TheMandala },
     ...(user
-      ? [{ name: "Profile", href: `/profile/${user.id}`, icon: UserIcon, Mountain: GrandpaPeabody }]
-      : [{ name: "Sign In", href: "#", icon: UserIcon, onClick: () => signIn("google", { callbackUrl: "/sets" }), Mountain: TheMandala }]
-    ),
-    ...(isAdmin ? [{ name: "Sync", href: "/sync", icon: Settings, Mountain: CetaitDemain }] : []),
+      ? [
+          {
+            name: "Profile",
+            href: `/profile/${user.id}`,
+            icon: UserIcon,
+            Mountain: GrandpaPeabody,
+          },
+        ]
+      : [
+          {
+            name: "Sign In",
+            href: "#",
+            icon: UserIcon,
+            onClick: () => signIn("google", { callbackUrl: "/sets" }),
+            Mountain: GrandpaPeabody,
+          },
+        ]),
+    ...(isAdmin
+      ? [
+          {
+            name: "Sync",
+            href: "/sync",
+            icon: Settings,
+            Mountain: CetaitDemain,
+          },
+        ]
+      : []),
   ];
 
   // Determine active item (handle sub-routes if needed, e.g. /profile/123)

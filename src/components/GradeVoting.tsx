@@ -3,7 +3,7 @@
 import { voteGrade } from "@/app/actions";
 import { cn } from "@/lib/utils";
 import { ThumbsDown, ThumbsUp, Minus, Turtle, Rabbit, Smile } from "lucide-react";
-import { useOptimistic, useTransition } from "react";
+import { useOptimistic, useTransition, useState } from "react";
 
 type GradeVote = -1 | 0 | 1; // -1: Soft, 0: Fair, 1: Hard
 
@@ -17,6 +17,7 @@ export default function GradeVoting({
   userVote: number | null;
 }) {
   const [isPending, startTransition] = useTransition();
+  const [pendingVote, setPendingVote] = useState<GradeVote | null>(null);
 
   // Calculate initial counts
   const getCounts = (votes: number[]) => ({
@@ -43,12 +44,56 @@ export default function GradeVoting({
   const counts = getCounts(optimisticState.votes);
   const totalVotes = optimisticState.votes.length;
 
-  const handleVote = async (vote: GradeVote) => {
+  const handleVoteClick = (vote: GradeVote) => {
+    if (vote === 0) {
+      // Fair - submit immediately
+      handleSubmitVote(0);
+    } else {
+      // Show reasons
+      setPendingVote(vote);
+    }
+  };
+
+  const handleSubmitVote = async (vote: GradeVote, reason?: string) => {
+    setPendingVote(null);
     startTransition(async () => {
       setOptimisticState(vote);
-      await voteGrade(routeId, vote);
+      await voteGrade(routeId, vote, reason);
     });
   };
+
+  const REASONS = {
+    [-1]: ["Tall Beta", "Soft", "Juggy"],
+    [1]: ["Scrunchy", "Reachy", "Sandbagged", "Technical"]
+  };
+
+  if (pendingVote !== null) {
+    return (
+      <div className="bg-white border border-slate-200 p-6 shadow-sm">
+        <h3 className="font-mono text-xs uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
+          Why is it {pendingVote === -1 ? "Easier" : "Tougher"}?
+        </h3>
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          {REASONS[pendingVote as -1 | 1].map((reason) => (
+            <button
+              key={reason}
+              onClick={() => handleSubmitVote(pendingVote, reason)}
+              disabled={isPending}
+              className="p-3 border-2 border-slate-100 hover:border-slate-300 text-slate-600 hover:text-black text-xs font-bold uppercase tracking-wider transition-all"
+            >
+              {reason}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => setPendingVote(null)}
+          className="w-full p-2 text-xs text-slate-400 hover:text-slate-600 font-mono uppercase tracking-widest"
+        >
+          Cancel
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white border border-slate-200 p-6 shadow-sm">
@@ -58,7 +103,7 @@ export default function GradeVoting({
 
       <div className="grid grid-cols-3 gap-2 mb-4">
         <button
-          onClick={() => handleVote(-1)}
+          onClick={() => handleVoteClick(-1)}
           disabled={isPending}
           className={cn(
             "flex flex-col items-center justify-center p-3 border-2 transition-all",
@@ -72,7 +117,7 @@ export default function GradeVoting({
         </button>
 
         <button
-          onClick={() => handleVote(0)}
+          onClick={() => handleVoteClick(0)}
           disabled={isPending}
           className={cn(
             "flex flex-col items-center justify-center p-3 border-2 transition-all",
@@ -86,7 +131,7 @@ export default function GradeVoting({
         </button>
 
         <button
-          onClick={() => handleVote(1)}
+          onClick={() => handleVoteClick(1)}
           disabled={isPending}
           className={cn(
             "flex flex-col items-center justify-center p-3 border-2 transition-all",

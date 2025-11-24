@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, date, jsonb, timestamp, index, boolean } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, date, jsonb, timestamp, index, boolean, integer } from "drizzle-orm/pg-core";
 
 export const routes = pgTable("routes", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -26,7 +26,7 @@ export const activityLogs = pgTable("activity_logs", {
   route_id: uuid("route_id").references(() => routes.id).notNull(),
   action_type: text("action_type").notNull(), // "SEND" | "FLASH" | "COMMENT" | "VOTE" | "ATTEMPT"
   content: text("content"),
-  metadata: jsonb("metadata").$type<{ is_beta?: boolean; proposed_grade?: string }>().default({}),
+  metadata: jsonb("metadata").$type<{ is_beta?: boolean; proposed_grade?: string; reason?: string }>().default({}),
   is_public: boolean("is_public").default(true).notNull(),
   created_at: timestamp("created_at").defaultNow(),
 }, (table) => {
@@ -53,4 +53,33 @@ export const users = pgTable("users", {
   image: text("image"),
   barcode: text("barcode"),
   created_at: timestamp("created_at").defaultNow(),
+});
+
+export const trainingPlans = pgTable("training_plans", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: text("user_id").notNull(),
+  name: text("name").notNull(),
+  type: text("type").notNull(),
+  base_grade: text("base_grade").notNull(),
+  length: text("length").notNull(),
+  is_public: boolean("is_public").default(false).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => {
+  return {
+    userIdx: index("training_plans_user_idx").on(table.user_id),
+    publicIdx: index("training_plans_public_idx").on(table.is_public),
+  };
+});
+
+export const trainingPlanRoutes = pgTable("training_plan_routes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  plan_id: uuid("plan_id").references(() => trainingPlans.id, { onDelete: "cascade" }).notNull(),
+  route_id: uuid("route_id").references(() => routes.id).notNull(),
+  section_name: text("section_name"),
+  order_index: integer("order_index").notNull(),
+}, (table) => {
+  return {
+    planIdx: index("training_plan_routes_plan_idx").on(table.plan_id),
+  };
 });

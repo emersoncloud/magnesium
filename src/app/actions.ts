@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { routes, activityLogs, personalNotes, users } from "@/lib/db/schema";
+import { routes, activityLogs, personalNotes, users, trainingPlans, trainingPlanRoutes } from "@/lib/db/schema";
 import { desc, eq, sql, and, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redis } from "@/lib/kv";
@@ -385,7 +385,7 @@ export async function deleteActivity(activityId: string) {
   revalidatePath(`/route/${activity.route_id}`);
 }
 
-export async function voteGrade(routeId: string, vote: number) {
+export async function voteGrade(routeId: string, vote: number, reason?: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
@@ -408,6 +408,7 @@ export async function voteGrade(routeId: string, vote: number) {
     route_id: routeId,
     action_type: "VOTE",
     content: vote.toString(),
+    metadata: reason ? { reason } : {},
   });
 
   revalidatePath(`/route/${routeId}`);
@@ -830,4 +831,403 @@ export async function resetUserBarcode() {
     .where(eq(users.id, session.user.id));
 
   revalidatePath(`/profile/${session.user.id}`);
+}
+
+export type TrainingPlanType = "progression" | "volume" | "project" | "custom";
+export type TrainingPlanLength = "short" | "medium" | "long";
+
+export type TrainingPlanRouteWithDetails = {
+  id: string;
+  route_id: string;
+  section_name: string | null;
+  order_index: number;
+  route: BrowserRoute;
+};
+
+export type SavedTrainingPlan = {
+  id: string;
+  user_id: string;
+  name: string;
+  type: TrainingPlanType;
+  base_grade: string;
+  length: TrainingPlanLength;
+  is_public: boolean;
+  created_at: Date | null;
+  updated_at: Date | null;
+  routes: TrainingPlanRouteWithDetails[];
+  user_name?: string | null;
+};
+
+export type GeneratedPlanSection = {
+  title: string;
+  description: string;
+  routes: BrowserRoute[];
+};
+
+export type GeneratedPlan = {
+  sections: GeneratedPlanSection[];
+};
+
+const PLAN_ROUTE_COUNTS: Record<TrainingPlanLength, { progression: number[]; volume: number; project: number }> = {
+  short: { progression: [2, 2, 1], volume: 5, project: 1 },
+  medium: { progression: [3, 4, 3], volume: 10, project: 2 },
+  long: { progression: [4, 6, 5], volume: 15, project: 3 },
+};
+
+export async function generateNewTrainingPlan(
+  type: TrainingPlanType,
+  baseGrade: string,
+  length: TrainingPlanLength
+): Promise<GeneratedPlan> {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const allRoutes = await getBrowserRoutes();
+  const baseGradeIndex = (GRADES as readonly string[]).indexOf(baseGrade);
+
+  if (baseGradeIndex === -1) throw new Error("Invalid grade");
+
+  const getGradeIdx = (r: BrowserRoute) => (GRADES as readonly string[]).indexOf(r.grade);
+  const shuffle = <T>(array: T[]) => [...array].sort(() => 0.5 - Math.random());
+
+  if (type === "progression") {
+    const counts = PLAN_ROUTE_COUNTS[length].progression;
+
+    const warmUpRoutes = allRoutes.filter(r => {
+      const idx = getGradeIdx(r);
+      return idx >= Math.max(0, baseGradeIndex - 2) && idx < baseGradeIndex;
+    });
+
+    const mainSetRoutes = allRoutes.filter(r => {
+      const idx = getGradeIdx(r);
+      return idx >= Math.max(0, baseGradeIndex - 1) && idx <= baseGradeIndex;
+    });
+
+    const challengeRoutes = allRoutes.filter(r => {
+      const idx = getGradeIdx(r);
+      return idx >= baseGradeIndex && idx <= baseGradeIndex + 2 && !r.user_status;
+    });
+
+    return {
+      sections: [
+        {
+          title: "Warm Up",
+          description: "Get the blood flowing with these easier climbs.",
+          routes: shuffle(warmUpRoutes).slice(0, counts[0]),
+        },
+        {
+          title: "Main Set",
+          description: "Your working grade. Focus on technique and execution.",
+          routes: shuffle(mainSetRoutes).slice(0, counts[1]),
+        },
+        {
+          title: "Challenge",
+          description: "Push your limits. Try something hard you haven't sent yet.",
+          routes: shuffle(challengeRoutes).slice(0, counts[2]),
+        },
+      ],
+    };
+  }
+
+  if (type === "volume") {
+    const count = PLAN_ROUTE_COUNTS[length].volume;
+    const volumeRoutes = allRoutes.filter(r => getGradeIdx(r) === baseGradeIndex);
+
+    return {
+      sections: [
+        {
+          title: "Volume Session",
+          description: `High volume at ${baseGrade}. Focus on movement quality and endurance.`,
+          routes: shuffle(volumeRoutes).slice(0, count),
+        },
+      ],
+    };
+  }
+
+  if (type === "project") {
+    const count = PLAN_ROUTE_COUNTS[length].project;
+    const projectRoutes = allRoutes.filter(r => {
+      const idx = getGradeIdx(r);
+      return idx >= baseGradeIndex + 1 && idx <= baseGradeIndex + 2 && !r.user_status;
+    });
+
+    return {
+      sections: [
+        {
+          title: "Project Session",
+          description: "Focus on these hard routes. Work the moves and try to send.",
+          routes: shuffle(projectRoutes).slice(0, count),
+        },
+      ],
+    };
+  }
+
+  return { sections: [] };
+}
+
+export async function saveTrainingPlan(data: {
+  name: string;
+  type: TrainingPlanType;
+  base_grade: string;
+  length: TrainingPlanLength;
+  routes: { route_id: string; section_name: string | null; order_index: number }[];
+}): Promise<{ id: string }> {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const [plan] = await db.insert(trainingPlans).values({
+    user_id: session.user.id,
+    name: data.name,
+    type: data.type,
+    base_grade: data.base_grade,
+    length: data.length,
+    is_public: false,
+  }).returning({ id: trainingPlans.id });
+
+  if (data.routes.length > 0) {
+    await db.insert(trainingPlanRoutes).values(
+      data.routes.map(r => ({
+        plan_id: plan.id,
+        route_id: r.route_id,
+        section_name: r.section_name,
+        order_index: r.order_index,
+      }))
+    );
+  }
+
+  revalidatePath("/train");
+  return { id: plan.id };
+}
+
+export async function updateTrainingPlan(
+  planId: string,
+  data: {
+    name?: string;
+    routes?: { route_id: string; section_name: string | null; order_index: number }[];
+  }
+): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const plan = await db.query.trainingPlans.findFirst({
+    where: eq(trainingPlans.id, planId),
+  });
+
+  if (!plan || plan.user_id !== session.user.id) throw new Error("Unauthorized");
+
+  if (data.name) {
+    await db.update(trainingPlans)
+      .set({ name: data.name, updated_at: new Date() })
+      .where(eq(trainingPlans.id, planId));
+  }
+
+  if (data.routes) {
+    await db.delete(trainingPlanRoutes).where(eq(trainingPlanRoutes.plan_id, planId));
+
+    if (data.routes.length > 0) {
+      await db.insert(trainingPlanRoutes).values(
+        data.routes.map(r => ({
+          plan_id: planId,
+          route_id: r.route_id,
+          section_name: r.section_name,
+          order_index: r.order_index,
+        }))
+      );
+    }
+  }
+
+  revalidatePath("/train");
+  revalidatePath(`/train/${planId}`);
+}
+
+export async function deleteTrainingPlan(planId: string): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const plan = await db.query.trainingPlans.findFirst({
+    where: eq(trainingPlans.id, planId),
+  });
+
+  if (!plan || plan.user_id !== session.user.id) throw new Error("Unauthorized");
+
+  await db.delete(trainingPlans).where(eq(trainingPlans.id, planId));
+  revalidatePath("/train");
+}
+
+export async function getUserTrainingPlans(): Promise<SavedTrainingPlan[]> {
+  const session = await auth();
+  if (!session?.user?.id) return [];
+
+  const plans = await db.select().from(trainingPlans)
+    .where(eq(trainingPlans.user_id, session.user.id))
+    .orderBy(desc(trainingPlans.updated_at));
+
+  const allRoutes = await getBrowserRoutes();
+  const routesMap = new Map(allRoutes.map(r => [r.id, r]));
+
+  const plansWithRoutes: SavedTrainingPlan[] = [];
+
+  for (const plan of plans) {
+    const planRoutes = await db.select().from(trainingPlanRoutes)
+      .where(eq(trainingPlanRoutes.plan_id, plan.id))
+      .orderBy(trainingPlanRoutes.order_index);
+
+    plansWithRoutes.push({
+      id: plan.id,
+      user_id: plan.user_id,
+      name: plan.name,
+      type: plan.type as TrainingPlanType,
+      base_grade: plan.base_grade,
+      length: plan.length as TrainingPlanLength,
+      is_public: plan.is_public,
+      created_at: plan.created_at,
+      updated_at: plan.updated_at,
+      routes: planRoutes.map(pr => ({
+        id: pr.id,
+        route_id: pr.route_id,
+        section_name: pr.section_name,
+        order_index: pr.order_index,
+        route: routesMap.get(pr.route_id)!,
+      })).filter(pr => pr.route),
+    });
+  }
+
+  return plansWithRoutes;
+}
+
+export async function getCommunityTrainingPlans(): Promise<SavedTrainingPlan[]> {
+  const plans = await db.select().from(trainingPlans)
+    .where(eq(trainingPlans.is_public, true))
+    .orderBy(desc(trainingPlans.created_at));
+
+  const allRoutes = await getBrowserRoutes();
+  const routesMap = new Map(allRoutes.map(r => [r.id, r]));
+
+  const userIds = [...new Set(plans.map(p => p.user_id))];
+  const usersData = userIds.length > 0
+    ? await db.select({ id: users.id, name: users.name }).from(users)
+    : [];
+  const usersMap = new Map(usersData.map(u => [u.id, u.name]));
+
+  const plansWithRoutes: SavedTrainingPlan[] = [];
+
+  for (const plan of plans) {
+    const planRoutes = await db.select().from(trainingPlanRoutes)
+      .where(eq(trainingPlanRoutes.plan_id, plan.id))
+      .orderBy(trainingPlanRoutes.order_index);
+
+    plansWithRoutes.push({
+      id: plan.id,
+      user_id: plan.user_id,
+      name: plan.name,
+      type: plan.type as TrainingPlanType,
+      base_grade: plan.base_grade,
+      length: plan.length as TrainingPlanLength,
+      is_public: plan.is_public,
+      created_at: plan.created_at,
+      updated_at: plan.updated_at,
+      user_name: usersMap.get(plan.user_id) || null,
+      routes: planRoutes.map(pr => ({
+        id: pr.id,
+        route_id: pr.route_id,
+        section_name: pr.section_name,
+        order_index: pr.order_index,
+        route: routesMap.get(pr.route_id)!,
+      })).filter(pr => pr.route),
+    });
+  }
+
+  return plansWithRoutes;
+}
+
+export async function togglePlanPublic(planId: string): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const plan = await db.query.trainingPlans.findFirst({
+    where: eq(trainingPlans.id, planId),
+  });
+
+  if (!plan || plan.user_id !== session.user.id) throw new Error("Unauthorized");
+
+  await db.update(trainingPlans)
+    .set({ is_public: !plan.is_public, updated_at: new Date() })
+    .where(eq(trainingPlans.id, planId));
+
+  revalidatePath("/train");
+  revalidatePath(`/train/${planId}`);
+}
+
+export async function getTrainingPlan(planId: string): Promise<SavedTrainingPlan | null> {
+  const session = await auth();
+
+  const plan = await db.query.trainingPlans.findFirst({
+    where: eq(trainingPlans.id, planId),
+  });
+
+  if (!plan) return null;
+
+  const isOwner = session?.user?.id === plan.user_id;
+  if (!plan.is_public && !isOwner) return null;
+
+  const allRoutes = await getBrowserRoutes();
+  const routesMap = new Map(allRoutes.map(r => [r.id, r]));
+
+  const planRoutes = await db.select().from(trainingPlanRoutes)
+    .where(eq(trainingPlanRoutes.plan_id, plan.id))
+    .orderBy(trainingPlanRoutes.order_index);
+
+  const allUsers = await db.select({ id: users.id, name: users.name }).from(users);
+  const usersMap = new Map(allUsers.map(u => [u.id, u.name]));
+
+  return {
+    id: plan.id,
+    user_id: plan.user_id,
+    name: plan.name,
+    type: plan.type as TrainingPlanType,
+    base_grade: plan.base_grade,
+    length: plan.length as TrainingPlanLength,
+    is_public: plan.is_public,
+    created_at: plan.created_at,
+    updated_at: plan.updated_at,
+    user_name: usersMap.get(plan.user_id) || null,
+    routes: planRoutes.map(pr => ({
+      id: pr.id,
+      route_id: pr.route_id,
+      section_name: pr.section_name,
+      order_index: pr.order_index,
+      route: routesMap.get(pr.route_id)!,
+    })).filter(pr => pr.route),
+  };
+}
+
+export async function copyTrainingPlan(planId: string): Promise<{ id: string }> {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const originalPlan = await getTrainingPlan(planId);
+  if (!originalPlan) throw new Error("Plan not found");
+
+  const [newPlan] = await db.insert(trainingPlans).values({
+    user_id: session.user.id,
+    name: `${originalPlan.name} (Copy)`,
+    type: originalPlan.type,
+    base_grade: originalPlan.base_grade,
+    length: originalPlan.length,
+    is_public: false,
+  }).returning({ id: trainingPlans.id });
+
+  if (originalPlan.routes.length > 0) {
+    await db.insert(trainingPlanRoutes).values(
+      originalPlan.routes.map(r => ({
+        plan_id: newPlan.id,
+        route_id: r.route_id,
+        section_name: r.section_name,
+        order_index: r.order_index,
+      }))
+    );
+  }
+
+  revalidatePath("/train");
+  return { id: newPlan.id };
 }

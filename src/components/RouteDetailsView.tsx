@@ -1,16 +1,16 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowLeft, Star, Activity, Hash, Info, GripHorizontal, Zap, User } from "lucide-react";
-import { Badge } from "@/components/ui/Badge";
+import GradeVoting from "@/components/GradeVoting";
 import RouteActivity from "@/components/RouteActivity";
 import StarRating from "@/components/StarRating";
-import GradeVoting from "@/components/GradeVoting";
-import { cn, getRouteColor } from "@/lib/utils";
+import { Badge } from "@/components/ui/Badge";
+import { getRouteColor } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { Activity, ArrowLeft, GripHorizontal, Hash, Info, Star, User, Zap } from "lucide-react";
+import Link from "next/link";
 
+import { activityLogs, routes } from "@/lib/db/schema";
 import { InferSelectModel } from "drizzle-orm";
-import { routes, activityLogs } from "@/lib/db/schema";
 
 type Route = InferSelectModel<typeof routes>;
 type Activity = InferSelectModel<typeof activityLogs>;
@@ -62,17 +62,17 @@ export default function RouteDetailsView({
       initial={{ borderRadius: 12 }}
       animate={{ borderRadius: 0 }}
     >
-      {/* Global Grid Background */}
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,#00000012_1px,transparent_1px),linear-gradient(to_bottom,#00000012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-0 mix-blend-overlay" />
-
       <div className="relative z-10 max-w-4xl mx-auto pt-8 px-4 md:px-8">
 
         {/* Navigation Command */}
         <Link
           href={`/sets/${route.wall_id}`}
-          className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-slate-400 hover:text-rockmill transition-colors mb-8 group"
+          style={{ borderColor: getRouteColor(route.color) }}
+
+          className="border border-left-1 group bg-white p-1 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-rockmill transition-colors mb-8 font-mono"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+
           <span>Return to Set // {wall?.name}</span>
         </Link>
 

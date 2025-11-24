@@ -51,5 +51,6 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   name: text("name"),
   image: text("image"),
+  barcode: text("barcode"),
   created_at: timestamp("created_at").defaultNow(),
 });

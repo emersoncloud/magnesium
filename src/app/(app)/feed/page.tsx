@@ -11,7 +11,7 @@ async function FeedContainer() {
 export default function FeedPage() {
   return (
     <div className="max-w-2xl mx-auto pb-24">
-      <h1 className="text-5xl font-black text-black mb-8 uppercase tracking-tighter">Activity Feed</h1>
+      <h1 className="text-5xl font-black text-black mb-8 uppercase tracking-tighter mt-6">Activity Feed</h1>
       <Suspense fallback={<div className="space-y-4"><FeedItemSkeleton /><FeedItemSkeleton /><FeedItemSkeleton /></div>}>
         <FeedContainer />
       </Suspense>

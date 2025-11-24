@@ -1,12 +1,12 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { routes, activityLogs, personalNotes } from "@/lib/db/schema";
+import { routes, activityLogs, personalNotes, users } from "@/lib/db/schema";
 import { desc, eq, sql, and, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redis } from "@/lib/kv";
 import { getSheetData } from "@/lib/google-sheets";
-import { WALLS } from "@/lib/constants/walls";
+import { WALLS, GRADES } from "@/lib/constants/walls";
 import { auth, isAdmin, signOut } from "@/lib/auth";
 
 export async function logout() {
@@ -711,4 +711,123 @@ export async function confirmSync() {
   revalidatePath("/sync");
   
   return { success: true, count, archivedCount, updatedCount };
+}
+
+export type RoutePlanSection = {
+  title: string;
+  description: string;
+  routes: BrowserRoute[];
+};
+
+export type RoutePlan = {
+  warmUp: RoutePlanSection;
+  mainSet: RoutePlanSection;
+  challenge: RoutePlanSection;
+};
+
+export async function generateRoutePlan(): Promise<RoutePlan> {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const userId = session.user.id;
+
+  // 1. Determine User's Max Grade
+  // Fetch all sends/flashes
+  const userSends = await db
+    .select({
+      grade: routes.grade,
+    })
+    .from(activityLogs)
+    .leftJoin(routes, eq(activityLogs.route_id, routes.id))
+    .where(
+      and(
+        eq(activityLogs.user_id, userId),
+        or(eq(activityLogs.action_type, "SEND"), eq(activityLogs.action_type, "FLASH"))
+      )
+    );
+
+  let maxGradeIndex = 3; // Default to V3 (index 4 in 0-based array? No, V0 is index 1 usually... let's check GRADES)
+  // GRADES: ["VB", "V0", "V1", "V2", "V3", ...]
+  // Index:    0     1     2     3     4
+
+  if (userSends.length > 0) {
+    let maxIndex = -1;
+    for (const send of userSends) {
+      if (!send.grade) continue;
+      const idx = (GRADES as readonly string[]).indexOf(send.grade);
+      if (idx > maxIndex) maxIndex = idx;
+    }
+    if (maxIndex > -1) maxGradeIndex = maxIndex;
+  }
+
+  // 2. Fetch all active browser routes (re-using getBrowserRoutes logic effectively, but we need to filter)
+  // It's better to just call getBrowserRoutes to get everything with user status populated
+  const allRoutes = await getBrowserRoutes();
+
+  // 3. Filter for sections
+  // Warm Up: Max - 3 to Max - 1 (approx). 3 routes.
+  // Main Set: Max - 1 to Max. 4 routes.
+  // Challenge: Max to Max + 1. 3 routes (Unsent).
+
+  // Helper to get grade index
+  const getGradeIdx = (r: BrowserRoute) => (GRADES as readonly string[]).indexOf(r.grade);
+
+  const warmUpRoutes = allRoutes.filter(r => {
+    const idx = getGradeIdx(r);
+    return idx >= Math.max(0, maxGradeIndex - 3) && idx < maxGradeIndex;
+  });
+
+  const mainSetRoutes = allRoutes.filter(r => {
+    const idx = getGradeIdx(r);
+    return idx >= Math.max(0, maxGradeIndex - 1) && idx <= maxGradeIndex;
+  });
+
+  const challengeRoutes = allRoutes.filter(r => {
+    const idx = getGradeIdx(r);
+    // Challenge should be hard (Max to Max+2) and NOT sent/flashed
+    return idx >= maxGradeIndex && idx <= maxGradeIndex + 2 && !r.user_status;
+  });
+
+  // Randomly select subset
+  const shuffle = <T>(array: T[]) => array.sort(() => 0.5 - Math.random());
+
+  return {
+    warmUp: {
+      title: "Warm Up",
+      description: "Get the blood flowing with these easier climbs.",
+      routes: shuffle(warmUpRoutes).slice(0, 3),
+    },
+    mainSet: {
+      title: "Main Set",
+      description: "Your working grade. Focus on technique and execution.",
+      routes: shuffle(mainSetRoutes).slice(0, 4),
+    },
+    challenge: {
+      title: "Challenge",
+      description: "Push your limits. Try something hard you haven't sent yet.",
+      routes: shuffle(challengeRoutes).slice(0, 3),
+    },
+  };
+}
+
+export async function updateUserBarcode(barcode: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  await db.update(users)
+    .set({ barcode })
+    .where(eq(users.id, session.user.id));
+
+  revalidatePath(`/profile/${session.user.id}`);
+}
+
+export async function resetUserBarcode() {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  await db.update(users)
+    .set({ barcode: null })
+    .where(eq(users.id, session.user.id));
+
+  revalidatePath(`/profile/${session.user.id}`);
 }

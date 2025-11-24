@@ -415,10 +415,30 @@ export default function RouteActivity({
         <div className="border-y border-slate-200 py-4">
           <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Recent Sends</h3>
           <div className="flex flex-wrap gap-2">
-            {sends.map((log) => (
+            {Object.values(
+              sends.reduce((acc, log) => {
+                if (!acc[log.user_id]) {
+                  acc[log.user_id] = {
+                    ...log,
+                    count: 0,
+                    hasFlash: false
+                  };
+                }
+                acc[log.user_id].count++;
+                if (log.action_type === "FLASH") {
+                  acc[log.user_id].hasFlash = true;
+                }
+                return acc;
+              }, {} as Record<string, ActivityLog & { count: number; hasFlash: boolean }>)
+            ).map((log) => (
               <div key={log.id} className="flex items-center gap-2 bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700" title={new Date(log.created_at!).toLocaleDateString()}>
                 <span>{log.user_name}</span>
-                {log.action_type === "FLASH" && <Zap className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
+                {log.count > 1 && (
+                  <span className="bg-slate-200 text-slate-600 px-1.5 rounded-full text-[10px] font-bold">
+                    {log.count}
+                  </span>
+                )}
+                {log.hasFlash && <Zap className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
               </div>
             ))}
           </div>
@@ -508,7 +528,7 @@ export default function RouteActivity({
                     )}
                   </div>
                   {isOwner && !isEditing && (
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-2">
                       <button
                         onClick={() => {
                           setEditingId(log.id);

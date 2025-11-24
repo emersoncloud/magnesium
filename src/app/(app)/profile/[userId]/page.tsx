@@ -2,6 +2,11 @@ import { getUserActivity } from "@/app/actions";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import ProfileStats from "@/components/ProfileStats";
+import { db } from "@/lib/db";
+import { users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import UserBarcode from "@/components/UserBarcode";
+import BarcodeScanner from "@/components/BarcodeScanner";
 
 export default async function PublicProfilePage({ params }: { params: Promise<{ userId: string }> }) {
   const session = await auth();
@@ -17,22 +22,32 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
     name: activity[0]?.user_name || "Unknown Climber",
     image: activity[0]?.user_image,
     id: activity[0]?.user_id || decodedUserId,
+    barcode: null as string | null,
   };
 
-  if (activity.length === 0) {
+  // Fetch user details directly to get barcode
+  const userDetails = await db.query.users.findFirst({
+    where: eq(users.id, decodedUserId),
+  });
+
+  if (userDetails) {
+    user.name = userDetails.name || user.name;
+    user.image = userDetails.image || user.image;
+    user.barcode = userDetails.barcode;
+  } else if (activity.length === 0) {
     if (isOwnProfile) {
       user = {
         name: session.user.name || "Unknown Climber",
         image: session.user.image || null,
         id: session.user.id || decodedUserId,
+        barcode: null,
       };
     } else {
-      // For other users with no activity, we don't have their info.
-      // We'll show a generic profile.
       user = {
         name: "Unknown Climber",
         image: null,
         id: decodedUserId,
+        barcode: null,
       };
     }
   }
@@ -53,6 +68,16 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
           <p className="text-gray-500">Climber</p>
         </div>
       </div>
+
+      {isOwnProfile && (
+        <div className="mb-8">
+          {user.barcode ? (
+            <UserBarcode barcode={user.barcode} />
+          ) : (
+            <BarcodeScanner />
+          )}
+        </div>
+      )}
 
       <ProfileStats activity={activity} />
 

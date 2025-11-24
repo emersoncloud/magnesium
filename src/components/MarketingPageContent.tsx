@@ -306,6 +306,11 @@ function MarketingContent({
                 RM<span className="text-slate-400">Mg</span>
               </span>
             </div>
+            <nav>
+              <Link href="https://rockmillclimbing.com" className="text-sm font-bold uppercase tracking-tight hover:text-rockmill transition-colors">
+                Rock Mill Climbing
+              </Link>
+            </nav>
             <p className="text-xs text-slate-400 font-mono uppercase tracking-widest">Data Driven Climbing.</p>
           </div>
         </div>

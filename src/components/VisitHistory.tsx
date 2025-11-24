@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Card } from "@/components/ui/Card";
-import { Calendar, ChevronDown, ChevronUp, Zap, Check } from "lucide-react";
+import { Calendar, ChevronDown, ChevronUp, Zap, Check, CheckCircle2, X } from "lucide-react";
 import { RouteBadge } from "@/components/RouteBadge";
 import Link from "next/link";
 
@@ -35,7 +35,7 @@ export default function VisitHistory({ activity }: { activity: ActivityLog[] }) 
   }, {} as Record<string, ActivityLog[]>);
 
   const sortedDates = Object.keys(visits).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-
+  console.log(visits);
   return (
     <Card className="p-6">
       <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2 mb-6">
@@ -81,9 +81,10 @@ export default function VisitHistory({ activity }: { activity: ActivityLog[] }) 
                       <div className="flex items-center gap-2">
                         {log.action_type === "FLASH" && <Zap className="w-3 h-3 text-yellow-500 fill-current" />}
                         {log.action_type === "SEND" && <Check className="w-3 h-3 text-green-500" />}
-                        {log.action_type === "ATTEMPT" && <div className="w-3 h-3 rounded-full border border-slate-300" />}
-
-                        {log.route_id && log.route_grade && log.route_color ? (
+                        {log.action_type === "ATTEMPT" && <CheckCircle2 className="w-3 h-3 text-gray-500" />}
+                        {log.action_type === "COMMENT" && <X className="w-3 h-3 text-red-500" />}
+                        {log.action_type === "PROPOSE_GRADE" && <Check className="w-3 h-3 text-green-500" />}
+                        {log.route_id && log.route_grade && log.route_color && log.action_type !== "DELETE" ? (
                           <Link href={`/route/${log.route_id}`}>
                             <RouteBadge
                               route={{
@@ -96,7 +97,7 @@ export default function VisitHistory({ activity }: { activity: ActivityLog[] }) 
                                 set_date: log.set_date || new Date().toISOString(),
                               }}
                               className="scale-75 origin-left"
-                              showWallName={false}
+                              showSetDate={true}
                             />
                           </Link>
                         ) : (

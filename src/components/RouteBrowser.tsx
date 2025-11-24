@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { getRouteColor } from "@/lib/utils";
+import { GradeDisplay } from "@/components/GradeDisplay";
 
 type SortField = "grade" | "color" | "wall_id" | "avg_rating" | "comment_count" | "set_date" | "setter_name" | "style" | "hold_type";
 type SortDirection = "asc" | "desc";
@@ -230,8 +231,11 @@ export default function RouteBrowser({ routes }: { routes: BrowserRoute[] }) {
                 {sortedRoutes.map((route) => (
                   <tr key={route.id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="px-6 py-4 font-black text-slate-700 text-lg">
-                      {route.difficulty_label || route.grade}
-                      {route.difficulty_label && <span className="block text-xs font-normal text-slate-400">{route.grade}</span>}
+                      <GradeDisplay
+                        grade={route.grade}
+                        difficulty={route.difficulty_label}
+                        className="text-lg"
+                      />
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">

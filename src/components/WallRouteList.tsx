@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Star, MessageSquare, Zap, CheckCircle2 } from "lucide-react";
 import { cn, getRouteColor } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { GradeDisplay } from "@/components/GradeDisplay";
 
 /**
  * A simple Linear Congruential Generator for deterministic randomness.
@@ -123,14 +124,12 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
                       layoutId={`route-grade-${route.id}`}
                       className="relative z-10 bg-white/40 backdrop-blur-[2px] rounded-xl p-2 min-w-[60px] flex flex-col items-center justify-center shadow-sm"
                     >
-                      <span className="text-3xl md:text-5xl font-black text-black/80 drop-shadow-sm leading-none">
-                        {route.grade}
-                      </span>
-                      {route.difficulty_label && (
-                        <span className="block text-[8px] md:text-[10px] font-bold uppercase tracking-wider text-black/60 mt-1 leading-tight">
-                          {route.difficulty_label}
-                        </span>
-                      )}
+                      <GradeDisplay
+                        grade={route.grade}
+                        difficulty={route.difficulty_label}
+                        variant="badge"
+                        className="text-3xl md:text-5xl"
+                      />
                     </motion.div>
 
                     {/* Top Right: Status */}

@@ -1,6 +1,7 @@
 "use client";
 
 import GradeVoting from "@/components/GradeVoting";
+import { GradeDisplay } from "@/components/GradeDisplay";
 import RouteActivity from "@/components/RouteActivity";
 import StarRating from "@/components/StarRating";
 import { Badge } from "@/components/ui/Badge";
@@ -99,16 +100,13 @@ export default function RouteDetailsView({
 
                 <motion.div layoutId={`route-grade-${route.id}`}>
                   <h1 className="text-7xl md:text-8xl font-black tracking-tighter text-black leading-none mb-2">
-                    {route.difficulty_label || route.grade}
+                    <GradeDisplay
+                      grade={route.grade}
+                      difficulty={route.difficulty_label}
+                      className="text-7xl md:text-8xl"
+                    />
                   </h1>
                 </motion.div>
-
-                {route.difficulty_label && (
-                  <div className="text-2xl font-bold text-slate-400 flex items-center gap-2">
-                    <span className="h-px w-8 bg-slate-300" />
-                    {route.grade}
-                  </div>
-                )}
 
                 {/* Style & Hold Type Badges */}
                 {(route.style || route.hold_type) && (

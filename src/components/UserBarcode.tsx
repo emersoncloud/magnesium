@@ -1,10 +1,10 @@
 'use client';
 
-import { QRCodeSVG } from 'qrcode.react';
+import Barcode from 'react-barcode';
 import { resetUserBarcode } from '@/app/actions';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Loader2, Trash2, QrCode } from 'lucide-react';
+import { Loader2, Trash2, ScanLine } from 'lucide-react';
 import { useState } from 'react';
 
 export default function UserBarcode({ barcode }: { barcode: string }) {
@@ -26,16 +26,18 @@ export default function UserBarcode({ barcode }: { barcode: string }) {
   return (
     <Card className="p-6 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center text-center">
       <div className="flex items-center gap-2 mb-6 text-rockmill">
-        <QrCode className="w-5 h-5" />
+        <ScanLine className="w-5 h-5" />
         <h3 className="font-bold uppercase tracking-widest text-sm">Member ID</h3>
       </div>
 
-      <div className="p-4 bg-white border-2 border-slate-100 rounded-xl mb-6 shadow-inner">
-        <QRCodeSVG
+      <div className="p-4 bg-white border-2 border-slate-100 rounded-xl mb-6 shadow-inner overflow-hidden">
+        <Barcode
           value={barcode}
-          size={200}
-          level="H"
-          includeMargin={true}
+          width={2}
+          height={100}
+          displayValue={false}
+          background="#ffffff"
+          lineColor="#000000"
         />
       </div>
 

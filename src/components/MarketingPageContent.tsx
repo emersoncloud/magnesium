@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/Switch";
 import { Badge } from "@/components/ui/Badge";
 import { SetCard } from "@/components/SetCard";
 import posthog from "posthog-js";
+import FeedList from "./FeedList";
 
 // Types
 type Route = {
@@ -227,64 +228,8 @@ function MarketingContent({
                 {"// Real-time activity from the gym"}
               </p>
             </div>
-
-            <div className="grid gap-4 md:grid-cols-3 max-w-5xl mx-auto">
-              {recentActivity.map((item) => (
-                <Card key={item.id} className="p-4 flex flex-col gap-3 hover:-translate-y-1 transition-transform duration-300 bg-white">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-black text-white flex items-center justify-center transform -skew-x-12 font-bold text-xs">
-                        {item.user_name?.[0] || "?"}
-                      </div>
-                      <div className="font-bold uppercase tracking-tight text-sm truncate max-w-[100px]">{item.user_name || "Climber"}</div>
-                    </div>
-                    <div className="text-xs text-slate-400 font-mono">{new Date(item.created_at!).toLocaleDateString()}</div>
-                  </div>
-
-                  <div className="flex-1">
-                    {item.action_type === "SEND" && (
-                      <div className="bg-green-50 border border-green-100 p-3 rounded text-center">
-                        <div className="text-green-600 font-black uppercase tracking-tighter text-lg">SENT</div>
-                        <div className="text-xs font-bold text-slate-700">{item.route_label || "Route"}</div>
-                      </div>
-                    )}
-                    {item.action_type === "FLASH" && (
-                      <div className="bg-yellow-50 border border-yellow-100 p-3 rounded text-center">
-                        <div className="text-yellow-600 font-black uppercase tracking-tighter text-lg">FLASHED</div>
-                        <div className="text-xs font-bold text-slate-700">{item.route_label || "Route"}</div>
-                      </div>
-                    )}
-                    {item.action_type === "COMMENT" && (
-                      <div className="bg-slate-50 border border-slate-100 p-3 rounded">
-                        <div className="flex items-center gap-1 text-slate-400 text-xs font-mono uppercase mb-1">
-                          <MessageSquare className="w-3 h-3" /> Comment
-                        </div>
-                        <div className="text-sm text-slate-700 italic">
-                          {item.content}
-                        </div>
-                      </div>
-                    )}
-                    {item.action_type === "RATING" && (
-                      <div className="bg-slate-50 border border-slate-100 p-3 rounded text-center">
-                        <div className="flex justify-center gap-1 text-yellow-400 mb-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className={`w-4 h-4 ${i < parseInt(item.content) ? "fill-current" : "text-slate-200"}`} />
-                          ))}
-                        </div>
-                        <div className="text-xs font-bold text-slate-700">{item.route_label || "Route"}</div>
-                      </div>
-                    )}
-                  </div>
-
-                  {item.route_grade && (
-                    <div className="flex justify-end">
-                      <Badge variant="outline" className="font-mono text-[10px] border-black">
-                        {item.route_grade}
-                      </Badge>
-                    </div>
-                  )}
-                </Card>
-              ))}
+            <div className="max-w-5xl mx-auto">
+              <FeedList activity={recentActivity} />
             </div>
 
             <div className="text-center mt-12">

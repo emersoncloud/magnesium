@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useSettings } from "@/context/SettingsContext";
+import { GradeDisplay } from "@/components/GradeDisplay";
 import { Badge } from "@/components/ui/Badge";
 import { cn, getRouteColor } from "@/lib/utils";
 import { WALLS } from "@/lib/constants/walls";
@@ -30,52 +31,69 @@ interface RouteBadgeProps {
 export function RouteBadge({
   route,
   className = "",
-  showWallName = true
+  showWallName = true,
+  showSetDate = false
 }: {
   route: RouteBadgeProps;
   className?: string;
   showWallName?: boolean;
+  showSetDate?: boolean;
 }) {
-  const { showDifficulty } = useSettings();
-  const label = showDifficulty ? (route.difficulty_label || route.grade) : route.grade;
-
-  // Determine wall name
   const wallName = WALLS.find(w => w.id === route.wall_id)?.name || "Unknown Wall";
 
+  const formattedDate = route.set_date ? new Date(route.set_date).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' }) : "";
+
   return (
-    <TooltipProvider>
-      <Tooltip delayDuration={0}>
+    <TooltipProvider >
+      <Tooltip>
         <TooltipTrigger asChild>
-          <div className={cn("inline-flex items-center group cursor-help", className)}>
+          <div className={cn("flex w-full items-center group cursor-help", className)}>
             {/* Color Indicator - The Shard */}
             <div
-              className="h-5 w-3 transform -skew-x-12 border-2 border-black border-r-0"
+              className="h-8 w-4 transform border-r-0 flex-shrink-0"
               style={{ backgroundColor: getRouteColor(route.color) }}
             />
 
             {/* Grade Label */}
-            <div className="h-5 px-2 bg-white border-2 border-black flex items-center justify-center transform -skew-x-12 min-w-[2.5rem]">
-              <span className="transform skew-x-12 font-mono text-xs font-bold uppercase tracking-wider">
-                {label}
-              </span>
+            <div className="h-8 px-3 bg-white  flex items-center justify-center transform min-w-[2rem]">
+              <GradeDisplay
+                grade={route.grade}
+                difficulty={route.difficulty_label}
+                variant="badge"
+                className="transform text-lg"
+                showSecondary={false}
+              />
             </div>
 
             {/* Location Label (Optional) */}
             {showWallName && (
-              <div className="ml-1 h-5 px-2 bg-slate-100 border-2 border-black flex items-center justify-center transform -skew-x-12">
-                <span className="transform skew-x-12 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              <div className="ml-1 h-8 px-3 bg-slate-100  flex items-center justify-center transform">
+                <span className="transform font-mono text-xs font-bold uppercase tracking-wider text-slate-500 whitespace-nowrap">
                   {wallName}
+                </span>
+              </div>
+            )}
+
+            {/* Set Date Label (Optional) */}
+            {showSetDate && formattedDate && (
+              <div className="ml-1 h-8 px-3 bg-slate-100  flex items-center justify-center transform">
+                <span className="transform font-mono text-xs font-bold uppercase tracking-wider text-slate-500 whitespace-nowrap">
+                  {formattedDate}
                 </span>
               </div>
             )}
           </div>
         </TooltipTrigger>
         <TooltipContent side="top" className="p-0 bg-transparent border-0 shadow-none">
-          <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 min-w-[200px]">
+          <div className="bg-white  shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 min-w-[200px]">
             <div className="flex justify-between items-start mb-2">
               <div>
                 <h4 className="font-black uppercase tracking-tighter text-lg leading-none">
-                  {route.difficulty_label || route.grade}
+                  <GradeDisplay
+                    grade={route.grade}
+                    difficulty={route.difficulty_label}
+                    className="text-lg"
+                  />
                 </h4>
                 <div className="flex items-center gap-2 mt-1">
                   <div className="w-2 h-2 rounded-full border border-black" style={{ backgroundColor: getRouteColor(route.color) }} />

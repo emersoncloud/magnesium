@@ -7,6 +7,7 @@ import { getRouteColor } from "@/lib/utils";
 import { Check, Zap, Star, MessageSquare, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { WALLS } from "@/lib/constants/walls";
+import { GradeDisplay } from "@/components/GradeDisplay";
 
 export default function RoutePlanView({ plan }: { plan: RoutePlan }) {
   return (
@@ -60,7 +61,11 @@ function PlanSection({ section, color }: { section: RoutePlan["warmUp"], color: 
 
               <div className="mb-4">
                 <div className="text-2xl font-black text-slate-800">
-                  {route.difficulty_label || route.grade}
+                  <GradeDisplay
+                    grade={route.grade}
+                    difficulty={route.difficulty_label}
+                    className="text-2xl"
+                  />
                 </div>
                 <div className="text-xs text-slate-500 font-medium">
                   {WALLS.find(w => w.id === route.wall_id)?.name || route.wall_id}

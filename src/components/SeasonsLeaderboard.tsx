@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Trophy, Medal, Award } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { GradeDisplay } from "@/components/GradeDisplay";
 
 export default function SeasonsLeaderboard({
   data,
@@ -89,7 +90,7 @@ export default function SeasonsLeaderboard({
                     {isCurrentUser && <span className="ml-2 text-[10px] bg-black text-white px-1.5 py-0.5 rounded-sm align-middle tracking-widest font-mono">YOU</span>}
                   </div>
                   <div className="text-xs font-mono text-slate-500 uppercase tracking-widest mt-1">
-                    Best: <span className="font-bold text-black">{entry.topGrade || "-"}</span>
+                    Best: <GradeDisplay grade={entry.topGrade || "-"} className="font-bold text-black" />
                   </div>
                 </div>
               </Link>

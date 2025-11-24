@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { generateRoutePlan, RoutePlan } from "@/app/actions";
+import { useSettings } from "@/context/SettingsContext";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { RouteBadge } from "@/components/RouteBadge";
@@ -12,6 +13,9 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function RoutePlanGenerator() {
   const [plan, setPlan] = useState<RoutePlan | null>(null);
   const [isPending, startTransition] = useTransition();
+  const { showBeta } = useSettings();
+
+  if (!showBeta) return null;
 
   const handleGenerate = () => {
     startTransition(async () => {

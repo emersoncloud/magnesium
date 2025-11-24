@@ -54,10 +54,10 @@ export default function NavBar({ user, isAdmin }: { user?: User | null, isAdmin?
               href={item.href}
               onClick={item.onClick}
               className={cn(
-                "group relative flex flex-col items-center justify-end pb-5 -mb-3 transition-all duration-300 ease-in-out -mx-1",
+                "group relative flex flex-col items-center justify-end pb-5 -mb-3 transition-all duration-300 ease-in-out -mx-2",
                 isActive ? "z-20" : "z-10 hover:z-15",
                 // Responsive dimensions using CSS variables defined in style
-                "h-[calc(var(--nav-height)*0.55)] w-[calc(var(--nav-height)*0.55*1.6)]",
+                "h-[calc(var(--nav-height)*0.65)] w-[calc(var(--nav-height)*0.65*1.6)]",
                 "md:h-[calc(var(--nav-height)*0.8)] md:w-[calc(var(--nav-height)*0.8*1.6)]",
                 "lg:h-[var(--nav-height)] lg:w-[calc(var(--nav-height)*1.6)]"
               )}
@@ -84,7 +84,7 @@ export default function NavBar({ user, isAdmin }: { user?: User | null, isAdmin?
                   isActive ? "text-white scale-110" : "text-gray-200 group-hover:text-slate-300"
                 )} />
                 <span className={cn(
-                  "text-[9px] font-black uppercase tracking-widest transition-colors duration-300",
+                  "text-[10px] font-black uppercase tracking-widest transition-colors duration-300",
                   isActive ? "text-white" : "text-gray-200 group-hover:text-slate-300"
                 )}>
                   {item.name}

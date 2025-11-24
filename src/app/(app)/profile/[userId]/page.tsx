@@ -7,6 +7,7 @@ import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import UserBarcode from "@/components/UserBarcode";
 import BarcodeScanner from "@/components/BarcodeScanner";
+import ProfileSettings from "@/components/ProfileSettings";
 
 export default async function PublicProfilePage({ params }: { params: Promise<{ userId: string }> }) {
   const session = await auth();
@@ -76,10 +77,13 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
           ) : (
             <BarcodeScanner />
           )}
+
         </div>
       )}
 
       <ProfileStats activity={activity} />
+
+      {isOwnProfile && <ProfileSettings />}
 
       {isOwnProfile && (
         <div className="mt-12 pt-8 border-t border-slate-200">

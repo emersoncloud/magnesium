@@ -35,7 +35,7 @@ export default async function SeasonsPage() {
         {/* Header */}
         <div className="mb-12 relative">
           <div className="absolute -left-4 top-0 bottom-0 w-1 bg-rockmill transform -skew-x-12" />
-          <h1 className="text-6xl md:text-8xl font-black text-black tracking-tighter uppercase transform -skew-x-6 mb-4 leading-none">
+          <h1 className="text-5xl md:text-8xl font-black text-black tracking-tighter uppercase transform -skew-x-6 mb-4 leading-none">
             SEASON <span className="text-transparent bg-clip-text bg-gradient-to-r from-rockmill to-red-600">LEADERBOARD</span>
           </h1>
 

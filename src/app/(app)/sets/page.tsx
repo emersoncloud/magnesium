@@ -15,8 +15,7 @@ export default async function SetsPage() {
     return acc;
   }, {} as Record<string, typeof allRoutes>);
 
-  const largeWalls = WALLS.slice(0, 9);
-  const smallWalls = WALLS.slice(9);
+
 
   const renderWallCard = (wall: typeof WALLS[number], index: number, total: number) => {
     const wallRoutes = routesByWall[wall.id] || [];
@@ -61,25 +60,25 @@ export default async function SetsPage() {
 
   return (
     <div className="space-y-12 py-8 md:py-20">
+      {/* Page Header */}
+      <div className="mb-8">
+        <h1 className="text-4xl md:text-6xl font-black text-slate-900 uppercase tracking-tighter mb-2">
+          Current Sets
+        </h1>
+        <p className="text-slate-500 font-mono text-sm uppercase tracking-widest">
+          What&apos;s on the wall
+        </p>
+      </div>
+
       <Suspense fallback={<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><WallCardSkeleton /><WallCardSkeleton /><WallCardSkeleton /></div>}>
         
-        {/* Large Walls Section */}
+        {/* Walls Section */}
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-800 uppercase tracking-wider border-b border-slate-200 pb-2">
-            Big Section
+            Right to Left
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-8">
-            {largeWalls.map((wall, i) => renderWallCard(wall, i, largeWalls.length))}
-          </div>
-        </div>
-
-        {/* Small Walls Section */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-800 uppercase tracking-wider border-b border-slate-200 pb-2">
-            Small Section
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-8">
-            {smallWalls.map((wall, i) => renderWallCard(wall, i, smallWalls.length))}
+            {WALLS.map((wall, i) => renderWallCard(wall, i, WALLS.length))}
           </div>
         </div>
 

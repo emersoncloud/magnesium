@@ -47,7 +47,7 @@ export default function SeasonsLeaderboard({
             )} />
 
             {/* Content */}
-            <div className="relative p-4 flex items-center gap-4">
+            <div className="relative p-4 md:p-6 flex items-center gap-4 min-h-[5rem]">
               {/* Rank Badge */}
               <div className={cn(
                 "w-12 h-12 flex items-center justify-center font-black text-xl border-2 border-black transform -skew-x-12",
@@ -65,7 +65,7 @@ export default function SeasonsLeaderboard({
               </div>
 
               {/* User Info */}
-              <Link href={`/profile/${entry.userId}`} className="flex items-center gap-4 flex-1 group/link">
+              <Link href={`/profile/${entry.userId}`} className="flex items-center gap-4 flex-1 group/link min-w-0">
                 <div className="relative w-10 h-10 border-2 border-black overflow-hidden bg-slate-100">
                   {entry.userImage ? (
                     <Image
@@ -81,9 +81,9 @@ export default function SeasonsLeaderboard({
                   )}
                 </div>
 
-                <div>
+                <div className="min-w-0">
                   <div className={cn(
-                    "font-black uppercase tracking-tight text-lg leading-none group-hover/link:text-yellow-600 transition-colors",
+                    "font-black uppercase tracking-tight text-base md:text-lg leading-tight group-hover/link:text-yellow-600 transition-colors line-clamp-2",
                     isCurrentUser ? "text-black" : "text-slate-800"
                   )}>
                     {entry.userName || "Anonymous Climber"}
@@ -105,7 +105,7 @@ export default function SeasonsLeaderboard({
                   <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-0.5">Flashes</div>
                   <div className="font-mono font-bold text-black">{entry.flashes}</div>
                 </div>
-                <div className="w-24 pl-4 border-l-2 border-slate-100">
+                <div className="w-28 pl-4 border-l-2 border-slate-100">
                   <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-0.5">Score</div>
                   <div className="text-2xl font-black text-black leading-none tracking-tighter">
                     {entry.score.toLocaleString()}

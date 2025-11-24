@@ -80,7 +80,7 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
            Replaced Grid with Flex-Wrap.
            gap-x-4 gap-y-12 ensures they cluster but have vertical breathing room for the random offsets.
         */
-        <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-12 md:gap-x-12 md:gap-y-16 max-w-7xl mx-auto">
+        <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-8 md:gap-x-8 md:gap-y-12 max-w-7xl mx-auto">
           {routes.map((route) => {
             const styles = generateOrganicStyles(route.id, route.wall_id, route.grade);
 
@@ -91,7 +91,7 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
                 // SIZING CHANGE:
                 // w-32 h-32 (Mobile) -> w-44 h-44 (Tablet) -> w-56 h-56 (Desktop)
                 // This automatically handles your "smaller on smaller screens" request
-                className="relative group z-0 hover:z-10 w-32 h-32 md:w-44 md:h-44 lg:w-56 lg:h-56 flex-shrink-0"
+                className="relative group z-0 hover:z-10 w-24 h-24 md:w-32 md:h-32 lg:w-44 lg:h-44 flex-shrink-0"
                 style={{
                   // Apply the random nudge (translation) here on the container
                   transform: `translate(${styles.x}px, ${styles.y}px)`
@@ -128,24 +128,24 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
                         grade={route.grade}
                         difficulty={route.difficulty_label}
                         variant="badge"
-                        className="text-3xl md:text-5xl"
+                        className="text-xl md:text-3xl"
                       />
                     </motion.div>
 
                     {/* Top Right: Status */}
                     {route.user_status && (
-                      <div className="absolute top-2 right-2 md:top-5 md:right-5">
+                      <div className="absolute top-1 right-1 md:top-3 md:right-3">
                         <div className={cn(
-                          "w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center shadow-sm ring-2 ring-white/50",
+                          "w-5 h-5 md:w-7 md:h-7 rounded-full flex items-center justify-center shadow-sm ring-2 ring-white/50",
                           route.user_status === "FLASH" ? "bg-yellow-400 text-black" : "bg-green-500 text-white"
                         )}>
-                          {route.user_status === "FLASH" ? <Zap className="w-3 h-3 md:w-4 md:h-4 fill-current" /> : <CheckCircle2 className="w-3 h-3 md:w-4 md:h-4" />}
+                          {route.user_status === "FLASH" ? <Zap className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 fill-current" /> : <CheckCircle2 className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" />}
                         </div>
                       </div>
                     )}
 
                     {/* Bottom Info Row */}
-                    <div className="absolute bottom-3 md:bottom-6 left-0 right-0 flex items-center justify-center gap-2 md:gap-3 px-4">
+                    <div className="absolute bottom-2 md:bottom-4 left-0 right-0 flex items-center justify-center gap-1 md:gap-2 px-2">
                       {/* Rating */}
                       {route.avg_rating > 0 && (
                         <div className="flex items-center gap-1 text-black/70 bg-white/30 backdrop-blur-[2px] px-1.5 py-0.5 rounded-full shadow-sm">

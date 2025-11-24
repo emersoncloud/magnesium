@@ -11,6 +11,8 @@ interface SettingsContextType {
   showDifficulty: boolean;
   shareActivity: boolean;
   toggleShareActivity: () => void;
+  showBeta: boolean;
+  toggleShowBeta: () => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -18,11 +20,16 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [gradeDisplay, setGradeDisplay] = useState<GradeDisplay>("v-scale");
   const [shareActivity, setShareActivity] = useState(true);
+  const [showBeta, setShowBeta] = useState(false);
 
   useEffect(() => {
     const savedShare = localStorage.getItem("route-mill-share-activity");
     if (savedShare !== null) {
       setShareActivity(savedShare === "true");
+    }
+    const savedBeta = localStorage.getItem("route-mill-show-beta");
+    if (savedBeta !== null) {
+      setShowBeta(savedBeta === "true");
     }
   }, []);
 
@@ -35,6 +42,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("route-mill-share-activity", String(shareActivity));
   }, [shareActivity]);
 
+  useEffect(() => {
+    localStorage.setItem("route-mill-show-beta", String(showBeta));
+  }, [showBeta]);
+
   const toggleGradeDisplay = () => {
     setGradeDisplay((prev) => (prev === "v-scale" ? "difficulty" : "v-scale"));
   };
@@ -43,10 +54,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     setShareActivity((prev) => !prev);
   };
 
+  const toggleShowBeta = () => {
+    setShowBeta((prev) => !prev);
+  };
+
   const showDifficulty = gradeDisplay === "difficulty";
 
   return (
-    <SettingsContext.Provider value={{ gradeDisplay, setGradeDisplay, toggleGradeDisplay, showDifficulty, shareActivity, toggleShareActivity }}>
+    <SettingsContext.Provider value={{ gradeDisplay, setGradeDisplay, toggleGradeDisplay, showDifficulty, shareActivity, toggleShareActivity, showBeta, toggleShowBeta }}>
       {children}
     </SettingsContext.Provider>
   );

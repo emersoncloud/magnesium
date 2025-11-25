@@ -13,6 +13,8 @@ interface SettingsContextType {
   toggleShareActivity: () => void;
   showBeta: boolean;
   toggleShowBeta: () => void;
+  experimentalFeatures: boolean;
+  toggleExperimentalFeatures: () => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -21,6 +23,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [gradeDisplay, setGradeDisplay] = useState<GradeDisplay>("v-scale");
   const [shareActivity, setShareActivity] = useState(true);
   const [showBeta, setShowBeta] = useState(false);
+  const [experimentalFeatures, setExperimentalFeatures] = useState(false);
 
   useEffect(() => {
     const savedShare = localStorage.getItem("route-mill-share-activity");
@@ -30,6 +33,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const savedBeta = localStorage.getItem("route-mill-show-beta");
     if (savedBeta !== null) {
       setShowBeta(savedBeta === "true");
+    }
+    const savedExperimental = localStorage.getItem("route-mill-experimental-features");
+    if (savedExperimental !== null) {
+      setExperimentalFeatures(savedExperimental === "true");
     }
   }, []);
 
@@ -46,6 +53,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("route-mill-show-beta", String(showBeta));
   }, [showBeta]);
 
+  useEffect(() => {
+    localStorage.setItem("route-mill-experimental-features", String(experimentalFeatures));
+  }, [experimentalFeatures]);
+
   const toggleGradeDisplay = () => {
     setGradeDisplay((prev) => (prev === "v-scale" ? "difficulty" : "v-scale"));
   };
@@ -58,10 +69,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     setShowBeta((prev) => !prev);
   };
 
+  const toggleExperimentalFeatures = () => {
+    setExperimentalFeatures((prev) => !prev);
+  };
+
   const showDifficulty = gradeDisplay === "difficulty";
 
   return (
-    <SettingsContext.Provider value={{ gradeDisplay, setGradeDisplay, toggleGradeDisplay, showDifficulty, shareActivity, toggleShareActivity, showBeta, toggleShowBeta }}>
+    <SettingsContext.Provider value={{ gradeDisplay, setGradeDisplay, toggleGradeDisplay, showDifficulty, shareActivity, toggleShareActivity, showBeta, toggleShowBeta, experimentalFeatures, toggleExperimentalFeatures }}>
       {children}
     </SettingsContext.Provider>
   );

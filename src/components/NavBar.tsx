@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { signIn } from "next-auth/react";
+import { useSettings } from "@/context/SettingsContext";
 
 import { CetaitDemain } from "./mountains/CetaitDemain";
 import { Dreamtime } from "./mountains/Dreamtime";
@@ -17,10 +18,11 @@ import { TheRhino } from "./mountains/TheRhino";
 
 export default function NavBar({ user, isAdmin }: { user?: User | null, isAdmin?: boolean }) {
   const pathname = usePathname();
+  const { experimentalFeatures } = useSettings();
 
   const navItems = [
     { name: "Sets", href: "/sets", icon: Library, Mountain: MidnightLightning },
-    { name: "Train", href: "/train", icon: Dumbbell, Mountain: Dreamtime },
+    ...(experimentalFeatures ? [{ name: "Train", href: "/train", icon: Dumbbell, Mountain: Dreamtime }] : []),
     { name: "Seasons", href: "/seasons", icon: Trophy, Mountain: TheRhino },
     { name: "Feed", href: "/feed", icon: Activity, Mountain: TheMandala },
     ...(user
@@ -77,7 +79,7 @@ export default function NavBar({ user, isAdmin }: { user?: User | null, isAdmin?
               href={item.href}
               onClick={item.onClick}
               className={cn(
-                "group relative flex flex-col items-center justify-end pb-5 -mb-3 transition-all duration-300 ease-in-out -mx-2",
+                "group relative flex flex-col items-center justify-end pb-5 -mb-3 transition-all duration-300 ease-in-out mx-0",
                 isActive ? "z-20" : "z-10 hover:z-15",
                 // Responsive dimensions using CSS variables defined in style
                 "h-[calc(var(--nav-height)*0.65)] w-[calc(var(--nav-height)*0.65*1.6)]",

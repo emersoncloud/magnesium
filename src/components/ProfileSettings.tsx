@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Megaphone } from "lucide-react";
+import { Beaker, Megaphone } from "lucide-react";
 import { useSettings } from "@/context/SettingsContext";
 import { Switch } from "@/components/ui/Switch";
 
 export default function ProfileSettings() {
-  const { gradeDisplay, toggleGradeDisplay, shareActivity, toggleShareActivity, showBeta, toggleShowBeta } = useSettings();
+  const { gradeDisplay, toggleGradeDisplay, shareActivity, toggleShareActivity, showBeta, toggleShowBeta, experimentalFeatures, toggleExperimentalFeatures } = useSettings();
 
   return (
     <div className="mt-12 pt-8 border-t border-slate-200">
@@ -49,6 +48,22 @@ export default function ProfileSettings() {
             checked={showBeta}
             onCheckedChange={toggleShowBeta}
             className="data-[state=checked]:bg-rockmill"
+          />
+        </div>
+
+        {/* Experimental Features Toggle */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-gray-900">Experimental Features</span>
+              <Beaker className="w-4 h-4 text-purple-500" />
+            </div>
+            <span className="text-xs text-gray-500">Enable features still in development</span>
+          </div>
+          <Switch
+            checked={experimentalFeatures}
+            onCheckedChange={toggleExperimentalFeatures}
+            className="data-[state=checked]:bg-purple-500"
           />
         </div>
 

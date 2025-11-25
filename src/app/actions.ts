@@ -306,11 +306,13 @@ export async function ingestRoutes() {
     revalidatePath("/sets");
     revalidatePath("/sync");
     return { success: true, count, archivedCount };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Ingestion failed:", error);
 
-    if (error.code === 403 || error.status === 403 || (error.message && error.message.includes("permission"))) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const err = error as any;
+
+    if (err?.code === 403 || err?.status === 403 || (err?.message && err.message.includes("permission"))) {
       return {
         success: false,
         error: "Permission denied. Please ensure the Google Sheet is 'Public' (Anyone with the link can view) since we are using an API Key."
@@ -350,8 +352,9 @@ export async function rateRoute(routeId: string, rating: number) {
   revalidatePath("/routes");
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function updateActivity(activityId: string, content: string, metadata?: any) {
+export type ActivityMetadata = { is_beta?: boolean; proposed_grade?: string; reason?: string };
+
+export async function updateActivity(activityId: string, content: string, metadata?: ActivityMetadata) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
@@ -583,13 +586,22 @@ export async function getBrowserRoutes(): Promise<BrowserRoute[]> {
     .sort((a, b) => new Date(b.set_date).getTime() - new Date(a.set_date).getTime());
 }
 
+export type SyncRoute = {
+  id?: string;
+  wall_id: string;
+  grade: string;
+  color: string;
+  setter_name: string;
+  set_date: string;
+  difficulty_label: string | null;
+  style: string | null;
+  hold_type: string | null;
+};
+
 export type SyncPreview = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  newRoutes: any[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  existingRoutes: any[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  missingRoutes: any[];
+  newRoutes: SyncRoute[];
+  existingRoutes: SyncRoute[];
+  missingRoutes: SyncRoute[];
 };
 
 export async function previewSync(): Promise<SyncPreview> {
@@ -601,10 +613,8 @@ export async function previewSync(): Promise<SyncPreview> {
   const rows = await getSheetData();
   const activeRoutes = await db.select().from(routes).where(eq(routes.status, "active"));
   
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const newRoutes: any[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const existingRoutes: any[] = [];
+  const newRoutes: SyncRoute[] = [];
+  const existingRoutes: SyncRoute[] = [];
   const processedRouteIds = new Set<string>();
 
   for (const row of rows) {
@@ -688,6 +698,7 @@ export async function confirmSync() {
 
   // Archive Missing
   for (const route of missingRoutes) {
+    if (!route.id) continue;
     await db.update(routes)
       .set({
         status: "archived",
@@ -699,6 +710,7 @@ export async function confirmSync() {
 
   // Update Existing (Mutable fields)
   for (const route of existingRoutes) {
+     if (!route.id) continue;
      // We could optimize this to only update if changed, but for now just update mutable fields
      await db.update(routes).set({
          style: route.style,

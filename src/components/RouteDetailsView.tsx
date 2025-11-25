@@ -1,10 +1,10 @@
 "use client";
 
-import GradeVoting from "@/components/GradeVoting";
 import { GradeDisplay } from "@/components/GradeDisplay";
-import RouteFeed from "@/components/RouteFeed";
-import RouteControls from "@/components/RouteControls";
+import GradeVoting from "@/components/GradeVoting";
 import { RouteActivityProvider } from "@/components/RouteActivityContext";
+import RouteControls from "@/components/RouteControls";
+import RouteFeed from "@/components/RouteFeed";
 import StarRating from "@/components/StarRating";
 import { Badge } from "@/components/ui/Badge";
 import { getRouteColor } from "@/lib/utils";
@@ -12,18 +12,11 @@ import { motion } from "framer-motion";
 import { Activity, ArrowLeft, GripHorizontal, Hash, Info, Star, User, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { Wall } from "@/lib/constants/walls";
 import { activityLogs, routes } from "@/lib/db/schema";
 import { InferSelectModel } from "drizzle-orm";
-
 type Route = InferSelectModel<typeof routes>;
 type Activity = InferSelectModel<typeof activityLogs>;
-
-type Wall = {
-  id: string;
-  name: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any; // Allow other properties from the constant
-};
 
 type User = {
   id: string;

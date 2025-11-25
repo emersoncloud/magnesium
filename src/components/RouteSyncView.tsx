@@ -1,20 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { previewSync, confirmSync, SyncPreview } from "@/app/actions";
+import { previewSync, confirmSync, SyncPreview, SyncRoute } from "@/app/actions";
 import { RefreshCw, Check, AlertTriangle, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-type SyncRoute = {
-  id?: string;
-  wall_id: string;
-  grade: string;
-  color: string;
-  setter_name: string;
-  difficulty_label?: string | null;
-  style?: string | null;
-  hold_type?: string | null;
-};
+// SyncRoute imported from actions
 
 export default function RouteSyncView() {
   const [status, setStatus] = useState<"idle" | "loading" | "preview" | "syncing" | "success" | "error">("idle");
@@ -30,10 +21,9 @@ export default function RouteSyncView() {
       const data = await previewSync();
       setPreviewData(data);
       setStatus("preview");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Failed to fetch updates");
+      setError(err instanceof Error ? err.message : "Failed to fetch updates");
       setStatus("error");
     }
   };
@@ -45,10 +35,9 @@ export default function RouteSyncView() {
       setSyncResult(result);
       setStatus("success");
       router.refresh();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Failed to sync");
+      setError(err instanceof Error ? err.message : "Failed to sync");
       setStatus("error");
     }
   };

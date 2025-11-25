@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/Badge";
 import { getRouteColor } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Activity, ArrowLeft, GripHorizontal, Hash, Info, Star, User, Zap } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { activityLogs, routes } from "@/lib/db/schema";
 import { InferSelectModel } from "drizzle-orm";
@@ -57,6 +57,8 @@ export default function RouteDetailsView({
   gradeVotes,
   myVote,
 }: RouteDetailsViewProps) {
+  const router = useRouter();
+
   return (
     <RouteActivityProvider
       routeId={route.id}
@@ -75,16 +77,14 @@ export default function RouteDetailsView({
         <div className="relative z-10 max-w-4xl mx-auto pt-8 px-4 md:px-8">
 
           {/* Navigation Command */}
-          <Link
-            href={`/sets/${route.wall_id}`}
+          <button
+            onClick={() => router.back()}
             style={{ borderColor: getRouteColor(route.color) }}
-
             className="border border-left-1 group bg-white p-1 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-rockmill transition-colors mb-8 font-mono"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-
-            <span>Return to Set // {wall?.name}</span>
-          </Link>
+            <span>Back</span>
+          </button>
 
           {/* Hero Section: The Monolith */}
           <div className="relative mb-12 group">

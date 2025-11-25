@@ -3,8 +3,8 @@
 import { BrowserRoute, generateRoutePlan, RoutePlan } from "@/app/actions";
 import RoutePlanView from "./RoutePlanView";
 import { WALLS, GRADES } from "@/lib/constants/walls";
-import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useCallback } from "react";
 import {
   ArrowUpDown,
   Check,
@@ -40,15 +40,49 @@ interface RouteBrowserProps {
   excludeRouteIds?: Set<string>;
 }
 
+// Helper to parse Set from URL param
+const parseSetParam = (param: string | null): Set<string> => {
+  if (!param) return new Set();
+  return new Set(param.split(",").filter(Boolean));
+};
+
 export default function RouteBrowser({ routes, onSelect, excludeRouteIds }: RouteBrowserProps) {
-  const [sortField, setSortField] = useState<SortField>("set_date");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const [filterWalls, setFilterWalls] = useState<Set<string>>(new Set());
-  const [filterGrades, setFilterGrades] = useState<Set<string>>(new Set());
-  const [filterStyles, setFilterStyles] = useState<Set<string>>(new Set());
-  const [filterHolds, setFilterHolds] = useState<Set<string>>(new Set());
-  const [filterSetters, setFilterSetters] = useState<Set<string>>(new Set());
-  const [filterStatuses, setFilterStatuses] = useState<Set<string>>(new Set());
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Read initial state from URL
+  const filterWalls = parseSetParam(searchParams.get("walls"));
+  const filterGrades = parseSetParam(searchParams.get("grades"));
+  const filterStyles = parseSetParam(searchParams.get("styles"));
+  const filterHolds = parseSetParam(searchParams.get("holds"));
+  const filterSetters = parseSetParam(searchParams.get("setters"));
+  const filterStatuses = parseSetParam(searchParams.get("status"));
+  const sortField = (searchParams.get("sort") as SortField) || "set_date";
+  const sortDirection = (searchParams.get("dir") as SortDirection) || "desc";
+
+  // Update URL when filters change
+  const updateParams = useCallback((updates: Record<string, Set<string> | string | null>) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    for (const [key, value] of Object.entries(updates)) {
+      if (value === null || (value instanceof Set && value.size === 0) || value === "") {
+        params.delete(key);
+      } else if (value instanceof Set) {
+        params.set(key, Array.from(value).join(","));
+      } else {
+        params.set(key, value);
+      }
+    }
+
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [searchParams, router]);
+
+  const setFilterWalls = (v: Set<string>) => updateParams({ walls: v });
+  const setFilterGrades = (v: Set<string>) => updateParams({ grades: v });
+  const setFilterStyles = (v: Set<string>) => updateParams({ styles: v });
+  const setFilterHolds = (v: Set<string>) => updateParams({ holds: v });
+  const setFilterSetters = (v: Set<string>) => updateParams({ setters: v });
+  const setFilterStatuses = (v: Set<string>) => updateParams({ status: v });
 
   const styles = useMemo(
     () =>
@@ -72,10 +106,9 @@ export default function RouteBrowser({ routes, onSelect, excludeRouteIds }: Rout
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+      updateParams({ dir: sortDirection === "asc" ? "desc" : "asc" });
     } else {
-      setSortField(field);
-      setSortDirection("desc");
+      updateParams({ sort: field, dir: "desc" });
     }
   };
 
@@ -273,14 +306,14 @@ export default function RouteBrowser({ routes, onSelect, excludeRouteIds }: Rout
                   </div>
                 </th>
                 <th className="px-6 py-4 text-center">Status</th>
-                <th className="px-6 py-4"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
               {sortedRoutes.map((route) => (
                 <tr
                   key={route.id}
-                  className="hover:bg-slate-50/50 transition-colors group"
+                  onClick={() => onSelect ? onSelect(route) : router.push(`/route/${route.id}`)}
+                  className="hover:bg-slate-50/50 transition-colors group cursor-pointer"
                 >
                   <td className="px-6 py-4 font-black text-slate-700 text-lg">
                     <GradeDisplay
@@ -355,23 +388,6 @@ export default function RouteBrowser({ routes, onSelect, excludeRouteIds }: Rout
                         </div>
                       )}
                     </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    {onSelect ? (
-                      <button
-                        onClick={() => onSelect(route)}
-                        className="text-slate-400 hover:text-violet-600 font-medium transition-colors opacity-0 group-hover:opacity-100"
-                      >
-                        Select
-                      </button>
-                    ) : (
-                      <Link
-                        href={`/route/${route.id}`}
-                        className="text-slate-400 hover:text-violet-600 font-medium transition-colors opacity-0 group-hover:opacity-100"
-                      >
-                        View
-                      </Link>
-                    )}
                   </td>
                 </tr>
               ))}

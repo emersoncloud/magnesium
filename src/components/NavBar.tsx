@@ -16,15 +16,15 @@ import { MidnightLightning } from "./mountains/MidnightLightning";
 import { TheMandala } from "./mountains/TheMandala";
 import { TheRhino } from "./mountains/TheRhino";
 
-export default function NavBar({ user, isAdmin }: { user?: User | null, isAdmin?: boolean }) {
+export default function NavBar({ user, isAdmin, showSeasons }: { user?: User | null, isAdmin?: boolean, showSeasons?: boolean }) {
   const pathname = usePathname();
   const { experimentalFeatures } = useSettings();
 
   const navItems = [
-    { name: "Sets", href: "/sets", icon: Library, Mountain: MidnightLightning },
-    ...(experimentalFeatures ? [{ name: "Train", href: "/train", icon: Dumbbell, Mountain: Dreamtime }] : []),
-    { name: "Seasons", href: "/seasons", icon: Trophy, Mountain: TheRhino },
     { name: "Feed", href: "/feed", icon: Activity, Mountain: TheMandala },
+    ...(experimentalFeatures ? [{ name: "Train", href: "/train", icon: Dumbbell, Mountain: Dreamtime }] : []),
+    { name: "Routes", href: "/sets", icon: Library, Mountain: MidnightLightning, featured: true },
+    ...(showSeasons ? [{ name: "Seasons", href: "/seasons", icon: Trophy, Mountain: TheRhino }] : []),
     ...(user
       ? [
           {
@@ -70,10 +70,12 @@ export default function NavBar({ user, isAdmin }: { user?: User | null, isAdmin?
           const isActive = activeItem.href === item.href;
           const Icon = item.icon;
           const Mountain = item.Mountain;
+          const isFeatured = 'featured' in item && item.featured;
 
           // Fixed heights for the "range"
-          // Using slightly larger base heights since we aren't growing them anymore
-          const height = [5.5, 6, 6.5, 6, 6.5, 6][index % 6];
+          // Featured items are 25% bigger
+          const baseHeight = [5.5, 6, 6.5, 6, 6.5, 6][index % 6];
+          const height = isFeatured ? baseHeight * 1.25 : baseHeight;
 
           return (
             <Link
@@ -83,6 +85,7 @@ export default function NavBar({ user, isAdmin }: { user?: User | null, isAdmin?
               className={cn(
                 "group relative flex flex-col items-center justify-end pb-5 -mb-3 transition-all duration-300 ease-in-out mx-0",
                 isActive ? "z-20" : "z-10 hover:z-15",
+                isFeatured && "z-15",
                 // Responsive dimensions using CSS variables defined in style
                 "h-[calc(var(--nav-height)*0.65)] w-[calc(var(--nav-height)*0.65*1.6)]",
                 "md:h-[calc(var(--nav-height)*0.8)] md:w-[calc(var(--nav-height)*0.8*1.6)]",
@@ -118,19 +121,6 @@ export default function NavBar({ user, isAdmin }: { user?: User | null, isAdmin?
                 </span>
               </div>
 
-              {/* Snow cap / Highlight for active */}
-              <div
-                className={cn(
-                  "absolute inset-0 pointer-events-none transition-opacity duration-300",
-                  isActive ? "opacity-100" : "opacity-0"
-                )}
-                style={{
-                  maskImage: 'linear-gradient(to right, black 0%, transparent 40%)',
-                  WebkitMaskImage: 'linear-gradient(to right, black 0%, transparent 40%)'
-                }}
-              >
-                <Mountain className="w-full h-full text-white opacity-50" />
-              </div>
             </Link>
           );
         })}

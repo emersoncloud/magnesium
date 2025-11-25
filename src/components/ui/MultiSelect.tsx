@@ -56,14 +56,6 @@ export function MultiSelect({ label, options, selected, onChange }: MultiSelectP
 
       {open && (
         <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border-2 border-black shadow-lg max-h-64 overflow-y-auto">
-          {selected.size > 0 && (
-            <button
-              onClick={() => onChange(new Set())}
-              className="w-full px-3 py-2 text-xs font-mono uppercase tracking-widest text-left text-slate-400 hover:bg-slate-50 border-b border-slate-100"
-            >
-              Clear all
-            </button>
-          )}
           {options.map((option) => (
             <button
               key={option.value}
@@ -76,6 +68,14 @@ export function MultiSelect({ label, options, selected, onChange }: MultiSelectP
               )}
             </button>
           ))}
+          {selected.size > 0 && (
+            <button
+              onClick={() => onChange(new Set())}
+              className="w-full px-3 py-2 text-xs font-mono uppercase tracking-widest text-left text-slate-400 hover:bg-slate-50 border-t border-slate-100"
+            >
+              Clear all
+            </button>
+          )}
         </div>
       )}
     </div>

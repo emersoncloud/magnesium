@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { WALLS } from "@/lib/constants/walls";
 import { SetCard } from "@/components/SetCard";
 import RouteBrowser from "@/components/RouteBrowser";
 import { BrowserRoute } from "@/app/actions";
 import { LayoutGrid, List } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 type Route = {
   id: string;
@@ -40,7 +40,19 @@ export default function SetsPageContent({
   allRoutes,
   browserRoutes,
 }: SetsPageContentProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>("location");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const viewMode: ViewMode = searchParams.get("view") === "list" ? "list" : "location";
+
+  const setViewMode = (mode: ViewMode) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (mode === "list") {
+      params.set("view", "list");
+    } else {
+      params.delete("view");
+    }
+    router.replace(`/sets?${params.toString()}`, { scroll: false });
+  };
 
   const activeRoutes = allRoutes.filter((route) => route.status === "active");
 

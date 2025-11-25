@@ -3,8 +3,8 @@
 import { useState, useTransition } from "react";
 import { BrowserRoute, GeneratedPlan } from "@/app/actions";
 import { X, Pencil, Plus, Save, Loader2 } from "lucide-react";
-import { cn, getRouteColor } from "@/lib/utils";
 import RoutePickerDrawer from "./RoutePickerDrawer";
+import RouteHold from "./RouteHold";
 
 interface TrainingPlanEditorProps {
   plan: GeneratedPlan;
@@ -133,52 +133,36 @@ export default function TrainingPlanEditor({
               <p className="text-sm text-slate-500">{section.description}</p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="flex flex-wrap items-center gap-4 md:gap-6">
               {section.routes.map((route, routeIndex) => (
-                <div
-                  key={`${route.id}-${routeIndex}`}
-                  className="relative group bg-white rounded-lg border border-slate-200 p-3 hover:shadow-md transition-shadow"
-                >
-                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div key={`${route.id}-${routeIndex}`} className="relative group">
+                  <RouteHold
+                    route={route}
+                    size="sm"
+                    showStats={false}
+                  />
+                  <div className="absolute -top-2 -right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-30">
                     <button
                       onClick={() => handleEditRoute(sectionIndex, routeIndex)}
-                      className="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600"
+                      className="p-1.5 rounded-full bg-white shadow-md hover:bg-slate-100 text-slate-600"
                     >
                       <Pencil className="w-3 h-3" />
                     </button>
                     <button
                       onClick={() => handleRemoveRoute(sectionIndex, routeIndex)}
-                      className="p-1 rounded bg-red-100 hover:bg-red-200 text-red-600"
+                      className="p-1.5 rounded-full bg-white shadow-md hover:bg-red-100 text-red-600"
                     >
                       <X className="w-3 h-3" />
                     </button>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-                      style={{ backgroundColor: getRouteColor(route.color) }}
-                    >
-                      {route.grade}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-slate-700 truncate">
-                        {route.difficulty_label || route.grade}
-                      </div>
-                      <div className="text-xs text-slate-500 truncate">
-                        {route.wall_id.replace(/-/g, " ")}
-                      </div>
-                    </div>
                   </div>
                 </div>
               ))}
 
               <button
                 onClick={() => handleAddRoute(sectionIndex)}
-                className="flex items-center justify-center gap-2 p-3 rounded-lg border-2 border-dashed border-slate-300 hover:border-slate-400 text-slate-500 hover:text-slate-600 transition-colors min-h-[72px]"
+                className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center rounded-full border-2 border-dashed border-slate-300 hover:border-slate-400 text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100"
               >
-                <Plus className="w-4 h-4" />
-                <span className="text-sm">Add Route</span>
+                <Plus className="w-6 h-6" />
               </button>
             </div>
           </div>

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useState } from "react";
 import { WALLS } from "@/lib/constants/walls";
@@ -36,10 +36,13 @@ interface SetsPageContentProps {
   browserRoutes: BrowserRoute[];
 }
 
-export default function SetsPageContent({ allRoutes, browserRoutes }: SetsPageContentProps) {
+export default function SetsPageContent({
+  allRoutes,
+  browserRoutes,
+}: SetsPageContentProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("location");
 
-  const activeRoutes = allRoutes.filter(route => route.status === "active");
+  const activeRoutes = allRoutes.filter((route) => route.status === "active");
 
   const routesByWall = activeRoutes.reduce((acc, route) => {
     const wallId = route.wall_id;
@@ -48,9 +51,6 @@ export default function SetsPageContent({ allRoutes, browserRoutes }: SetsPageCo
     return acc;
   }, {} as Record<string, typeof activeRoutes>);
 
-  const bigSectionWalls = WALLS.slice(0, 9);
-  const smallSectionWalls = WALLS.slice(9);
-
   const renderWallCard = (wall: Wall, index: number, total: number) => {
     const wallRoutes = routesByWall[wall.id] || [];
     const routeCount = wallRoutes.length;
@@ -58,11 +58,13 @@ export default function SetsPageContent({ allRoutes, browserRoutes }: SetsPageCo
     let mostRecentDate = null;
     if (wallRoutes.length > 0) {
       mostRecentDate = wallRoutes.reduce((latest, route) => {
-        return !latest || new Date(route.set_date) > new Date(latest) ? route.set_date : latest;
+        return !latest || new Date(route.set_date) > new Date(latest)
+          ? route.set_date
+          : latest;
       }, wallRoutes[0].set_date);
     }
 
-    const allColorsForWall = wallRoutes.map(r => r.color);
+    const allColorsForWall = wallRoutes.map((r) => r.color);
     const uniqueColors = Array.from(new Set(allColorsForWall));
 
     return (
@@ -89,10 +91,14 @@ export default function SetsPageContent({ allRoutes, browserRoutes }: SetsPageCo
   return (
     <div className="space-y-8 py-8 md:py-12">
       <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-        <h1 className="text-2xl font-bold text-slate-800 uppercase tracking-wider">
-          Sets
-        </h1>
-
+        <div className="mb-8">
+          <h1 className="text-4xl md:text-6xl font-black text-slate-900 uppercase tracking-tighter mb-2">
+            Current Sets
+          </h1>
+          <p className="text-slate-500 font-mono text-sm uppercase tracking-widest">
+            What&apos;s on the wall
+          </p>
+        </div>
         <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
           <button
             onClick={() => setViewMode("location")}
@@ -102,8 +108,8 @@ export default function SetsPageContent({ allRoutes, browserRoutes }: SetsPageCo
                 : "text-slate-500 hover:text-slate-700"
             }`}
           >
-            <LayoutGrid className="w-4 h-4" />
-            <span className="hidden sm:inline">By Location</span>
+            <LayoutGrid className="w-10 h-10" />
+            <span className="hidden sm:inline text-xl">By Location</span>
           </button>
           <button
             onClick={() => setViewMode("list")}
@@ -113,8 +119,8 @@ export default function SetsPageContent({ allRoutes, browserRoutes }: SetsPageCo
                 : "text-slate-500 hover:text-slate-700"
             }`}
           >
-            <List className="w-4 h-4" />
-            <span className="hidden sm:inline">As List</span>
+            <List className="w-10 h-10" />
+            <span className="hidden sm:inline text-xl">As List</span>
           </button>
         </div>
       </div>
@@ -123,19 +129,10 @@ export default function SetsPageContent({ allRoutes, browserRoutes }: SetsPageCo
         <div className="space-y-12">
           <div className="space-y-4">
             <h2 className="text-xl font-bold text-slate-800 uppercase tracking-wider border-b border-slate-200 pb-2">
-              Big Section
+              Right to Left
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-8">
-              {bigSectionWalls.map((wall, i) => renderWallCard(wall, i, bigSectionWalls.length))}
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-800 uppercase tracking-wider border-b border-slate-200 pb-2">
-              Small Section
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-8">
-              {smallSectionWalls.map((wall, i) => renderWallCard(wall, i, smallSectionWalls.length))}
+              {WALLS.map((wall, i) => renderWallCard(wall, i, WALLS.length))}
             </div>
           </div>
         </div>

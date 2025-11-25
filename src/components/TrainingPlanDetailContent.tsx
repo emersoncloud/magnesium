@@ -9,12 +9,12 @@ import {
   togglePlanPublic,
   copyTrainingPlan,
 } from "@/app/actions";
-import { ArrowLeft, Pencil, Trash2, Globe, Lock, Save, X, Copy, Loader2 } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, Globe, Lock, Save, X, Copy, Loader2, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { cn, getRouteColor } from "@/lib/utils";
-import { WALLS } from "@/lib/constants/walls";
+import { cn } from "@/lib/utils";
 import RoutePickerDrawer from "./RoutePickerDrawer";
+import RouteHold from "./RouteHold";
 
 interface TrainingPlanDetailContentProps {
   plan: SavedTrainingPlan;
@@ -243,64 +243,49 @@ export default function TrainingPlanDetailContent({
         {Object.entries(groupedRoutes).map(([sectionName, routes]) => (
           <div key={sectionName} className="space-y-4">
             <h2 className="text-lg font-semibold text-slate-700">{sectionName}</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {routes.map((planRoute, index) => (
-                <div
-                  key={planRoute.id}
-                  className={cn(
-                    "relative group bg-white rounded-lg border border-slate-200 p-4",
-                    isEditing && "hover:shadow-md transition-shadow"
-                  )}
-                >
-                  {isEditing && (
-                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => handleEditRoute(editedRoutes.findIndex((r) => r.id === planRoute.id))}
-                        className="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600"
-                      >
-                        <Pencil className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={() => handleRemoveRoute(planRoute.route_id)}
-                        className="p-1 rounded bg-red-100 hover:bg-red-200 text-red-600"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  )}
-
-                  <Link
-                    href={`/route/${planRoute.route_id}`}
-                    className={cn(!isEditing && "block")}
-                    onClick={(e) => isEditing && e.preventDefault()}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-                        style={{ backgroundColor: getRouteColor(planRoute.route.color) }}
-                      >
-                        {planRoute.route.grade}
+            <div className="flex flex-wrap items-center gap-4 md:gap-6">
+              {routes.map((planRoute) => (
+                <div key={planRoute.id} className="relative group">
+                  {isEditing ? (
+                    <>
+                      <RouteHold
+                        route={planRoute.route}
+                        size="md"
+                        showStats={false}
+                      />
+                      <div className="absolute -top-2 -right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-30">
+                        <button
+                          onClick={() => handleEditRoute(editedRoutes.findIndex((r) => r.id === planRoute.id))}
+                          className="p-1.5 rounded-full bg-white shadow-md hover:bg-slate-100 text-slate-600"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => handleRemoveRoute(planRoute.route_id)}
+                          className="p-1.5 rounded-full bg-white shadow-md hover:bg-red-100 text-red-600"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-slate-800 truncate">
-                          {planRoute.route.difficulty_label || planRoute.route.grade}
-                        </div>
-                        <div className="text-sm text-slate-500 truncate">
-                          {WALLS.find((w) => w.id === planRoute.route.wall_id)?.name || planRoute.route.wall_id}
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
+                    </>
+                  ) : (
+                    <Link href={`/route/${planRoute.route_id}`}>
+                      <RouteHold
+                        route={planRoute.route}
+                        size="md"
+                        showStats={true}
+                      />
+                    </Link>
+                  )}
                 </div>
               ))}
 
               {isEditing && (
                 <button
                   onClick={handleAddRoute}
-                  className="flex items-center justify-center gap-2 p-4 rounded-lg border-2 border-dashed border-slate-300 hover:border-slate-400 text-slate-500 hover:text-slate-600 transition-colors min-h-[80px]"
+                  className="w-24 h-24 md:w-32 md:h-32 flex items-center justify-center rounded-full border-2 border-dashed border-slate-300 hover:border-slate-400 text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100"
                 >
-                  <span className="text-2xl">+</span>
-                  <span className="text-sm">Add Route</span>
+                  <Plus className="w-8 h-8" />
                 </button>
               )}
             </div>

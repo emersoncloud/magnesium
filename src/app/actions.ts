@@ -182,7 +182,7 @@ export async function getGlobalActivity() {
     .leftJoin(routes, eq(activityLogs.route_id, routes.id))
     .where(eq(activityLogs.is_public, true))
     .orderBy(desc(activityLogs.created_at))
-    .limit(50);
+    .limit(30);
 }
 
 export async function getUserActivity(userId: string) {
@@ -962,7 +962,15 @@ export async function generateNewTrainingPlan(
     };
   }
 
-  return { sections: [] };
+  return {
+    sections: [
+      {
+        title: "Routes",
+        description: "Add any routes you want to your custom plan.",
+        routes: [],
+      },
+    ],
+  };
 }
 
 export async function saveTrainingPlan(data: {

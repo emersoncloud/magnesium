@@ -5,9 +5,8 @@ import ProfileStats from "@/components/ProfileStats";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import UserBarcode from "@/components/UserBarcode";
-import BarcodeScanner from "@/components/BarcodeScanner";
 import ProfileSettings from "@/components/ProfileSettings";
+import BarcodeDrawer from "@/components/BarcodeDrawer";
 
 export default async function PublicProfilePage({ params }: { params: Promise<{ userId: string }> }) {
   const session = await auth();
@@ -26,7 +25,6 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
     barcode: null as string | null,
   };
 
-  // Fetch user details directly to get barcode
   const userDetails = await db.query.users.findFirst({
     where: eq(users.id, decodedUserId),
   });
@@ -64,22 +62,12 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
             {user.name[0]}
           </div>
         )}
-        <div>
+        <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900">{user.name}</h1>
           <p className="text-gray-500">Climber</p>
         </div>
+        {isOwnProfile && <BarcodeDrawer barcode={user.barcode} />}
       </div>
-
-      {isOwnProfile && (
-        <div className="mb-8">
-          {user.barcode ? (
-            <UserBarcode barcode={user.barcode} />
-          ) : (
-            <BarcodeScanner />
-          )}
-
-        </div>
-      )}
 
       <ProfileStats activity={activity} />
 

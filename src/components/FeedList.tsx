@@ -33,8 +33,8 @@ export default function FeedList({ activity }: { activity: ActivityItem[] }) {
           const sizeClasses = size === "sm" ? "w-8 h-8" : "w-10 h-10";
 
           return (
-            <div className={cn("flex flex-col items-center gap-1 relative z-10", className)}>
-              <Link href={`/profile/${item.user_id}`} className="flex-shrink-0 relative group">
+            <div className={cn("flex flex-col items-center gap-1 relative z-30 pointer-events-none", className)}>
+              <Link href={`/profile/${item.user_id}`} className="flex-shrink-0 relative group pointer-events-auto">
                 <div className={cn(sizeClasses, "bg-slate-200 border-2 border-black transform -skew-x-6 flex items-center justify-center overflow-hidden shadow-sm transition-transform group-hover:scale-105")}>
                   {item.user_image ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -53,11 +53,10 @@ export default function FeedList({ activity }: { activity: ActivityItem[] }) {
           );
         };
 
-        // Common Route Info Component
-        const RouteInfo = ({ className, light = false }: { className?: string, light?: boolean }) => (
+        const RouteInfo = ({ className }: { className?: string }) => (
           item.route_id ? (
             <div className={cn("flex flex-col items-start gap-1 pointer-events-none w-full border-b-2 border-black/5 bg-white/50 backdrop-blur-sm", className)}>
-              <div className="pointer-events-auto w-full">
+              <div className="w-full">
                 <RouteBadge
                   route={{
                     id: item.route_id,
@@ -93,9 +92,9 @@ export default function FeedList({ activity }: { activity: ActivityItem[] }) {
           if (!routeId) return null;
           return (
             <>
-              <Link href={`/route/${routeId}`} className="absolute inset-0 z-0" aria-label="View Route" />
+              <Link href={`/route/${routeId}`} className="absolute inset-0 z-20" aria-label="View Route" />
               <div className={cn(
-                "absolute bottom-2 right-3 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 pointer-events-none opacity-60",
+                "absolute bottom-2 right-3 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 pointer-events-none z-30 opacity-60",
                 light ? "text-white" : "text-slate-500"
               )}>
                 {timeAgo(date)}

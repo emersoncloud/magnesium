@@ -68,7 +68,7 @@ export default function RouteDetailsView({
       <motion.div
         layoutId={`route-card-${route.id}`}
         className="min-h-screen w-full pb-24 transition-colors duration-500 bg-white overflow-x-hidden"
-        style={{ backgroundColor: getRouteColor(route.color) }}
+        style={{ backgroundColor: `color-mix(in srgb, ${getRouteColor(route.color)} 25%, white)` }}
         initial={{ borderRadius: 12 }}
         animate={{ borderRadius: 0 }}
       >

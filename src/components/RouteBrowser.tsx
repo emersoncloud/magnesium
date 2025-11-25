@@ -18,6 +18,7 @@ import {
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { MultiSelect } from "@/components/ui/MultiSelect";
 import { getRouteColor } from "@/lib/utils";
 import { GradeDisplay } from "@/components/GradeDisplay";
 
@@ -42,12 +43,12 @@ interface RouteBrowserProps {
 export default function RouteBrowser({ routes, onSelect, excludeRouteIds }: RouteBrowserProps) {
   const [sortField, setSortField] = useState<SortField>("set_date");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const [filterWall, setFilterWall] = useState<string>("all");
-  const [filterGrade, setFilterGrade] = useState<string>("all");
-  const [filterStyle, setFilterStyle] = useState<string>("all");
-  const [filterHold, setFilterHold] = useState<string>("all");
-  const [filterSetter, setFilterSetter] = useState<string>("all");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterWalls, setFilterWalls] = useState<Set<string>>(new Set());
+  const [filterGrades, setFilterGrades] = useState<Set<string>>(new Set());
+  const [filterStyles, setFilterStyles] = useState<Set<string>>(new Set());
+  const [filterHolds, setFilterHolds] = useState<Set<string>>(new Set());
+  const [filterSetters, setFilterSetters] = useState<Set<string>>(new Set());
+  const [filterStatuses, setFilterStatuses] = useState<Set<string>>(new Set());
 
   const styles = useMemo(
     () =>
@@ -81,34 +82,31 @@ export default function RouteBrowser({ routes, onSelect, excludeRouteIds }: Rout
   const filteredRoutes = useMemo(() => {
     return routes.filter((route) => {
       if (excludeRouteIds?.has(route.id)) return false;
-      if (filterWall !== "all" && route.wall_id !== filterWall) return false;
-      if (filterGrade !== "all" && route.grade !== filterGrade) return false;
-      if (filterStyle !== "all" && route.style !== filterStyle) return false;
-      if (filterHold !== "all" && route.hold_type !== filterHold) return false;
-      if (filterSetter !== "all" && route.setter_name !== filterSetter)
-        return false;
+      if (filterWalls.size > 0 && !filterWalls.has(route.wall_id)) return false;
+      if (filterGrades.size > 0 && !filterGrades.has(route.grade)) return false;
+      if (filterStyles.size > 0 && route.style && !filterStyles.has(route.style)) return false;
+      if (filterHolds.size > 0 && route.hold_type && !filterHolds.has(route.hold_type)) return false;
+      if (filterSetters.size > 0 && !filterSetters.has(route.setter_name)) return false;
 
-      if (
-        filterStatus === "sent" &&
-        route.user_status !== "SEND" &&
-        route.user_status !== "FLASH"
-      )
-        return false;
-      if (filterStatus === "flashed" && route.user_status !== "FLASH")
-        return false;
-      if (filterStatus === "unattempted" && route.user_status) return false;
+      if (filterStatuses.size > 0) {
+        const hasStatus =
+          (filterStatuses.has("sent") && (route.user_status === "SEND" || route.user_status === "FLASH")) ||
+          (filterStatuses.has("flashed") && route.user_status === "FLASH") ||
+          (filterStatuses.has("unattempted") && !route.user_status);
+        if (!hasStatus) return false;
+      }
 
       return true;
     });
   }, [
     routes,
     excludeRouteIds,
-    filterWall,
-    filterGrade,
-    filterStyle,
-    filterHold,
-    filterSetter,
-    filterStatus,
+    filterWalls,
+    filterGrades,
+    filterStyles,
+    filterHolds,
+    filterSetters,
+    filterStatuses,
   ]);
 
   const sortedRoutes = useMemo(() => {
@@ -150,81 +148,51 @@ export default function RouteBrowser({ routes, onSelect, excludeRouteIds }: Rout
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <select
-            value={filterWall}
-            onChange={(e) => setFilterWall(e.target.value)}
-            className="bg-white border-2 border-black px-3 py-2 text-xs font-mono uppercase tracking-widest focus:outline-none focus:bg-slate-50 w-full"
-          >
-            <option value="all">All Walls</option>
-            {WALLS.map((w) => (
-              <option key={w.id} value={w.id}>
-                {w.name}
-              </option>
-            ))}
-          </select>
+          <MultiSelect
+            label="Grades"
+            options={GRADES.map((g) => ({ value: g, label: g }))}
+            selected={filterGrades}
+            onChange={setFilterGrades}
+          />
 
-          <select
-            value={filterGrade}
-            onChange={(e) => setFilterGrade(e.target.value)}
-            className="bg-white border-2 border-black px-3 py-2 text-xs font-mono uppercase tracking-widest focus:outline-none focus:bg-slate-50 w-full"
-          >
-            <option value="all">All Grades</option>
-            {GRADES.map((g) => (
-              <option key={g} value={g}>
-                {g}
-              </option>
-            ))}
-          </select>
+          <MultiSelect
+            label="Walls"
+            options={WALLS.map((w) => ({ value: w.id, label: w.name }))}
+            selected={filterWalls}
+            onChange={setFilterWalls}
+          />
 
-          <select
-            value={filterStyle}
-            onChange={(e) => setFilterStyle(e.target.value)}
-            className="bg-white border-2 border-black px-3 py-2 text-xs font-mono uppercase tracking-widest focus:outline-none focus:bg-slate-50 w-full"
-          >
-            <option value="all">All Styles</option>
-            {styles.map((s) => (
-              <option key={s as string} value={s as string}>
-                {s}
-              </option>
-            ))}
-          </select>
+          <MultiSelect
+            label="Styles"
+            options={styles.map((s) => ({ value: s as string, label: s as string }))}
+            selected={filterStyles}
+            onChange={setFilterStyles}
+          />
 
-          <select
-            value={filterHold}
-            onChange={(e) => setFilterHold(e.target.value)}
-            className="bg-white border-2 border-black px-3 py-2 text-xs font-mono uppercase tracking-widest focus:outline-none focus:bg-slate-50 w-full"
-          >
-            <option value="all">All Holds</option>
-            {holds.map((h) => (
-              <option key={h as string} value={h as string}>
-                {h}
-              </option>
-            ))}
-          </select>
+          <MultiSelect
+            label="Holds"
+            options={holds.map((h) => ({ value: h as string, label: h as string }))}
+            selected={filterHolds}
+            onChange={setFilterHolds}
+          />
 
-          <select
-            value={filterSetter}
-            onChange={(e) => setFilterSetter(e.target.value)}
-            className="bg-white border-2 border-black px-3 py-2 text-xs font-mono uppercase tracking-widest focus:outline-none focus:bg-slate-50 w-full"
-          >
-            <option value="all">All Setters</option>
-            {setters.map((s) => (
-              <option key={s as string} value={s as string}>
-                {s}
-              </option>
-            ))}
-          </select>
+          <MultiSelect
+            label="Setters"
+            options={setters.map((s) => ({ value: s as string, label: s as string }))}
+            selected={filterSetters}
+            onChange={setFilterSetters}
+          />
 
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="bg-white border-2 border-black px-3 py-2 text-xs font-mono uppercase tracking-widest focus:outline-none focus:bg-slate-50 w-full"
-          >
-            <option value="all">All Status</option>
-            <option value="sent">Sent / Flashed</option>
-            <option value="flashed">Flashed Only</option>
-            <option value="unattempted">Unattempted</option>
-          </select>
+          <MultiSelect
+            label="Status"
+            options={[
+              { value: "sent", label: "Sent / Flashed" },
+              { value: "flashed", label: "Flashed Only" },
+              { value: "unattempted", label: "Unattempted" },
+            ]}
+            selected={filterStatuses}
+            onChange={setFilterStatuses}
+          />
         </div>
       </Card>
       <Card className="overflow-hidden border-0 shadow-lg">

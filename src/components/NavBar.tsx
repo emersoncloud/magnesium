@@ -62,8 +62,10 @@ export default function NavBar({ user, isAdmin }: { user?: User | null, isAdmin?
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 pointer-events-none flex justify-center items-end pb-0">
+      {/* Gradient backdrop */}
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-100 via-slate-100/80 to-transparent pointer-events-none" />
       {/* Mountain Range Container */}
-      <nav className="relative flex items-end justify-center  gap-0 md:gap-2 pointer-events-auto pb-0 filter drop-shadow-[0_-10px_20px_rgba(0,0,0,0.15)]">
+      <nav className="relative flex items-end justify-center gap-0 md:gap-2 pointer-events-auto pb-0 filter drop-shadow-[0_-10px_20px_rgba(0,0,0,0.15)]">
         {navItems.map((item, index) => {
           const isActive = activeItem.href === item.href;
           const Icon = item.icon;

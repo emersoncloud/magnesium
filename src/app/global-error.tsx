@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { Outfit } from "next/font/google";
 import "./globals.css";
+import posthog from "posthog-js";
 
 const outfit = Outfit({ subsets: ["latin"] });
 
@@ -16,6 +17,7 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error(error);
+    posthog.captureException(error);
   }, [error]);
 
   return (

@@ -14,7 +14,7 @@ export async function logout() {
 }
 
 export async function getRoutes() {
-  return await db.select().from(routes).orderBy(desc(routes.created_at));
+  return await db.select().from(routes).where(eq(routes.status, "active")).orderBy(desc(routes.created_at));
 }
 
 export async function getRoute(id: string) {

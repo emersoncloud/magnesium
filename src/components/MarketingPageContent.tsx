@@ -12,6 +12,8 @@ import { Activity, BarChart3, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import posthog from "posthog-js";
 import FeedList from "./FeedList";
+import { useState } from "react";
+import FeedbackModal from "./FeedbackModal";
 
 // Types
 type Route = {
@@ -43,8 +45,12 @@ function MarketingContent({
   newSet,
   gymStats
 }: MarketingPageContentProps) {
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+
   return (
     <div className="flex flex-col min-h-screen relative bg-slate-50 font-sans selection:bg-rockmill selection:text-white overflow-x-hidden">
+      <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
+
       {/* Global Technical Grid Background */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0"
         style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '40px 40px' }}
@@ -69,11 +75,19 @@ function MarketingContent({
           {/* Hero Text */}
           <div className="flex-1 text-center lg:text-left z-10 pt-10 lg:pt-0">
             <div className="inline-block mb-6 px-4 py-1 border-2 border-black bg-rockmill transform -skew-x-12 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              <span className="text-xs font-bold font-mono uppercase tracking-[0.2em] text-white transform skew-x-12 block">
-                {"// Live Data"}
+              <span className="text-xs font-bold font-mono tracking-[0.2em] text-white transform skew-x-12 block">
+                {"// Magnesium (chalk) supports climbers"}
               </span>
             </div>
-            <h1 className="text-3xl md:text-8xl font-black tracking-tighter mb-8 text-balance">
+            <h1
+              className="text-3xl md:text-8xl font-black tracking-tighter mb-8 text-balance text-transparent bg-clip-text"
+              style={{
+                backgroundImage: "url('/chalk.png')",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                filter: "drop-shadow(0px 2px 0px rgba(0,0,0,0.1))"
+              }}
+            >
               A community logbook for Rock Mill climbers
             </h1>
             <p className="max-w-xl text-lg md:text-xl text-slate-600 font-medium mb-10 leading-relaxed mx-auto lg:mx-0 text-balance">
@@ -248,10 +262,16 @@ function MarketingContent({
                 RM<span className="text-slate-400">Mg</span>
               </span>
             </div>
-            <nav>
+            <nav className="flex items-center gap-6">
               <Link href="https://rockmillclimbing.com" className="text-sm font-bold uppercase tracking-tight hover:text-rockmill transition-colors">
                 Rock Mill Climbing
               </Link>
+              <button
+                onClick={() => setIsFeedbackOpen(true)}
+                className="text-sm font-bold uppercase tracking-tight hover:text-rockmill transition-colors"
+              >
+                Feedback
+              </button>
             </nav>
             <p className="text-xs text-slate-400 font-mono uppercase tracking-widest">Data Driven Climbing.</p>
           </div>

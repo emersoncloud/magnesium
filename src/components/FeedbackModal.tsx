@@ -63,7 +63,7 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
       setIsSuccess(true);
       setTimeout(() => {
         onClose();
-      }, 2000);
+      }, 4000);
     } catch (error) {
       console.error("Failed to submit feedback", error);
     } finally {
@@ -95,8 +95,8 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
             <MessageSquare className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-xl font-black uppercase tracking-tight">Feedback</h3>
-            <p className="text-xs text-slate-500 font-mono uppercase tracking-widest">Help us improve</p>
+            <h3 className="text-lg font-black uppercase tracking-tight">Help improve Rock Mill Magnesium</h3>
+            <p className="text-xs text-slate-500 font-mono uppercase tracking-widest mt-1">Share any feature requests, things that don't quite look right, or any other comments.</p>
           </div>
         </div>
 
@@ -105,8 +105,8 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 text-green-600 rounded-full mb-2">
               <Send className="w-8 h-8" />
             </div>
-            <h4 className="text-xl font-bold">Thank You!</h4>
-            <p className="text-slate-600">Your feedback has been sent to the team.</p>
+            <h4 className="text-xl font-bold">Thanks!</h4>
+            <p className="text-slate-600">We want this site to be awesome, and your feedback is (probably) super helpful.</p>
           </div>
         ) : (
           <div className="space-y-4">

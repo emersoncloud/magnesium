@@ -87,7 +87,6 @@ export default function NavBar({ user, isAdmin, showSeasons }: { user?: User | n
             const Icon = item.icon;
             const Mountain = item.Mountain;
             const isFeatured = 'featured' in item && item.featured;
-            // @ts-ignore - isSmall might not exist on all items
             const isSmall = item.isSmall;
 
             // Fixed heights for the "range"

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Rock Mill Magnesium",
     description: "Climbing community site for Rock Mill. Track your progress and share your climbs.",
-    url: "https://rockmill-magnesium.vercel.app",
+    url: "https://mg.rockmillclimbing.com",
     siteName: "Rock Mill Magnesium",
     locale: "en_US",
     type: "website",
@@ -53,8 +53,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
-      <body className={`${outfit.className} bg-slate-50 text-slate-900 antialiased`}>
+      <body className={`${outfit.className} bg-[#F8FAFC] text-slate-900 antialiased`}>
         {children}
         <Toaster />
       </body>

@@ -8,12 +8,7 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background: #F8FAFC;
   min-height: 100vh;
 }
 
@@ -32,6 +27,18 @@ body {
 
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .pb-nav-safe {
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+  }
+
+  .pt-header-safe {
+    padding-top: calc(5rem + env(safe-area-inset-top));
   }
 }
 

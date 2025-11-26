@@ -1,15 +1,24 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { Button } from "./ui/Button";
+import { loginWithGoogle } from "@/lib/auth-client";
 
-export function LoginButton() {
+interface LoginButtonProps {
+  children?: React.ReactNode;
+}
+
+export function LoginButton({ children, ...props }: LoginButtonProps) {
+  const handleLogin = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    await loginWithGoogle();
+  };
+
   return (
-    <Button 
-      variant="secondary" 
-      onClick={() => signIn("google", { callbackUrl: "/sets" })}
+    <Button
+      variant="secondary"
+      onClick={handleLogin}
+      {...props}
     >
-      Sign In
+      {children || "Sign In"}
     </Button>
   );
 }

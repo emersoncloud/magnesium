@@ -1,5 +1,6 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
+import Credentials from "next-auth/providers/credentials"
 
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
@@ -7,10 +8,44 @@ import { eq } from "drizzle-orm";
 import { notifyNewUser } from "@/lib/telegram";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [Google({
-    clientId: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  })],
+  providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
+    Credentials({
+      id: "google-native",
+      name: "Google Native",
+      credentials: {
+        idToken: { label: "ID Token", type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.idToken) return null;
+        
+        try {
+          const { OAuth2Client } = await import("google-auth-library");
+          const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+          const ticket = await client.verifyIdToken({
+            idToken: credentials.idToken as string,
+            audience: process.env.GOOGLE_CLIENT_ID,
+          });
+          const payload = ticket.getPayload();
+          
+          if (!payload) return null;
+
+          return {
+            id: payload.sub,
+            name: payload.name,
+            email: payload.email,
+            image: payload.picture,
+          };
+        } catch (error) {
+          console.error("Error verifying Google ID token:", error);
+          return null;
+        }
+      },
+    })
+  ],
   callbacks: {
     async signIn({ user }) {
       if (!user.email) return false;
@@ -27,7 +62,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const response = await fetch(imageUrl);
           const buffer = await response.arrayBuffer();
           
-          const fileName = `${user.email.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.jpg`;
+          const uniqueIdentifier = user.id || crypto.randomUUID();
+          const fileName = `${uniqueIdentifier}_${Date.now()}.jpg`;
           
           // Upload to Supabase
           const { data, error } = await supabaseAdmin

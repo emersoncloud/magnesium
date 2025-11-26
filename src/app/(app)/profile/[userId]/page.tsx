@@ -7,6 +7,7 @@ import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import ProfileSettings from "@/components/ProfileSettings";
 import BarcodeDrawer from "@/components/BarcodeDrawer";
+import { LogoutButton } from "@/components/LogoutButton";
 
 export default async function PublicProfilePage({ params }: { params: Promise<{ userId: string }> }) {
   const session = await auth();
@@ -76,14 +77,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
       {isOwnProfile && (
         <div className="mt-12 pt-8 border-t border-slate-200">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Account</h3>
-          <form action={async () => {
-            "use server";
-            await import("@/app/actions").then(m => m.logout());
-          }}>
-            <button type="submit" className="text-red-600 hover:text-red-700 text-sm font-medium hover:underline">
-              Log Out
-            </button>
-          </form>
+          <LogoutButton />
         </div>
       )}
     </div>

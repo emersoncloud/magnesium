@@ -8,6 +8,8 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import { signIn } from "next-auth/react";
+import { Capacitor } from "@capacitor/core";
+import { SocialLogin } from "@capgo/capacitor-social-login";
 import { useSettings } from "@/context/SettingsContext";
 
 import { CetaitDemain } from "./mountains/CetaitDemain";
@@ -42,7 +44,36 @@ export default function NavBar({ user, isAdmin, showSeasons }: { user?: User | n
           name: "Sign In",
           href: "#",
           icon: UserIcon,
-          onClick: () => signIn("google", { callbackUrl: "/sets" }),
+          onClick: async () => {
+            if (Capacitor.isNativePlatform()) {
+              try {
+                await SocialLogin.initialize({
+                  google: {
+                    webClientId: "499412392042-255j7a3fvvhfcob0tofgago3q86fjpmn.apps.googleusercontent.com",
+                    iOSClientId: "499412392042-jobevm2j3d30fptnabu20hth37hm5jrq.apps.googleusercontent.com",
+                  },
+                });
+                const res = await SocialLogin.login({
+                  provider: "google",
+                  options: {
+                    scopes: ["email", "profile"],
+                    forceRefreshToken: true,
+                  },
+                });
+
+                if ((res.result as any).idToken) {
+                  await signIn("google-native", {
+                    idToken: (res.result as any).idToken,
+                    callbackUrl: "/sets",
+                  });
+                }
+              } catch (error) {
+                console.error("Native Google Sign-In failed:", error);
+              }
+            } else {
+              signIn("google", { callbackUrl: "/sets" });
+            }
+          },
           Mountain: GrandpaPeabody,
         },
       ]),
@@ -77,9 +108,8 @@ export default function NavBar({ user, isAdmin, showSeasons }: { user?: User | n
   return (
     <>
       <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
-      <div className="fixed bottom-0 left-0 right-0 z-40 pointer-events-none flex justify-center items-end pb-0">
-        {/* Gradient backdrop */}
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-100 via-slate-100/80 to-transparent pointer-events-none" />
+      <div className="fixed bottom-0 left-0 right-0 z-40 pointer-events-none flex justify-center items-end pb-[env(safe-area-inset-bottom)]">
+        <div className="absolute inset-x-0 bottom-0 h-[calc(6rem+env(safe-area-inset-bottom))] bg-gradient-to-t from-slate-100 via-slate-100/80 to-transparent pointer-events-none" />
         {/* Mountain Range Container */}
         <nav className="relative flex items-end justify-center gap-0 md:gap-2 pointer-events-auto pb-0 filter drop-shadow-[0_-10px_20px_rgba(0,0,0,0.15)]">
           {navItems.map((item, index) => {

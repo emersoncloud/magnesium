@@ -48,7 +48,7 @@ function MarketingContent({
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   return (
-    <div className="flex flex-col min-h-screen relative bg-slate-50 font-sans selection:bg-rockmill selection:text-white overflow-x-hidden">
+    <div className="flex flex-col min-h-screen relative bg-[#F8FAFC] font-sans selection:bg-rockmill selection:text-white overflow-x-hidden">
       <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
 
       {/* Global Technical Grid Background */}
@@ -57,7 +57,7 @@ function MarketingContent({
       />
 
       {/* Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-4 lg:px-8 h-20 flex items-center border-b-2 border-black bg-white/90 backdrop-blur-md">
+      <header className="fixed top-0 left-0 right-0 z-50 px-4 lg:px-8 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 flex items-center border-b-2 border-black bg-white/90 backdrop-blur-md">
         <Link className="flex items-center justify-center group" href="#">
           <span className="text-2xl font-black font-rockmill tracking-tighter uppercase hidden sm:inline-block text-rockmill">Rock Mill <span className="text-slate-400">Magnesium</span></span>
           <span className="text-2xl font-black font-rockmill tracking-tighter sm:hidden text-rockmill">RM<span className="text-slate-400">Mg</span></span>
@@ -68,7 +68,7 @@ function MarketingContent({
         </nav>
       </header>
 
-      <main className="flex-1 pt-20">
+      <main className="flex-1 pt-[calc(6rem+env(safe-area-inset-top))]">
         {/* Hero Section - Component Composition */}
         <section className="relative w-full min-h-[90vh] flex flex-col xl:flex-row items-center justify-center container mx-auto px-4 md:px-6 gap-12 xl:gap-24">
 

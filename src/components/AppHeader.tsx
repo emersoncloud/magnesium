@@ -17,7 +17,7 @@ export default async function AppHeader() {
   });
 
   return (
-    <header className="fixed top-0 right-0 z-40 p-4">
+    <header className="fixed top-0 right-0 z-40 p-4 pt-[calc(1.5rem+env(safe-area-inset-top))]">
       <BarcodeDrawer barcode={userDetails?.barcode ?? null} />
     </header>
   );

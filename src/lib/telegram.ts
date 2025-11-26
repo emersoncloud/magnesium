@@ -37,6 +37,13 @@ export async function sendTelegramMessage(message: string): Promise<boolean> {
   }
 }
 
+export async function notifyTooManyRoutesToArchive(
+  routesToArchiveCount: number
+): Promise<void> {
+  const message = `⚠️ <b>Sync Warning: Too Many Routes to Archive</b>\n\nFound ${routesToArchiveCount} routes to archive, which exceeds the safety limit of 10.\n\nNo routes were archived. Please review the Google Sheet manually.`;
+  await sendTelegramMessage(message);
+}
+
 export async function notifyRouteSync(
   addedRoutes: Array<{ grade: string; color: string }>,
   archivedCount: number

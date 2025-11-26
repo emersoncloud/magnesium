@@ -33,6 +33,14 @@ export const metadata: Metadata = {
     description: "Climbing community site for Rock Mill. Track your progress and share your climbs.",
     images: ["/api/og"],
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Magnesium",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 import { Toaster } from "@/components/ui/Toaster";
@@ -45,7 +53,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="apple-mobile-web-app-title" content="Magnesium" />
       </head>
       <body className={`${outfit.className} bg-slate-50 text-slate-900 antialiased`}>
         {children}

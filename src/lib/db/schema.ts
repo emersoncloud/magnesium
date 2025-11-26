@@ -14,8 +14,8 @@ export const routes = pgTable("routes", {
   setter_beta: text("setter_beta"),
   style: text("style"),
   hold_type: text("hold_type"),
-  created_at: timestamp("created_at").defaultNow(),
-  removed_at: timestamp("removed_at"),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  removed_at: timestamp("removed_at", { withTimezone: true }),
 });
 
 export const activityLogs = pgTable("activity_logs", {
@@ -28,7 +28,7 @@ export const activityLogs = pgTable("activity_logs", {
   content: text("content"),
   metadata: jsonb("metadata").$type<{ is_beta?: boolean; proposed_grade?: string; reason?: string }>().default({}),
   is_public: boolean("is_public").default(true).notNull(),
-  created_at: timestamp("created_at").defaultNow(),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
 }, (table) => {
   return {
     routeIdx: index("activity_logs_route_idx").on(table.route_id),
@@ -42,8 +42,8 @@ export const personalNotes = pgTable("personal_notes", {
   user_id: text("user_id").notNull(),
   route_id: uuid("route_id").references(() => routes.id).notNull(),
   content: text("content").notNull(),
-  created_at: timestamp("created_at").defaultNow(),
-  updated_at: timestamp("updated_at").defaultNow(),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
 export const users = pgTable("users", {
@@ -52,7 +52,7 @@ export const users = pgTable("users", {
   name: text("name"),
   image: text("image"),
   barcode: text("barcode"),
-  created_at: timestamp("created_at").defaultNow(),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
 export const trainingPlans = pgTable("training_plans", {
@@ -63,8 +63,8 @@ export const trainingPlans = pgTable("training_plans", {
   base_grade: text("base_grade").notNull(),
   length: text("length").notNull(),
   is_public: boolean("is_public").default(false).notNull(),
-  created_at: timestamp("created_at").defaultNow(),
-  updated_at: timestamp("updated_at").defaultNow(),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 }, (table) => {
   return {
     userIdx: index("training_plans_user_idx").on(table.user_id),

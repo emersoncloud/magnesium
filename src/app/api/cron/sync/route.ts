@@ -4,7 +4,7 @@ import { routes } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getSheetData } from "@/lib/google-sheets";
 import { WALLS } from "@/lib/constants/walls";
-import { notifyRouteSync } from "@/lib/telegram";
+import { notifyRouteSync, notifyTooManyRoutesToArchive } from "@/lib/telegram";
 import { revalidatePath } from "next/cache";
 
 type SyncRoute = {
@@ -75,7 +75,18 @@ async function performSync() {
     }
   }
 
-  const missingRoutes = activeRoutes.filter((r) => !processedRouteIds.has(r.id));
+  const routesThatWouldBeArchived = activeRoutes.filter((r) => !processedRouteIds.has(r.id));
+
+  const tooManyRoutesToArchiveSafetyLimit = 10;
+  if (routesThatWouldBeArchived.length > tooManyRoutesToArchiveSafetyLimit) {
+    return {
+      addedCount: 0,
+      archivedCount: 0,
+      addedRoutesSummary: [],
+      skippedDueToTooManyArchives: true,
+      routesThatWouldBeArchivedCount: routesThatWouldBeArchived.length,
+    };
+  }
 
   let addedCount = 0;
   let archivedCount = 0;
@@ -91,7 +102,7 @@ async function performSync() {
     addedRoutesSummary.push({ grade: route.grade, color: route.color });
   }
 
-  for (const route of missingRoutes) {
+  for (const route of routesThatWouldBeArchived) {
     await db
       .update(routes)
       .set({
@@ -114,7 +125,13 @@ async function performSync() {
       .where(eq(routes.id, route.id));
   }
 
-  return { addedCount, archivedCount, addedRoutesSummary };
+  return {
+    addedCount,
+    archivedCount,
+    addedRoutesSummary,
+    skippedDueToTooManyArchives: false,
+    routesThatWouldBeArchivedCount: 0,
+  };
 }
 
 export async function GET(request: NextRequest) {
@@ -126,7 +143,24 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const { addedCount, archivedCount, addedRoutesSummary } = await performSync();
+    const {
+      addedCount,
+      archivedCount,
+      addedRoutesSummary,
+      skippedDueToTooManyArchives,
+      routesThatWouldBeArchivedCount,
+    } = await performSync();
+
+    if (skippedDueToTooManyArchives) {
+      await notifyTooManyRoutesToArchive(routesThatWouldBeArchivedCount);
+      return NextResponse.json({
+        success: false,
+        added: 0,
+        archived: 0,
+        skipped: true,
+        message: `Sync skipped: ${routesThatWouldBeArchivedCount} routes would be archived, which exceeds the safety limit of 10. A warning was sent to Telegram.`,
+      });
+    }
 
     if (addedCount > 0 || archivedCount > 0) {
       await notifyRouteSync(addedRoutesSummary, archivedCount);

@@ -41,7 +41,13 @@ export function RouteBadge({
 }) {
   const wallName = WALLS.find(w => w.id === route.wall_id)?.name || "Unknown Wall";
 
-  const formattedDate = route.set_date ? new Date(route.set_date).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' }) : "";
+  // Parse the YYYY-MM-DD string and display it directly without timezone conversion
+  const formattedDate = route.set_date ? (() => {
+    const [y, m, d] = route.set_date.split('-').map(Number);
+    // Create date using local time components to avoid timezone shift
+    // or just format the string directly since we have the parts
+    return `${m}/${d}`;
+  })() : "";
 
   return (
     <TooltipProvider >
@@ -116,7 +122,10 @@ export function RouteBadge({
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-slate-400 font-mono uppercase">Set Date</span>
-                <span className="font-bold">{route.set_date ? new Date(route.set_date).toLocaleDateString() : "Unknown"}</span>
+                <span className="font-bold">{route.set_date ? (() => {
+                  const [y, m, d] = route.set_date.split('-').map(Number);
+                  return `${m}/${d}/${y}`;
+                })() : "Unknown"}</span>
               </div>
               {(route.style || route.hold_type) && (
                 <div className="pt-2 mt-2 border-t border-slate-100 flex flex-wrap gap-2">

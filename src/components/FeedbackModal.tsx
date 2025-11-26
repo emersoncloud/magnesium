@@ -5,6 +5,7 @@ import { X, MessageSquare, Send } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import posthog from "posthog-js";
 import { cn } from "@/lib/utils";
+import { submitFeedback } from "@/app/actions";
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -48,17 +49,17 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
 
     try {
       if (surveyId) {
-        // Send as survey response
         posthog.capture("survey sent", {
           $survey_id: surveyId,
           $survey_response: feedback
         });
       } else {
-        // Fallback to custom event
         posthog.capture("feedback_submitted", {
           feedback: feedback
         });
       }
+
+      await submitFeedback(feedback);
 
       setIsSuccess(true);
       setTimeout(() => {
@@ -96,7 +97,7 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
           </div>
           <div>
             <h3 className="text-lg font-black uppercase tracking-tight">Help improve Rock Mill Magnesium</h3>
-            <p className="text-xs text-slate-500 font-mono uppercase tracking-widest mt-1">Share any feature requests, things that don't quite look right, or any other comments.</p>
+            <p className="text-xs text-slate-500 font-mono uppercase tracking-widest mt-1">Share any feature requests, things that seem a little off, or any other comments.</p>
           </div>
         </div>
 
@@ -116,7 +117,7 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
                 id="feedback"
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
-                placeholder="Tell us what you think, report a bug, or suggest a feature..."
+                placeholder="I've used this app so much I forgot to talk to the other climbers.."
                 className="w-full min-h-[150px] p-4 rounded-lg border-2 border-slate-200 focus:border-rockmill focus:ring-0 resize-none bg-slate-50 text-sm placeholder:text-slate-400"
                 autoFocus
               />

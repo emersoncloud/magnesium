@@ -10,9 +10,32 @@ async function FeedContainer() {
 
 export default function FeedPage() {
   return (
-    <div className="max-w-2xl mx-auto pb-24">
-      <h1 className="text-5xl font-black text-black mb-8 uppercase tracking-tighter mt-6">Activity Feed</h1>
-      <Suspense fallback={<div className="space-y-4"><FeedItemSkeleton /><FeedItemSkeleton /><FeedItemSkeleton /></div>}>
+    <div className="max-w-4xl mx-auto pb-24">
+      <h1 className="text-5xl font-black text-black mb-8 uppercase tracking-tighter mt-6">
+        Activity Feed
+      </h1>
+      <Suspense
+        fallback={
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FeedItemSkeleton />
+            <FeedItemSkeleton />
+            <FeedItemSkeleton />
+            <FeedItemSkeleton />
+            <FeedItemSkeleton />
+            <FeedItemSkeleton />
+            <FeedItemSkeleton />
+            <FeedItemSkeleton />
+            <FeedItemSkeleton />
+            <FeedItemSkeleton />
+            <FeedItemSkeleton />
+            <FeedItemSkeleton />
+            <FeedItemSkeleton />
+            <FeedItemSkeleton />
+            <FeedItemSkeleton />
+            <FeedItemSkeleton />
+          </div>
+        }
+      >
         <FeedContainer />
       </Suspense>
     </div>

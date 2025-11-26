@@ -8,6 +8,7 @@ import { redis } from "@/lib/kv";
 import { getSheetData } from "@/lib/google-sheets";
 import { WALLS, GRADES } from "@/lib/constants/walls";
 import { auth, isAdmin, signOut } from "@/lib/auth";
+import { notifyFeedback, notifyRouteSend } from "@/lib/telegram";
 
 export async function logout() {
   await signOut({ redirectTo: "/" });
@@ -88,12 +89,35 @@ export async function logActivity(data: typeof activityLogs.$inferInsert) {
     is_public: data.is_public ?? true,
   });
 
-  // Increment tick count in KV if it's a send or flash
-  if (data.action_type === "SEND" || data.action_type === "FLASH") {
+  const isSendOrFlash = data.action_type === "SEND" || data.action_type === "FLASH";
+
+  if (isSendOrFlash) {
     try {
       await redis.incr(`route:${data.route_id}:ticks`);
     } catch (error) {
       console.error("Failed to increment KV tick:", error);
+    }
+
+    try {
+      const route = await db.query.routes.findFirst({
+        where: eq(routes.id, data.route_id),
+      });
+
+      if (route) {
+        const wall = WALLS.find((w) => w.id === route.wall_id);
+        const wallName = wall?.name || route.wall_id;
+        const userName = data.user_name || "Someone";
+
+        await notifyRouteSend(
+          userName,
+          data.action_type as "SEND" | "FLASH",
+          route.grade,
+          route.color,
+          wallName
+        );
+      }
+    } catch (error) {
+      console.error("Failed to send Telegram notification:", error);
     }
   }
 
@@ -1250,4 +1274,13 @@ export async function copyTrainingPlan(planId: string): Promise<{ id: string }> 
 
   revalidatePath("/train");
   return { id: newPlan.id };
+}
+
+export async function submitFeedback(feedback: string) {
+  const session = await auth();
+  const userName = session?.user?.name || "Anonymous";
+
+  await notifyFeedback(userName, feedback);
+
+  return { success: true };
 }

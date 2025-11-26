@@ -15,7 +15,7 @@ export default async function WallPage({ params }: { params: Promise<{ id: strin
   const wallRoutes = allRoutes.filter((r) => r.wall_id === id);
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex flex-col">
+    <div className="relative flex flex-col">
       {/* Header */}
       <div className="relative z-10 p-6 pb-2 border-b-2 border-black/5 bg-white/80 backdrop-blur-sm flex-shrink-0">
         <Link href="/sets" className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-rockmill transition-colors mb-4 font-mono">

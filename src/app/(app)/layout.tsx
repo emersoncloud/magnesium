@@ -1,4 +1,5 @@
 import NavBar from "@/components/NavBar";
+import PostHogIdentify from "@/components/PostHogIdentify";
 
 import { SettingsProvider } from "@/context/SettingsContext";
 import { auth, isAdmin } from "@/lib/auth";
@@ -15,6 +16,13 @@ export default async function AppLayout({
 
   return (
     <SettingsProvider>
+      {session?.user?.id && (
+        <PostHogIdentify
+          userId={session.user.id}
+          email={session.user.email}
+          name={session.user.name}
+        />
+      )}
       <div className="min-h-screen pb-24 relative bg-slate-50">
         <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0"
           style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '40px 40px' }}

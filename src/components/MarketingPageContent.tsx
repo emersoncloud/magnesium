@@ -70,10 +70,10 @@ function MarketingContent({
 
       <main className="flex-1 pt-20">
         {/* Hero Section - Component Composition */}
-        <section className="relative w-full min-h-[90vh] flex flex-col lg:flex-row items-center justify-center container mx-auto px-4 md:px-6 gap-12 lg:gap-24">
+        <section className="relative w-full min-h-[90vh] flex flex-col xl:flex-row items-center justify-center container mx-auto px-4 md:px-6 gap-12 xl:gap-24">
 
           {/* Hero Text */}
-          <div className="flex-1 text-center lg:text-left z-10 pt-10 lg:pt-0">
+          <div className="flex-1 text-center xl:text-left z-10 pt-10 xl:pt-0">
             <div className="inline-block mb-6 px-4 py-1 border-2 border-black bg-rockmill transform -skew-x-12 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <span className="text-xs font-bold font-mono tracking-[0.2em] text-white transform skew-x-12 block">
                 {"// Magnesium (chalk) supports climbers"}
@@ -90,11 +90,11 @@ function MarketingContent({
             >
               A community logbook for Rock Mill climbers
             </h1>
-            <p className="max-w-xl text-lg md:text-xl text-slate-600 font-medium mb-10 leading-relaxed mx-auto lg:mx-0 text-balance">
+            <p className="max-w-xl text-lg md:text-xl text-slate-600 font-medium mb-10 leading-relaxed mx-auto xl:mx-0 text-balance">
               View the live routes set at Rock Mill. Track your sends and attempts to build your personal profile. Comment and rate routes to provide feedback to the setters.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center xl:justify-start">
               <Link href="/sets">
                 <Button onClick={() => posthog.capture('marketing_page_view_live_routes_button_click')} size="lg" variant="primary" className="h-16 px-10 text-base bg-black hover:bg-slate-800 text-white border-none">
                   View the Routes
@@ -109,12 +109,12 @@ function MarketingContent({
           </div>
 
           {/* Hero Visuals - Skewed Component Composition */}
-          <div className="flex-1 relative w-full max-w-[600px] lg:h-[500px] mt-12 lg:mt-0 flex flex-col gap-8 items-center lg:block">
+          <div className="flex-1 relative w-full max-w-[600px] xl:h-[500px] mt-12 xl:mt-0 flex flex-col gap-8 items-center xl:block">
             {/* Floating Elements */}
 
             {/* Recent Send Card */}
             {recentSend && (
-              <div className="lg:absolute lg:top-10 lg:left-0 z-20 transform lg:-rotate-6 hover:rotate-0 transition-transform duration-500 group">
+              <div className="xl:absolute xl:top-10 xl:left-0 z-20 transform xl:-rotate-6 hover:rotate-0 transition-transform duration-500 group">
                 <Card className="w-auto p-4 bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)]">
                   <div className="flex items-center justify-between mb-4 gap-4">
                     <div className="font-black uppercase tracking-tighter">Recent Send</div>
@@ -150,7 +150,7 @@ function MarketingContent({
             )}
 
             {/* sets Stats Card */}
-            <div className="lg:absolute lg:top-1/2 lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:-translate-y-1/2 z-10 hover:scale-105 transition-transform duration-500">
+            <div className="xl:absolute xl:top-1/2 xl:left-1/2 xl:transform xl:-translate-x-1/2 xl:-translate-y-1/2 z-10 hover:scale-105 transition-transform duration-500">
               <Card className="w-80 p-6 text-white border-2 border-rockmill shadow-[16px_16px_0px_0px_rgba(0,0,0,0.3)]">
                 <div className="flex items-center gap-2 mb-4 text-rockmill">
                   <TrendingUp className="w-5 h-5" />
@@ -166,7 +166,7 @@ function MarketingContent({
 
             {/* New Set Card */}
             {newSet && (
-              <div className="lg:absolute lg:bottom-10 lg:right-0 z-20 transform lg:rotate-3 hover:rotate-0 transition-transform duration-500">
+              <div className="xl:absolute xl:bottom-10 xl:right-0 z-20 transform xl:rotate-3 hover:rotate-0 transition-transform duration-500">
                 <SetCard
                   wallName={newSet.wallName}
                   routeCount={newSet.count}

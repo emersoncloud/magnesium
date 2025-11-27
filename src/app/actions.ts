@@ -122,7 +122,7 @@ export async function logActivity(data: typeof activityLogs.$inferInsert) {
   }
 
   revalidatePath(`/route/${data.route_id}`);
-  revalidatePath("/feed");
+  revalidatePath("/overview");
 }
 
 export async function logAttempt(routeId: string) {
@@ -517,7 +517,7 @@ export async function toggleFlash(routeId: string, isFlash: boolean) {
       )
     );
     revalidatePath(`/route/${routeId}`);
-    revalidatePath("/feed");
+    revalidatePath("/overview");
   }
 }
 
@@ -1283,4 +1283,249 @@ export async function submitFeedback(feedback: string) {
   await notifyFeedback(userName, feedback);
 
   return { success: true };
+}
+
+export type RecentRoute = {
+  id: string;
+  grade: string;
+  color: string;
+  wall_id: string;
+  set_date: string;
+  difficulty_label: string | null;
+  setter_name: string;
+};
+
+export async function getRecentlySetRoutes(days: number): Promise<RecentRoute[]> {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+  const cutoffDateString = cutoffDate.toISOString().split("T")[0];
+
+  const recentRoutes = await db
+    .select({
+      id: routes.id,
+      grade: routes.grade,
+      color: routes.color,
+      wall_id: routes.wall_id,
+      set_date: routes.set_date,
+      difficulty_label: routes.difficulty_label,
+      setter_name: routes.setter_name,
+    })
+    .from(routes)
+    .where(and(eq(routes.status, "active"), sql`${routes.set_date} >= ${cutoffDateString}`))
+    .orderBy(desc(routes.set_date));
+
+  return recentRoutes;
+}
+
+export type UserQuickStats = {
+  totalSends: number;
+  totalFlashes: number;
+  bestSendGrade: string | null;
+  bestFlashGrade: string | null;
+  currentStreak: number;
+  routesThisWeek: number;
+};
+
+export async function getUserQuickStats(userId: string): Promise<UserQuickStats> {
+  const userActivity = await db
+    .select({
+      action_type: activityLogs.action_type,
+      route_grade: routes.grade,
+      created_at: activityLogs.created_at,
+    })
+    .from(activityLogs)
+    .leftJoin(routes, eq(activityLogs.route_id, routes.id))
+    .where(
+      and(
+        eq(activityLogs.user_id, userId),
+        or(
+          eq(activityLogs.action_type, "SEND"),
+          eq(activityLogs.action_type, "FLASH")
+        )
+      )
+    )
+    .orderBy(desc(activityLogs.created_at));
+
+  const sends = userActivity.filter((a) => a.action_type === "SEND");
+  const flashes = userActivity.filter((a) => a.action_type === "FLASH");
+
+  const getBestGrade = (activities: typeof userActivity) => {
+    if (activities.length === 0) return null;
+    let bestIndex = -1;
+    let bestGrade: string | null = null;
+    for (const activity of activities) {
+      if (!activity.route_grade) continue;
+      const gradeIndex = (GRADES as readonly string[]).indexOf(activity.route_grade);
+      if (gradeIndex > bestIndex) {
+        bestIndex = gradeIndex;
+        bestGrade = activity.route_grade;
+      }
+    }
+    return bestGrade;
+  };
+
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  const routesThisWeek = userActivity.filter(
+    (a) => a.created_at && new Date(a.created_at) > oneWeekAgo
+  ).length;
+
+  const calculateStreak = () => {
+    if (userActivity.length === 0) return 0;
+
+    const activityDates = userActivity
+      .filter((a) => a.created_at)
+      .map((a) => new Date(a.created_at!).toDateString());
+
+    const uniqueDates = [...new Set(activityDates)].sort(
+      (a, b) => new Date(b).getTime() - new Date(a).getTime()
+    );
+
+    if (uniqueDates.length === 0) return 0;
+
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+    if (uniqueDates[0] !== today && uniqueDates[0] !== yesterday) {
+      return 0;
+    }
+
+    let streak = 1;
+    for (let i = 1; i < uniqueDates.length; i++) {
+      const currentDate = new Date(uniqueDates[i - 1]);
+      const previousDate = new Date(uniqueDates[i]);
+      const daysDifference = Math.floor(
+        (currentDate.getTime() - previousDate.getTime()) / 86400000
+      );
+      if (daysDifference === 1) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  };
+
+  return {
+    totalSends: sends.length,
+    totalFlashes: flashes.length,
+    bestSendGrade: getBestGrade(sends),
+    bestFlashGrade: getBestGrade(flashes),
+    currentStreak: calculateStreak(),
+    routesThisWeek,
+  };
+}
+
+export type GlobalActivityItem = Awaited<ReturnType<typeof getGlobalActivity>>[number];
+
+export type DashboardData = {
+  globalActivity: GlobalActivityItem[];
+  recentRoutes: RecentRoute[];
+  gradeDistribution: { grade: string; count: number }[];
+  userActivity: GlobalActivityItem[] | null;
+  userStats: UserQuickStats | null;
+  isLoggedIn: boolean;
+  totalActiveRoutes: number;
+  totalClimbers: number;
+};
+
+export async function getDashboardData(userId?: string): Promise<DashboardData> {
+  const isLoggedIn = !!userId;
+
+  const globalActivityPromise = db
+    .select({
+      id: activityLogs.id,
+      user_id: activityLogs.user_id,
+      user_name: activityLogs.user_name,
+      user_image: activityLogs.user_image,
+      action_type: activityLogs.action_type,
+      content: activityLogs.content,
+      created_at: activityLogs.created_at,
+      route_grade: routes.grade,
+      route_color: routes.color,
+      route_label: routes.difficulty_label,
+      route_id: routes.id,
+      wall_id: routes.wall_id,
+      setter_name: routes.setter_name,
+      set_date: routes.set_date,
+      style: routes.style,
+      hold_type: routes.hold_type,
+    })
+    .from(activityLogs)
+    .leftJoin(routes, eq(activityLogs.route_id, routes.id))
+    .where(eq(activityLogs.is_public, true))
+    .orderBy(desc(activityLogs.created_at))
+    .limit(10);
+
+  const recentRoutesPromise = getRecentlySetRoutes(7);
+  const gradeDistributionPromise = getGradeDistribution();
+
+  const totalActiveRoutesPromise = db
+    .select({ count: sql<number>`count(*)` })
+    .from(routes)
+    .where(eq(routes.status, "active"));
+
+  const totalClimbersPromise = db
+    .select({ count: sql<number>`count(*)` })
+    .from(users);
+
+  const userActivityPromise = isLoggedIn
+    ? db
+        .select({
+          id: activityLogs.id,
+          user_id: activityLogs.user_id,
+          user_name: activityLogs.user_name,
+          user_image: activityLogs.user_image,
+          action_type: activityLogs.action_type,
+          content: activityLogs.content,
+          created_at: activityLogs.created_at,
+          route_grade: routes.grade,
+          route_color: routes.color,
+          route_label: routes.difficulty_label,
+          route_id: routes.id,
+          wall_id: routes.wall_id,
+          setter_name: routes.setter_name,
+          set_date: routes.set_date,
+          style: routes.style,
+          hold_type: routes.hold_type,
+        })
+        .from(activityLogs)
+        .leftJoin(routes, eq(activityLogs.route_id, routes.id))
+        .where(eq(activityLogs.user_id, userId))
+        .orderBy(desc(activityLogs.created_at))
+        .limit(5)
+    : Promise.resolve(null);
+
+  const userStatsPromise = isLoggedIn
+    ? getUserQuickStats(userId)
+    : Promise.resolve(null);
+
+  const [
+    globalActivity,
+    recentRoutes,
+    gradeDistribution,
+    totalActiveRoutesResult,
+    totalClimbersResult,
+    userActivity,
+    userStats,
+  ] = await Promise.all([
+    globalActivityPromise,
+    recentRoutesPromise,
+    gradeDistributionPromise,
+    totalActiveRoutesPromise,
+    totalClimbersPromise,
+    userActivityPromise,
+    userStatsPromise,
+  ]);
+
+  return {
+    globalActivity,
+    recentRoutes,
+    gradeDistribution,
+    userActivity,
+    userStats,
+    isLoggedIn,
+    totalActiveRoutes: Number(totalActiveRoutesResult[0]?.count || 0),
+    totalClimbers: Number(totalClimbersResult[0]?.count || 0),
+  };
 }

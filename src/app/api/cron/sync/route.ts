@@ -38,14 +38,18 @@ async function performSync() {
     }
     const wall = WALLS[zoneIndex];
 
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) {
-      date.setTime(Date.now());
+    const parsedDate = new Date(dateStr);
+    const currentYear = new Date().getFullYear();
+
+    let dateIso: string;
+    if (isNaN(parsedDate.getTime())) {
+      const now = new Date();
+      dateIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     } else {
-      const currentYear = new Date().getFullYear();
-      date.setFullYear(currentYear);
+      const monthFromSpreadsheet = parsedDate.getMonth() + 1;
+      const dayFromSpreadsheet = parsedDate.getDate();
+      dateIso = `${currentYear}-${String(monthFromSpreadsheet).padStart(2, '0')}-${String(dayFromSpreadsheet).padStart(2, '0')}`;
     }
-    const dateIso = date.toISOString().split("T")[0];
 
     const existingRoute = activeRoutes.find(
       (r) =>

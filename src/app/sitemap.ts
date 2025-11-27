@@ -25,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
-      url: "https://mg.rockmillclimbing.com/feed",
+      url: "https://mg.rockmillclimbing.com/overview",
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 0.7,

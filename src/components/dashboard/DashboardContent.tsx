@@ -34,9 +34,6 @@ export default function DashboardContent({
         </div>
 
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">
-            Quick Actions
-          </h3>
           <DashboardQuickActions user={user} showTraining={showTraining} />
         </div>
       </div>

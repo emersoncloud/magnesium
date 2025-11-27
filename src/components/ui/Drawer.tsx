@@ -2,15 +2,14 @@
 
 import { Drawer as VaulDrawer } from "vaul";
 import { useRouter, usePathname } from "next/navigation";
-import { useRef } from "react";
+import { useState } from "react";
 
 export default function Drawer({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const initialPathRef = useRef(pathname);
+  const [initialPath] = useState(pathname);
 
-  // If URL changed (e.g., browser back), don't render the drawer
-  if (pathname !== initialPathRef.current) {
+  if (pathname !== initialPath) {
     return null;
   }
 

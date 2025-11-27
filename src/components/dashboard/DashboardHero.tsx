@@ -1,15 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { User } from "next-auth";
 import { UserQuickStats } from "@/app/actions";
+import FeedbackModal from "@/components/FeedbackModal";
 import { Button } from "@/components/ui/Button";
-import { signIn } from "next-auth/react";
 import { Capacitor } from "@capacitor/core";
 import { SocialLogin } from "@capgo/capacitor-social-login";
 import { ArrowRight, MessageSquare } from "lucide-react";
-import Link from "next/link";
-import FeedbackModal from "@/components/FeedbackModal";
+import { User } from "next-auth";
+import { signIn } from "next-auth/react";
+import { useState } from "react";
 
 const INSPIRATIONAL_MESSAGES = [
   "Every send starts with a single move.",
@@ -38,36 +37,34 @@ const GREETING_MESSAGES = [
   "Another day, another send.",
 ];
 
+type SocialLoginResult = {
+  idToken?: string;
+};
+
 type DashboardHeroProps = {
   user: User | null;
   userStats: UserQuickStats | null;
 };
 
+function getRandomMessage<T>(messages: T[]): T {
+  return messages[Math.floor(Math.random() * messages.length)];
+}
+
+const initialInspirationalMessage = getRandomMessage(INSPIRATIONAL_MESSAGES);
+const initialGreetingMessage = getRandomMessage(GREETING_MESSAGES);
+
 export default function DashboardHero({ user, userStats }: DashboardHeroProps) {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-  const [inspirationalMessage, setInspirationalMessage] = useState("");
-  const [greetingMessage, setGreetingMessage] = useState("");
-
-  useEffect(() => {
-    setInspirationalMessage(
-      INSPIRATIONAL_MESSAGES[
-        Math.floor(Math.random() * INSPIRATIONAL_MESSAGES.length)
-      ]
-    );
-    setGreetingMessage(
-      GREETING_MESSAGES[Math.floor(Math.random() * GREETING_MESSAGES.length)]
-    );
-  }, []);
+  const [inspirationalMessage] = useState(initialInspirationalMessage);
+  const [greetingMessage] = useState(initialGreetingMessage);
 
   const handleSignIn = async () => {
     if (Capacitor.isNativePlatform()) {
       try {
         await SocialLogin.initialize({
           google: {
-            webClientId:
-              "499412392042-255j7a3fvvhfcob0tofgago3q86fjpmn.apps.googleusercontent.com",
-            iOSClientId:
-              "499412392042-jobevm2j3d30fptnabu20hth37hm5jrq.apps.googleusercontent.com",
+            webClientId: "499412392042-255j7a3fvvhfcob0tofgago3q86fjpmn.apps.googleusercontent.com",
+            iOSClientId: "499412392042-jobevm2j3d30fptnabu20hth37hm5jrq.apps.googleusercontent.com",
           },
         });
         const res = await SocialLogin.login({
@@ -78,9 +75,10 @@ export default function DashboardHero({ user, userStats }: DashboardHeroProps) {
           },
         });
 
-        if ((res.result as any).idToken) {
+        const loginResult = res.result as SocialLoginResult;
+        if (loginResult.idToken) {
           await signIn("google-native", {
-            idToken: (res.result as any).idToken,
+            idToken: loginResult.idToken,
             callbackUrl: "/overview",
           });
         }
@@ -95,17 +93,12 @@ export default function DashboardHero({ user, userStats }: DashboardHeroProps) {
   if (user) {
     const firstName = user.name?.split(" ")[0] || "Climber";
     const weeklyActivitySuffix = userStats?.routesThisWeek
-      ? ` — ${userStats.routesThisWeek} route${
-          userStats.routesThisWeek === 1 ? "" : "s"
-        } this week`
+      ? ` — ${userStats.routesThisWeek} route${userStats.routesThisWeek === 1 ? "" : "s"} this week`
       : "";
 
     return (
       <>
-        <FeedbackModal
-          isOpen={isFeedbackOpen}
-          onClose={() => setIsFeedbackOpen(false)}
-        />
+        <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
         <div className="relative overflow-hidden bg-rockmill p-6 md:p-8 mb-6">
           <div className="absolute inset-0 opacity-10">
             <div className="absolute inset-0 bg-[url('/grid.svg')] bg-repeat" />
@@ -121,9 +114,7 @@ export default function DashboardHero({ user, userStats }: DashboardHeroProps) {
                   {greetingMessage}
                   {weeklyActivitySuffix}
                 </p>
-                <p className="text-white/60 text-sm italic">
-                  &ldquo;{inspirationalMessage}&rdquo;
-                </p>
+                <p className="text-white/60 text-sm italic">&ldquo;{inspirationalMessage}&rdquo;</p>
               </div>
               <button
                 onClick={() => setIsFeedbackOpen(true)}
@@ -152,10 +143,7 @@ export default function DashboardHero({ user, userStats }: DashboardHeroProps) {
 
   return (
     <>
-      <FeedbackModal
-        isOpen={isFeedbackOpen}
-        onClose={() => setIsFeedbackOpen(false)}
-      />
+      <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
       <div className="relative overflow-hidden bg-rockmill p-6 md:p-8 mb-6">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0 bg-[url('/grid.svg')] bg-repeat" />
@@ -168,8 +156,7 @@ export default function DashboardHero({ user, userStats }: DashboardHeroProps) {
                 Overview
               </h1>
               <p className="text-white/80 text-lg font-medium mb-3 max-w-md">
-                Track your sends, explore routes, and level up your climbing
-                game.
+                Track your sends, explore routes, and level up your climbing game.
               </p>
               <p className="text-white/60 text-sm italic mb-6">
                 &ldquo;{inspirationalMessage}&rdquo;
@@ -180,15 +167,6 @@ export default function DashboardHero({ user, userStats }: DashboardHeroProps) {
                   Sign Up Free
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
-                <Link href="/sets">
-                  <Button
-                    variant="ghost"
-                    size="lg"
-                    className="text-white border-white/30 hover:bg-white/10"
-                  >
-                    Browse Routes
-                  </Button>
-                </Link>
               </div>
             </div>
 

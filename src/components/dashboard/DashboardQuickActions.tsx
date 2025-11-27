@@ -7,6 +7,10 @@ import { signIn } from "next-auth/react";
 import { Capacitor } from "@capacitor/core";
 import { SocialLogin } from "@capgo/capacitor-social-login";
 
+type SocialLoginResult = {
+  idToken?: string;
+};
+
 type DashboardQuickActionsProps = {
   user: User | null;
   showTraining?: boolean;
@@ -33,9 +37,10 @@ export default function DashboardQuickActions({
           },
         });
 
-        if ((res.result as any).idToken) {
+        const loginResult = res.result as SocialLoginResult;
+        if (loginResult.idToken) {
           await signIn("google-native", {
-            idToken: (res.result as any).idToken,
+            idToken: loginResult.idToken,
             callbackUrl: "/overview",
           });
         }
@@ -70,9 +75,7 @@ export default function DashboardQuickActions({
               <Dumbbell className="w-5 h-5 text-slate-700 group-hover:text-rockmill transition-colors" />
             </div>
             <div className="flex-1">
-              <div className="font-bold text-slate-900 text-sm">
-                Start Training
-              </div>
+              <div className="font-bold text-slate-900 text-sm">Start Training</div>
               <div className="text-xs text-slate-500">Generate a session plan</div>
             </div>
             <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-900 transition-colors" />
@@ -111,9 +114,7 @@ export default function DashboardQuickActions({
           <UserIcon className="w-5 h-5 text-rockmill" />
         </div>
         <div className="flex-1 text-left">
-          <div className="font-bold text-slate-900 text-sm">
-            Sign Up to Track
-          </div>
+          <div className="font-bold text-slate-900 text-sm">Sign Up to Track</div>
           <div className="text-xs text-slate-500">Log sends & view stats</div>
         </div>
         <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-900 transition-colors" />

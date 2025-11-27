@@ -11,9 +11,7 @@ type DashboardWhatsNewProps = {
   recentRoutes: RecentRoute[];
 };
 
-export default function DashboardWhatsNew({
-  recentRoutes,
-}: DashboardWhatsNewProps) {
+export default function DashboardWhatsNew({ recentRoutes }: DashboardWhatsNewProps) {
   const routesByWall = recentRoutes.reduce(
     (acc, route) => {
       const wallId = route.wall_id;
@@ -30,24 +28,15 @@ export default function DashboardWhatsNew({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center mb-4">
         <h2 className="text-lg font-black uppercase tracking-tighter text-slate-900 flex items-center gap-2">
           <Sparkles className="w-5 h-5" />
           What&apos;s New
         </h2>
-        <Link
-          href="/sets"
-          className="text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-slate-900 flex items-center gap-1 transition-colors"
-        >
-          All Routes
-          <ArrowRight className="w-3 h-3" />
-        </Link>
       </div>
 
       {recentRoutes.length === 0 ? (
-        <Card className="p-6 text-center text-slate-400">
-          No new routes this week.
-        </Card>
+        <Card className="p-6 text-center text-slate-400">No new routes this week.</Card>
       ) : (
         <div className="space-y-4">
           {wallIds.slice(0, 3).map((wallId) => {
@@ -57,8 +46,17 @@ export default function DashboardWhatsNew({
 
             return (
               <div key={wallId}>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                  {wallName}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    {wallName}
+                  </div>
+                  <Link
+                    href={`/sets/${wallId}`}
+                    className="text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-700 flex items-center gap-1 transition-colors"
+                  >
+                    View Wall
+                    <ArrowRight className="w-3 h-3" />
+                  </Link>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {wallRoutes.map((route) => (

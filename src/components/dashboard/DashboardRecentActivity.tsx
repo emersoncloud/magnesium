@@ -16,11 +16,8 @@ type DashboardRecentActivityProps = {
 
 export default function DashboardRecentActivity({
   user,
-  userActivity,
   globalActivity,
 }: DashboardRecentActivityProps) {
-  const activityToShow = user && userActivity ? userActivity : globalActivity;
-  const sectionTitle = user ? "Your Recent Activity" : "Community Activity";
   const emptyMessage = user
     ? "No activity yet. Go climb something!"
     : "No recent activity in the community.";
@@ -28,20 +25,18 @@ export default function DashboardRecentActivity({
   const timeAgo = (date: Date | null) => {
     if (!date) return "";
     const now = new Date();
-    const diffInSeconds = Math.floor(
-      (now.getTime() - new Date(date).getTime()) / 1000
-    );
+    const diffInSeconds = Math.floor((now.getTime() - new Date(date).getTime()) / 1000);
 
     if (diffInSeconds < 60) return "just now";
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    if (diffInSeconds < 604800)
-      return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
     return new Date(date).toLocaleDateString();
   };
 
-  const sendsAndFlashes = activityToShow.filter(
-    (item) => item.action_type === "SEND" || item.action_type === "FLASH"
+  const sendsAndFlashes = globalActivity.filter(
+    (item) =>
+      item.action_type === "SEND" || item.action_type === "FLASH" || item.action_type === "COMMENT"
   );
 
   return (
@@ -49,7 +44,7 @@ export default function DashboardRecentActivity({
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-black uppercase tracking-tighter text-slate-900 flex items-center gap-2">
           <Activity className="w-5 h-5" />
-          {sectionTitle}
+          Recent Activity
         </h2>
         {user && (
           <Link
@@ -75,9 +70,7 @@ export default function DashboardRecentActivity({
                 <Card
                   className={cn(
                     "p-3 flex items-center gap-3 cursor-pointer transition-all hover:shadow-md",
-                    isFlash
-                      ? "border-l-4 border-l-yellow-400"
-                      : "border-l-4 border-l-green-500"
+                    isFlash ? "border-l-4 border-l-yellow-400" : "border-l-4 border-l-green-500"
                   )}
                 >
                   <div
@@ -95,9 +88,7 @@ export default function DashboardRecentActivity({
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-bold text-slate-700 truncate">
-                        {firstName}
-                      </span>
+                      <span className="text-xs font-bold text-slate-700 truncate">{firstName}</span>
                       <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
                         {isFlash ? "Flashed" : "Sent"}
                       </span>

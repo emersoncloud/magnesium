@@ -18,7 +18,19 @@ import { MidnightLightning } from "./mountains/MidnightLightning";
 import { TheMandala } from "./mountains/TheMandala";
 import { TheRhino } from "./mountains/TheRhino";
 
-export default function NavBar({ user, isAdmin, showSeasons }: { user?: User | null, isAdmin?: boolean, showSeasons?: boolean }) {
+type SocialLoginResult = {
+  idToken?: string;
+};
+
+export default function NavBar({
+  user,
+  isAdmin,
+  showSeasons,
+}: {
+  user?: User | null;
+  isAdmin?: boolean;
+  showSeasons?: boolean;
+}) {
   const pathname = usePathname();
   const { experimentalFeatures } = useSettings();
 
@@ -82,9 +94,10 @@ export default function NavBar({ user, isAdmin, showSeasons }: { user?: User | n
                     },
                   });
 
-                  if ((res.result as any).idToken) {
+                  const loginResult = res.result as SocialLoginResult;
+                  if (loginResult.idToken) {
                     await signIn("google-native", {
-                      idToken: (res.result as any).idToken,
+                      idToken: loginResult.idToken,
                       callbackUrl: "/sets",
                     });
                   }
@@ -111,9 +124,12 @@ export default function NavBar({ user, isAdmin, showSeasons }: { user?: User | n
   ];
 
   // Determine active item (handle sub-routes if needed, e.g. /profile/123)
-  const activeItem = navItems.find(item =>
-    pathname === item.href || (item.href !== "/" && item.href !== "#" && pathname.startsWith(item.href))
-  ) || navItems[0];
+  const activeItem =
+    navItems.find(
+      (item) =>
+        pathname === item.href ||
+        (item.href !== "/" && item.href !== "#" && pathname.startsWith(item.href))
+    ) || navItems[0];
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 pointer-events-none flex justify-center items-end pb-[env(safe-area-inset-bottom)]">
@@ -123,7 +139,7 @@ export default function NavBar({ user, isAdmin, showSeasons }: { user?: User | n
           const isActive = activeItem.href === item.href;
           const Icon = item.icon;
           const Mountain = item.Mountain;
-          const isFeatured = 'featured' in item && item.featured;
+          const isFeatured = "featured" in item && item.featured;
 
           const baseHeight = [5.5, 6, 6.5, 6, 6.5, 6][index % 6];
           const height = isFeatured ? baseHeight * 1.25 : baseHeight;
@@ -141,34 +157,37 @@ export default function NavBar({ user, isAdmin, showSeasons }: { user?: User | n
                 "md:h-[calc(var(--nav-height)*0.8)] md:w-[calc(var(--nav-height)*0.8*1.6)]",
                 "lg:h-[var(--nav-height)] lg:w-[calc(var(--nav-height)*1.6)]"
               )}
-              style={{
-                "--nav-height": `${height}rem`,
-              } as React.CSSProperties}
+              style={
+                {
+                  "--nav-height": `${height}rem`,
+                } as React.CSSProperties
+              }
             >
               <div className="absolute inset-0 w-full h-full overflow-hidden flex items-end">
                 <Mountain
                   className={cn(
                     "w-full h-full transition-colors duration-300",
-                    isActive
-                      ? "text-rockmill"
-                      : "text-black group-hover:text-slate-900"
+                    isActive ? "text-rockmill" : "text-black group-hover:text-slate-900"
                   )}
                 />
               </div>
 
               <div className="flex flex-col items-center gap-1 z-10 mb-1 relative">
-                <Icon className={cn(
-                  "w-5 h-5 transition-all duration-300 hidden md:block",
-                  isActive ? "text-white scale-110" : "text-gray-200 group-hover:text-slate-300"
-                )} />
-                <span className={cn(
-                  "text-[10px] font-black uppercase tracking-widest transition-colors duration-300",
-                  isActive ? "text-white" : "text-gray-200 group-hover:text-slate-300"
-                )}>
+                <Icon
+                  className={cn(
+                    "w-5 h-5 transition-all duration-300 hidden md:block",
+                    isActive ? "text-white scale-110" : "text-gray-200 group-hover:text-slate-300"
+                  )}
+                />
+                <span
+                  className={cn(
+                    "text-[10px] font-black uppercase tracking-widest transition-colors duration-300",
+                    isActive ? "text-white" : "text-gray-200 group-hover:text-slate-300"
+                  )}
+                >
                   {item.name}
                 </span>
               </div>
-
             </Link>
           );
         })}

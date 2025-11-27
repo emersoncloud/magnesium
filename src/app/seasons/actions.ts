@@ -74,8 +74,8 @@ export async function getSeasonsLeaderboard(
     }
 
     const stats = userStats.get(act.userId)!;
-    const gradeIndex = GRADES.indexOf(act.routeGrade as any);
-    
+    const gradeIndex = GRADES.indexOf(act.routeGrade as (typeof GRADES)[number]);
+
     // Skip if grade is unknown
     if (gradeIndex === -1) continue;
 
@@ -101,24 +101,22 @@ export async function getSeasonsLeaderboard(
   }
 
   // Convert to array and sort
-  const leaderboard: SeasonEntry[] = Array.from(userStats.entries()).map(
-    ([userId, stats]) => {
-      let totalScore = 0;
-      for (const score of stats.routes.values()) {
-        totalScore += score;
-      }
-
-      return {
-        userId,
-        userName: stats.userName,
-        userImage: stats.userImage,
-        score: totalScore,
-        sends: stats.sends,
-        flashes: stats.flashes,
-        topGrade: stats.bestGradeIndex >= 0 ? GRADES[stats.bestGradeIndex] : null,
-      };
+  const leaderboard: SeasonEntry[] = Array.from(userStats.entries()).map(([userId, stats]) => {
+    let totalScore = 0;
+    for (const score of stats.routes.values()) {
+      totalScore += score;
     }
-  );
+
+    return {
+      userId,
+      userName: stats.userName,
+      userImage: stats.userImage,
+      score: totalScore,
+      sends: stats.sends,
+      flashes: stats.flashes,
+      topGrade: stats.bestGradeIndex >= 0 ? GRADES[stats.bestGradeIndex] : null,
+    };
+  });
 
   // Sort by score descending
   return leaderboard.sort((a, b) => b.score - a.score);

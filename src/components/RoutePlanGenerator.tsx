@@ -33,12 +33,10 @@ export default function RoutePlanGenerator() {
           </div>
 
           <div className="relative z-10 max-w-2xl">
-            <h2 className="text-3xl font-black uppercase tracking-tighter mb-4">
-              Need a Plan?
-            </h2>
+            <h2 className="text-3xl font-black uppercase tracking-tighter mb-4">Need a Plan?</h2>
             <p className="text-slate-300 text-lg mb-8 leading-relaxed">
-              Generate a personalized training session based on your max grade.
-              We'll curate a warm-up, a main set, and some challenge routes just for you.
+              Generate a personalized training session based on your max grade. We&apos;ll curate a
+              warm-up, a main set, and some challenge routes just for you.
             </p>
 
             <Button
@@ -71,7 +69,7 @@ export default function RoutePlanGenerator() {
               disabled={isPending}
               className="text-slate-500 hover:text-black"
             >
-              <RefreshCw className={`w-4 h-4 mr-2 ${isPending ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 mr-2 ${isPending ? "animate-spin" : ""}`} />
               Regenerate
             </Button>
           </div>
@@ -91,7 +89,7 @@ export default function RoutePlanGenerator() {
                 </p>
               </div>
               <div className="space-y-3 flex-1">
-                {plan.warmUp.routes.map(route => (
+                {plan.warmUp.routes.map((route) => (
                   <Link key={route.id} href={`/route/${route.id}`} className="block group">
                     <div className="bg-white p-3 rounded border border-blue-100 hover:border-blue-300 transition-colors flex items-center justify-between shadow-sm">
                       <span className="font-bold text-slate-700 group-hover:text-blue-600 truncate mr-2">
@@ -113,12 +111,10 @@ export default function RoutePlanGenerator() {
                 <h3 className="text-xl font-black uppercase tracking-tight text-slate-900 mb-2">
                   {plan.mainSet.title}
                 </h3>
-                <p className="text-sm text-slate-500 leading-relaxed">
-                  {plan.mainSet.description}
-                </p>
+                <p className="text-sm text-slate-500 leading-relaxed">{plan.mainSet.description}</p>
               </div>
               <div className="space-y-3 flex-1">
-                {plan.mainSet.routes.map(route => (
+                {plan.mainSet.routes.map((route) => (
                   <Link key={route.id} href={`/route/${route.id}`} className="block group">
                     <div className="bg-slate-50 p-3 rounded border border-slate-200 hover:border-slate-400 transition-colors flex items-center justify-between shadow-sm">
                       <span className="font-bold text-slate-700 group-hover:text-black truncate mr-2">
@@ -145,7 +141,7 @@ export default function RoutePlanGenerator() {
                 </p>
               </div>
               <div className="space-y-3 flex-1">
-                {plan.challenge.routes.map(route => (
+                {plan.challenge.routes.map((route) => (
                   <Link key={route.id} href={`/route/${route.id}`} className="block group">
                     <div className="bg-white p-3 rounded border border-yellow-100 hover:border-yellow-300 transition-colors flex items-center justify-between shadow-sm">
                       <span className="font-bold text-slate-700 group-hover:text-yellow-600 truncate mr-2">

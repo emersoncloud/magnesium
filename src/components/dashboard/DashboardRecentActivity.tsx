@@ -46,15 +46,13 @@ export default function DashboardRecentActivity({
           <Activity className="w-5 h-5" />
           Recent Activity
         </h2>
-        {user && (
-          <Link
-            href={`/profile/${user.id}`}
-            className="text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-slate-900 flex items-center gap-1 transition-colors"
-          >
-            View All
-            <ArrowRight className="w-3 h-3" />
-          </Link>
-        )}
+        <Link
+          href="/feed"
+          className="text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-slate-900 flex items-center gap-1 transition-colors"
+        >
+          View All
+          <ArrowRight className="w-3 h-3" />
+        </Link>
       </div>
 
       {sendsAndFlashes.length === 0 ? (

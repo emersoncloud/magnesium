@@ -98,14 +98,14 @@ export default function NavBar({
                   if (loginResult.idToken) {
                     await signIn("google-native", {
                       idToken: loginResult.idToken,
-                      callbackUrl: "/sets",
+                      callbackUrl: "/overview",
                     });
                   }
                 } catch (error) {
                   console.error("Native Google Sign-In failed:", error);
                 }
               } else {
-                signIn("google", { callbackUrl: "/sets" });
+                signIn("google", { callbackUrl: "/overview" });
               }
             },
             Mountain: GrandpaPeabody,

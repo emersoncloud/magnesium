@@ -1,18 +1,50 @@
 "use client";
 
 import { useState } from "react";
-import { previewSync, confirmSync, SyncPreview, SyncRoute } from "@/app/actions";
-import { RefreshCw, Check, AlertTriangle, Save } from "lucide-react";
+import {
+  previewSync,
+  confirmSync,
+  SyncPreview,
+  SyncRoute,
+  backfillAllUsersAchievements,
+} from "@/app/actions";
+import { RefreshCw, Check, AlertTriangle, Save, Trophy } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 // SyncRoute imported from actions
 
 export default function RouteSyncView() {
-  const [status, setStatus] = useState<"idle" | "loading" | "preview" | "syncing" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "preview" | "syncing" | "success" | "error"
+  >("idle");
   const [previewData, setPreviewData] = useState<SyncPreview | null>(null);
-  const [syncResult, setSyncResult] = useState<{ count: number; archivedCount: number; updatedCount: number } | null>(null);
+  const [syncResult, setSyncResult] = useState<{
+    count: number;
+    archivedCount: number;
+    updatedCount: number;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [achievementStatus, setAchievementStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [achievementResult, setAchievementResult] = useState<{
+    processedUsers: number;
+    totalAchievements: number;
+  } | null>(null);
   const router = useRouter();
+
+  const handleBackfillAchievements = async () => {
+    setAchievementStatus("loading");
+    try {
+      const result = await backfillAllUsersAchievements();
+      setAchievementResult(result);
+      setAchievementStatus("success");
+      router.refresh();
+    } catch (err: unknown) {
+      console.error(err);
+      setAchievementStatus("error");
+    }
+  };
 
   const handleCheckForUpdates = async () => {
     setStatus("loading");
@@ -50,14 +82,15 @@ export default function RouteSyncView() {
 
   if (status === "idle") {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
+      <div className="flex flex-col items-center justify-center py-12 gap-6">
         <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 text-center max-w-md">
           <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
             <RefreshCw className="w-8 h-8 text-blue-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Sync Routes</h2>
           <p className="text-gray-500 mb-8">
-            Check for updates from the Google Sheet. You&apos;ll be able to review changes before applying them.
+            Check for updates from the Google Sheet. You&apos;ll be able to review changes before
+            applying them.
           </p>
           <button
             onClick={handleCheckForUpdates}
@@ -65,6 +98,57 @@ export default function RouteSyncView() {
           >
             <RefreshCw className="w-5 h-5" /> Check for Updates
           </button>
+        </div>
+
+        <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 text-center max-w-md">
+          <div className="bg-yellow-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Trophy className="w-8 h-8 text-yellow-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Backfill Achievements</h2>
+          <p className="text-gray-500 mb-8">
+            Scan all users and award any achievements they&apos;ve earned based on their activity
+            history.
+          </p>
+          {achievementStatus === "idle" && (
+            <button
+              onClick={handleBackfillAchievements}
+              className="w-full bg-yellow-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-yellow-600 transition-colors flex items-center justify-center gap-2"
+            >
+              <Trophy className="w-5 h-5" /> Run Backfill
+            </button>
+          )}
+          {achievementStatus === "loading" && (
+            <div className="flex items-center justify-center gap-2 text-yellow-600">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-yellow-600"></div>
+              <span className="font-medium">Processing users...</span>
+            </div>
+          )}
+          {achievementStatus === "success" && achievementResult && (
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <div className="text-green-800 font-bold mb-2">Backfill Complete!</div>
+              <div className="text-sm text-green-700">
+                Processed {achievementResult.processedUsers} users, awarded{" "}
+                {achievementResult.totalAchievements} new achievements
+              </div>
+              <button
+                onClick={() => setAchievementStatus("idle")}
+                className="mt-3 text-sm text-green-600 hover:text-green-800 font-medium"
+              >
+                Run Again
+              </button>
+            </div>
+          )}
+          {achievementStatus === "error" && (
+            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+              <div className="text-red-800 font-bold mb-2">Backfill Failed</div>
+              <button
+                onClick={() => setAchievementStatus("idle")}
+                className="mt-2 text-sm text-red-600 hover:text-red-800 font-medium"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -131,7 +215,7 @@ export default function RouteSyncView() {
   if (status === "preview" && previewData) {
     const { newRoutes, existingRoutes, missingRoutes } = previewData;
 
-    // For existing routes, we might want to filter or show only if we had a way to know they changed. 
+    // For existing routes, we might want to filter or show only if we had a way to know they changed.
     // The current previewSync logic returns ALL existing routes.
     // Let's just show counts for existing, and list details for New and Missing.
 
@@ -176,8 +260,12 @@ export default function RouteSyncView() {
                     <li key={i} className="p-3 hover:bg-gray-50">
                       <div className="flex justify-between items-start">
                         <div>
-                          <div className="font-bold text-gray-900">{route.grade} - {route.color}</div>
-                          <div className="text-xs text-gray-500">{route.setter_name} • {route.wall_id}</div>
+                          <div className="font-bold text-gray-900">
+                            {route.grade} - {route.color}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {route.setter_name} • {route.wall_id}
+                          </div>
                         </div>
                         {route.difficulty_label && (
                           <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">
@@ -212,8 +300,12 @@ export default function RouteSyncView() {
                     <li key={route.id} className="p-3 hover:bg-gray-50 opacity-75">
                       <div className="flex justify-between items-start">
                         <div>
-                          <div className="font-bold text-gray-900 line-through decoration-red-500">{route.grade} - {route.color}</div>
-                          <div className="text-xs text-gray-500">{route.setter_name} • {route.wall_id}</div>
+                          <div className="font-bold text-gray-900 line-through decoration-red-500">
+                            {route.grade} - {route.color}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {route.setter_name} • {route.wall_id}
+                          </div>
                         </div>
                         <div className="text-xs text-red-600 font-medium">Missing</div>
                       </div>
@@ -237,7 +329,8 @@ export default function RouteSyncView() {
             </div>
             <div className="max-h-96 overflow-y-auto p-0">
               <div className="p-4 text-sm text-gray-500">
-                {existingRoutes.length} routes matched. Mutable fields (style, hold type, setter) will be updated if changed.
+                {existingRoutes.length} routes matched. Mutable fields (style, hold type, setter)
+                will be updated if changed.
               </div>
               {/* We could list them but it might be too many. Just showing a sample or summary is better. */}
               <ul className="divide-y divide-gray-100">
@@ -245,7 +338,9 @@ export default function RouteSyncView() {
                   <li key={i} className="p-3 hover:bg-gray-50">
                     <div className="flex justify-between items-start">
                       <div>
-                        <div className="font-medium text-gray-700">{route.grade} - {route.color}</div>
+                        <div className="font-medium text-gray-700">
+                          {route.grade} - {route.color}
+                        </div>
                         <div className="text-xs text-gray-500">{route.wall_id}</div>
                       </div>
                     </div>

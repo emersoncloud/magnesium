@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { routes } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { routes, activityLogs } from "@/lib/db/schema";
+import { eq, sql } from "drizzle-orm";
 import { getSheetData } from "@/lib/google-sheets";
 import { WALLS } from "@/lib/constants/walls";
 import { notifyRouteSync, notifyTooManyRoutesToArchive } from "@/lib/telegram";
 import { revalidatePath } from "next/cache";
+import { backfillAllAchievements } from "@/lib/achievements";
 
 type SyncRoute = {
   id?: string;
@@ -44,11 +45,11 @@ async function performSync() {
     let dateIso: string;
     if (isNaN(parsedDate.getTime())) {
       const now = new Date();
-      dateIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      dateIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     } else {
       const monthFromSpreadsheet = parsedDate.getMonth() + 1;
       const dayFromSpreadsheet = parsedDate.getDate();
-      dateIso = `${currentYear}-${String(monthFromSpreadsheet).padStart(2, '0')}-${String(dayFromSpreadsheet).padStart(2, '0')}`;
+      dateIso = `${currentYear}-${String(monthFromSpreadsheet).padStart(2, "0")}-${String(dayFromSpreadsheet).padStart(2, "0")}`;
     }
 
     const existingRoute = activeRoutes.find(
@@ -170,6 +171,12 @@ export async function GET(request: NextRequest) {
       await notifyRouteSync(addedRoutesSummary, archivedCount);
       revalidatePath("/sets");
       revalidatePath("/sync");
+    }
+
+    try {
+      await backfillAllAchievements();
+    } catch (achievementError) {
+      console.error("Achievement backfill during sync failed:", achievementError);
     }
 
     return NextResponse.json({

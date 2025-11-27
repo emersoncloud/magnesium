@@ -9,7 +9,8 @@ export async function loginWithGoogle() {
         google: {
           webClientId: "499412392042-0od33amqe4e63erbjd4rgk937bqnhmj0.apps.googleusercontent.com",
           iOSClientId: "499412392042-jobevm2j3d30fptnabu20hth37hm5jrq.apps.googleusercontent.com",
-          iOSServerClientId: "499412392042-0od33amqe4e63erbjd4rgk937bqnhmj0.apps.googleusercontent.com",
+          iOSServerClientId:
+            "499412392042-0od33amqe4e63erbjd4rgk937bqnhmj0.apps.googleusercontent.com",
         },
       });
       const googleLoginResponse = await SocialLogin.login({
@@ -20,21 +21,28 @@ export async function loginWithGoogle() {
         },
       });
 
-      const googleResult = googleLoginResponse.result as { idToken?: string; accessToken?: unknown; profile?: unknown };
+      const googleResult = googleLoginResponse.result as {
+        idToken?: string;
+        accessToken?: unknown;
+        profile?: unknown;
+      };
 
       if (!googleResult.idToken) {
-        console.error("No idToken received from Google Sign-In. Response:", JSON.stringify(googleLoginResponse));
+        console.error(
+          "No idToken received from Google Sign-In. Response:",
+          JSON.stringify(googleLoginResponse)
+        );
         throw new Error("Google Sign-In did not return an idToken");
       }
 
       await signIn("google-native", {
         idToken: googleResult.idToken,
-        callbackUrl: "/sets",
+        callbackUrl: "/overview",
       });
     } catch (nativeGoogleSignInError) {
       console.error("Native Google Sign-In failed:", nativeGoogleSignInError);
     }
   } else {
-    signIn("google", { callbackUrl: "/sets" });
+    signIn("google", { callbackUrl: "/overview" });
   }
 }

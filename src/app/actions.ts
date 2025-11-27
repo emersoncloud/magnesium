@@ -1,7 +1,17 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { routes, activityLogs, personalNotes, users, trainingPlans, trainingPlanRoutes } from "@/lib/db/schema";
+import {
+  routes,
+  activityLogs,
+  personalNotes,
+  users,
+  trainingPlans,
+  trainingPlanRoutes,
+  achievements,
+  achievementReactions,
+  activityReactions,
+} from "@/lib/db/schema";
 import { desc, eq, sql, and, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redis } from "@/lib/kv";
@@ -9,13 +19,18 @@ import { getSheetData } from "@/lib/google-sheets";
 import { WALLS, GRADES } from "@/lib/constants/walls";
 import { auth, isAdmin, signOut } from "@/lib/auth";
 import { notifyFeedback, notifyRouteSend } from "@/lib/telegram";
+import { checkAndAwardAchievements } from "@/lib/achievements";
 
 export async function logout() {
   await signOut({ redirectTo: "/" });
 }
 
 export async function getRoutes() {
-  return await db.select().from(routes).where(eq(routes.status, "active")).orderBy(desc(routes.created_at));
+  return await db
+    .select()
+    .from(routes)
+    .where(eq(routes.status, "active"))
+    .orderBy(desc(routes.created_at));
 }
 
 export async function getRoute(id: string) {
@@ -119,6 +134,19 @@ export async function logActivity(data: typeof activityLogs.$inferInsert) {
     } catch (error) {
       console.error("Failed to send Telegram notification:", error);
     }
+
+    try {
+      const achievementResult = await checkAndAwardAchievements(
+        data.user_id,
+        data.user_name || null,
+        data.user_image || null
+      );
+      if (achievementResult.newAchievements.length > 0) {
+        revalidatePath("/feed");
+      }
+    } catch (error) {
+      console.error("Failed to check achievements:", error);
+    }
   }
 
   revalidatePath(`/route/${data.route_id}`);
@@ -143,15 +171,14 @@ export async function savePersonalNote(routeId: string, content: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  const existing = await db.select().from(personalNotes).where(
-    and(
-      eq(personalNotes.user_id, session.user.id),
-      eq(personalNotes.route_id, routeId)
-    )
-  );
+  const existing = await db
+    .select()
+    .from(personalNotes)
+    .where(and(eq(personalNotes.user_id, session.user.id), eq(personalNotes.route_id, routeId)));
 
   if (existing.length > 0) {
-    await db.update(personalNotes)
+    await db
+      .update(personalNotes)
       .set({ content, updated_at: new Date() })
       .where(eq(personalNotes.id, existing[0].id));
   } else {
@@ -169,39 +196,42 @@ export async function getPersonalNote(routeId: string) {
   const session = await auth();
   if (!session?.user?.id) return null;
 
-  const note = await db.select().from(personalNotes).where(
-    and(
-      eq(personalNotes.user_id, session.user.id),
-      eq(personalNotes.route_id, routeId)
-    )
-  );
+  const note = await db
+    .select()
+    .from(personalNotes)
+    .where(and(eq(personalNotes.user_id, session.user.id), eq(personalNotes.route_id, routeId)));
 
   return note[0]?.content || "";
 }
 
 export async function getRouteActivity(routeId: string) {
-  return await db.select().from(activityLogs).where(eq(activityLogs.route_id, routeId)).orderBy(desc(activityLogs.created_at));
+  return await db
+    .select()
+    .from(activityLogs)
+    .where(eq(activityLogs.route_id, routeId))
+    .orderBy(desc(activityLogs.created_at));
 }
 
 export async function getGlobalActivity() {
-  return await db.select({
-    id: activityLogs.id,
-    user_id: activityLogs.user_id,
-    user_name: activityLogs.user_name,
-    user_image: activityLogs.user_image,
-    action_type: activityLogs.action_type,
-    content: activityLogs.content,
-    created_at: activityLogs.created_at,
-    route_grade: routes.grade,
-    route_color: routes.color,
-    route_label: routes.difficulty_label,
-    route_id: routes.id,
-    wall_id: routes.wall_id,
-    setter_name: routes.setter_name,
-    set_date: routes.set_date,
-    style: routes.style,
-    hold_type: routes.hold_type,
-  })
+  return await db
+    .select({
+      id: activityLogs.id,
+      user_id: activityLogs.user_id,
+      user_name: activityLogs.user_name,
+      user_image: activityLogs.user_image,
+      action_type: activityLogs.action_type,
+      content: activityLogs.content,
+      created_at: activityLogs.created_at,
+      route_grade: routes.grade,
+      route_color: routes.color,
+      route_label: routes.difficulty_label,
+      route_id: routes.id,
+      wall_id: routes.wall_id,
+      setter_name: routes.setter_name,
+      set_date: routes.set_date,
+      style: routes.style,
+      hold_type: routes.hold_type,
+    })
     .from(activityLogs)
     .leftJoin(routes, eq(activityLogs.route_id, routes.id))
     .where(eq(activityLogs.is_public, true))
@@ -209,31 +239,107 @@ export async function getGlobalActivity() {
     .limit(30);
 }
 
-export async function getUserActivity(userId: string) {
-  return await db.select({
-    id: activityLogs.id,
-    user_id: activityLogs.user_id,
-    user_name: activityLogs.user_name,
-    user_image: activityLogs.user_image,
-    action_type: activityLogs.action_type,
-    content: activityLogs.content,
-    created_at: activityLogs.created_at,
-    route_grade: routes.grade,
-    route_color: routes.color,
-    route_label: routes.difficulty_label,
-    route_id: routes.id,
-    wall_id: routes.wall_id,
-    setter_name: routes.setter_name,
-    set_date: routes.set_date,
-    style: routes.style,
-    hold_type: routes.hold_type,
-  })
+export type PaginatedActivityParams = {
+  cursor?: string;
+  limit?: number;
+  activityTypes?: string[];
+};
+
+export type PaginatedActivityResult = {
+  items: GlobalActivityItem[];
+  nextCursor: string | null;
+  hasMore: boolean;
+};
+
+export async function getPaginatedGlobalActivity({
+  cursor,
+  limit = 20,
+  activityTypes,
+}: PaginatedActivityParams = {}): Promise<PaginatedActivityResult> {
+  const conditions = [eq(activityLogs.is_public, true)];
+
+  if (cursor) {
+    const [cursorTimestamp, cursorId] = cursor.split("_");
+    const cursorDate = new Date(cursorTimestamp);
+    conditions.push(
+      or(
+        sql`${activityLogs.created_at} < ${cursorDate}`,
+        and(sql`${activityLogs.created_at} = ${cursorDate}`, sql`${activityLogs.id} < ${cursorId}`)
+      )!
+    );
+  }
+
+  if (activityTypes && activityTypes.length > 0) {
+    conditions.push(
+      sql`${activityLogs.action_type} IN (${sql.join(
+        activityTypes.map((t) => sql`${t}`),
+        sql`, `
+      )})`
+    );
+  }
+
+  const items = await db
+    .select({
+      id: activityLogs.id,
+      user_id: activityLogs.user_id,
+      user_name: activityLogs.user_name,
+      user_image: activityLogs.user_image,
+      action_type: activityLogs.action_type,
+      content: activityLogs.content,
+      created_at: activityLogs.created_at,
+      route_grade: routes.grade,
+      route_color: routes.color,
+      route_label: routes.difficulty_label,
+      route_id: routes.id,
+      wall_id: routes.wall_id,
+      setter_name: routes.setter_name,
+      set_date: routes.set_date,
+      style: routes.style,
+      hold_type: routes.hold_type,
+    })
     .from(activityLogs)
     .leftJoin(routes, eq(activityLogs.route_id, routes.id))
-    .where(and(
-      eq(activityLogs.user_id, userId),
-      eq(activityLogs.is_public, true)
-    ))
+    .where(and(...conditions))
+    .orderBy(desc(activityLogs.created_at), desc(activityLogs.id))
+    .limit(limit + 1);
+
+  const hasMore = items.length > limit;
+  const resultItems = hasMore ? items.slice(0, limit) : items;
+
+  const lastItem = resultItems[resultItems.length - 1];
+  const nextCursor =
+    hasMore && lastItem?.created_at ? `${lastItem.created_at.toISOString()}_${lastItem.id}` : null;
+
+  return {
+    items: resultItems,
+    nextCursor,
+    hasMore,
+  };
+}
+
+export async function getUserActivity(userId: string) {
+  return await db
+    .select({
+      id: activityLogs.id,
+      user_id: activityLogs.user_id,
+      user_name: activityLogs.user_name,
+      user_image: activityLogs.user_image,
+      action_type: activityLogs.action_type,
+      content: activityLogs.content,
+      created_at: activityLogs.created_at,
+      route_grade: routes.grade,
+      route_color: routes.color,
+      route_label: routes.difficulty_label,
+      route_id: routes.id,
+      wall_id: routes.wall_id,
+      setter_name: routes.setter_name,
+      set_date: routes.set_date,
+      style: routes.style,
+      hold_type: routes.hold_type,
+    })
+    .from(activityLogs)
+    .leftJoin(routes, eq(activityLogs.route_id, routes.id))
+    .where(and(eq(activityLogs.user_id, userId), eq(activityLogs.is_public, true)))
     .orderBy(desc(activityLogs.created_at));
 }
 
@@ -274,40 +380,50 @@ export async function ingestRoutes() {
         const currentYear = new Date().getFullYear();
         date.setFullYear(currentYear);
       }
-      const dateIso = date.toISOString().split('T')[0]; // YYYY-MM-DD
+      const dateIso = date.toISOString().split("T")[0]; // YYYY-MM-DD
 
       // Check for existing route with EXACT match on key properties
-      const existingRoute = activeRoutes.find(r =>
-        r.wall_id === wall.id &&
-        r.grade === grade &&
-        r.color === color &&
-        r.difficulty_label === (label || null) &&
-        r.set_date === dateIso // Strict date match
+      const existingRoute = activeRoutes.find(
+        (r) =>
+          r.wall_id === wall.id &&
+          r.grade === grade &&
+          r.color === color &&
+          r.difficulty_label === (label || null) &&
+          r.set_date === dateIso // Strict date match
       );
 
       if (existingRoute) {
         // Route exists - update mutable fields if changed
-        if (existingRoute.style !== (style || null) || existingRoute.hold_type !== (holdType || null)) {
-             await db.update(routes).set({
-                 style: style || null,
-                 hold_type: holdType || null
-             }).where(eq(routes.id, existingRoute.id));
+        if (
+          existingRoute.style !== (style || null) ||
+          existingRoute.hold_type !== (holdType || null)
+        ) {
+          await db
+            .update(routes)
+            .set({
+              style: style || null,
+              hold_type: holdType || null,
+            })
+            .where(eq(routes.id, existingRoute.id));
         }
         processedRouteIds.add(existingRoute.id);
       } else {
         // New route detected
-        const newRoute = await db.insert(routes).values({
-          wall_id: wall.id,
-          grade: grade,
-          color: color,
-          setter_name: setter || "Unknown",
-          set_date: dateIso,
-          status: "active",
-          attributes: [],
-          difficulty_label: label || null,
-          style: style || null,
-          hold_type: holdType || null,
-        }).returning({ id: routes.id });
+        const newRoute = await db
+          .insert(routes)
+          .values({
+            wall_id: wall.id,
+            grade: grade,
+            color: color,
+            setter_name: setter || "Unknown",
+            set_date: dateIso,
+            status: "active",
+            attributes: [],
+            difficulty_label: label || null,
+            style: style || null,
+            hold_type: holdType || null,
+          })
+          .returning({ id: routes.id });
 
         count++;
         processedRouteIds.add(newRoute[0].id);
@@ -317,10 +433,11 @@ export async function ingestRoutes() {
     // Archive routes that were not in the sheet
     for (const route of activeRoutes) {
       if (!processedRouteIds.has(route.id)) {
-        await db.update(routes)
+        await db
+          .update(routes)
           .set({
             status: "archived",
-            removed_at: new Date()
+            removed_at: new Date(),
           })
           .where(eq(routes.id, route.id));
         archivedCount++;
@@ -336,10 +453,15 @@ export async function ingestRoutes() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const err = error as any;
 
-    if (err?.code === 403 || err?.status === 403 || (err?.message && err.message.includes("permission"))) {
+    if (
+      err?.code === 403 ||
+      err?.status === 403 ||
+      (err?.message && err.message.includes("permission"))
+    ) {
       return {
         success: false,
-        error: "Permission denied. Please ensure the Google Sheet is 'Public' (Anyone with the link can view) since we are using an API Key."
+        error:
+          "Permission denied. Please ensure the Google Sheet is 'Public' (Anyone with the link can view) since we are using an API Key.",
       };
     }
 
@@ -354,13 +476,15 @@ export async function rateRoute(routeId: string, rating: number) {
   if (rating < 1 || rating > 5) throw new Error("Invalid rating");
 
   // Delete existing rating
-  await db.delete(activityLogs).where(
-    and(
-      eq(activityLogs.user_id, session.user.id),
-      eq(activityLogs.route_id, routeId),
-      eq(activityLogs.action_type, "RATING")
-    )
-  );
+  await db
+    .delete(activityLogs)
+    .where(
+      and(
+        eq(activityLogs.user_id, session.user.id),
+        eq(activityLogs.route_id, routeId),
+        eq(activityLogs.action_type, "RATING")
+      )
+    );
 
   // Insert new rating
   await db.insert(activityLogs).values({
@@ -378,7 +502,11 @@ export async function rateRoute(routeId: string, rating: number) {
 
 export type ActivityMetadata = { is_beta?: boolean; proposed_grade?: string; reason?: string };
 
-export async function updateActivity(activityId: string, content: string, metadata?: ActivityMetadata) {
+export async function updateActivity(
+  activityId: string,
+  content: string,
+  metadata?: ActivityMetadata
+) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
@@ -389,7 +517,8 @@ export async function updateActivity(activityId: string, content: string, metada
   if (!activity) throw new Error("Activity not found");
   if (activity.user_id !== session.user.id) throw new Error("Unauthorized");
 
-  await db.update(activityLogs)
+  await db
+    .update(activityLogs)
     .set({ content, metadata: metadata || activity.metadata })
     .where(eq(activityLogs.id, activityId));
 
@@ -405,7 +534,8 @@ export async function deleteActivity(activityId: string) {
   });
 
   if (!activity) throw new Error("Activity not found");
-  if (activity.user_id !== session.user.id && !isAdmin(session.user.email)) throw new Error("Unauthorized");
+  if (activity.user_id !== session.user.id && !isAdmin(session.user.email))
+    throw new Error("Unauthorized");
 
   await db.delete(activityLogs).where(eq(activityLogs.id, activityId));
 
@@ -419,13 +549,15 @@ export async function voteGrade(routeId: string, vote: number, reason?: string) 
   if (![-1, 0, 1].includes(vote)) throw new Error("Invalid vote");
 
   // Delete existing vote
-  await db.delete(activityLogs).where(
-    and(
-      eq(activityLogs.user_id, session.user.id),
-      eq(activityLogs.route_id, routeId),
-      eq(activityLogs.action_type, "VOTE")
-    )
-  );
+  await db
+    .delete(activityLogs)
+    .where(
+      and(
+        eq(activityLogs.user_id, session.user.id),
+        eq(activityLogs.route_id, routeId),
+        eq(activityLogs.action_type, "VOTE")
+      )
+    );
 
   // Insert new vote
   await db.insert(activityLogs).values({
@@ -446,13 +578,15 @@ export async function proposeGrade(routeId: string, grade: string) {
   if (!session?.user?.id) throw new Error("Unauthorized");
 
   // Delete existing proposal
-  await db.delete(activityLogs).where(
-    and(
-      eq(activityLogs.user_id, session.user.id),
-      eq(activityLogs.route_id, routeId),
-      eq(activityLogs.action_type, "PROPOSE_GRADE")
-    )
-  );
+  await db
+    .delete(activityLogs)
+    .where(
+      and(
+        eq(activityLogs.user_id, session.user.id),
+        eq(activityLogs.route_id, routeId),
+        eq(activityLogs.action_type, "PROPOSE_GRADE")
+      )
+    );
 
   // Insert new proposal
   await db.insert(activityLogs).values({
@@ -462,7 +596,7 @@ export async function proposeGrade(routeId: string, grade: string) {
     route_id: routeId,
     action_type: "PROPOSE_GRADE",
     content: grade,
-    metadata: { proposed_grade: grade }
+    metadata: { proposed_grade: grade },
   });
 
   revalidatePath(`/route/${routeId}`);
@@ -472,13 +606,15 @@ export async function removeGradeProposal(routeId: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  await db.delete(activityLogs).where(
-    and(
-      eq(activityLogs.user_id, session.user.id),
-      eq(activityLogs.route_id, routeId),
-      eq(activityLogs.action_type, "PROPOSE_GRADE")
-    )
-  );
+  await db
+    .delete(activityLogs)
+    .where(
+      and(
+        eq(activityLogs.user_id, session.user.id),
+        eq(activityLogs.route_id, routeId),
+        eq(activityLogs.action_type, "PROPOSE_GRADE")
+      )
+    );
 
   revalidatePath(`/route/${routeId}`);
 }
@@ -494,7 +630,7 @@ export async function toggleFlash(routeId: string, isFlash: boolean) {
         eq(activityLogs.user_id, session.user.id),
         eq(activityLogs.route_id, routeId),
         eq(activityLogs.action_type, "FLASH")
-      )
+      ),
     });
 
     if (!existing) {
@@ -509,13 +645,15 @@ export async function toggleFlash(routeId: string, isFlash: boolean) {
     }
   } else {
     // Remove flash
-    await db.delete(activityLogs).where(
-      and(
-        eq(activityLogs.user_id, session.user.id),
-        eq(activityLogs.route_id, routeId),
-        eq(activityLogs.action_type, "FLASH")
-      )
-    );
+    await db
+      .delete(activityLogs)
+      .where(
+        and(
+          eq(activityLogs.user_id, session.user.id),
+          eq(activityLogs.route_id, routeId),
+          eq(activityLogs.action_type, "FLASH")
+        )
+      );
     revalidatePath(`/route/${routeId}`);
     revalidatePath("/overview");
   }
@@ -636,7 +774,7 @@ export async function previewSync(): Promise<SyncPreview> {
 
   const rows = await getSheetData();
   const activeRoutes = await db.select().from(routes).where(eq(routes.status, "active"));
-  
+
   const newRoutes: SyncRoute[] = [];
   const existingRoutes: SyncRoute[] = [];
   const processedRouteIds = new Set<string>();
@@ -662,15 +800,16 @@ export async function previewSync(): Promise<SyncPreview> {
       const currentYear = new Date().getFullYear();
       date.setFullYear(currentYear);
     }
-    const dateIso = date.toISOString().split('T')[0]; // YYYY-MM-DD
+    const dateIso = date.toISOString().split("T")[0]; // YYYY-MM-DD
 
     // Check for existing route with EXACT match on key properties
-    const existingRoute = activeRoutes.find(r =>
-      r.wall_id === wall.id &&
-      r.grade === grade &&
-      r.color === color &&
-      r.difficulty_label === (label || null) &&
-      r.set_date === dateIso // Strict date match
+    const existingRoute = activeRoutes.find(
+      (r) =>
+        r.wall_id === wall.id &&
+        r.grade === grade &&
+        r.color === color &&
+        r.difficulty_label === (label || null) &&
+        r.set_date === dateIso // Strict date match
     );
 
     const routeData = {
@@ -692,7 +831,7 @@ export async function previewSync(): Promise<SyncPreview> {
     }
   }
 
-  const missingRoutes = activeRoutes.filter(r => !processedRouteIds.has(r.id));
+  const missingRoutes = activeRoutes.filter((r) => !processedRouteIds.has(r.id));
 
   return { newRoutes, existingRoutes, missingRoutes };
 }
@@ -705,7 +844,7 @@ export async function confirmSync() {
 
   // Re-run logic to be safe and stateless
   const { newRoutes, existingRoutes, missingRoutes } = await previewSync();
-  
+
   let count = 0;
   let archivedCount = 0;
   let updatedCount = 0;
@@ -723,10 +862,11 @@ export async function confirmSync() {
   // Archive Missing
   for (const route of missingRoutes) {
     if (!route.id) continue;
-    await db.update(routes)
+    await db
+      .update(routes)
       .set({
         status: "archived",
-        removed_at: new Date()
+        removed_at: new Date(),
       })
       .where(eq(routes.id, route.id));
     archivedCount++;
@@ -734,19 +874,22 @@ export async function confirmSync() {
 
   // Update Existing (Mutable fields)
   for (const route of existingRoutes) {
-     if (!route.id) continue;
-     // We could optimize this to only update if changed, but for now just update mutable fields
-     await db.update(routes).set({
-         style: route.style,
-         hold_type: route.hold_type,
-         setter_name: route.setter_name // Allow updating setter name too
-     }).where(eq(routes.id, route.id));
-     updatedCount++;
+    if (!route.id) continue;
+    // We could optimize this to only update if changed, but for now just update mutable fields
+    await db
+      .update(routes)
+      .set({
+        style: route.style,
+        hold_type: route.hold_type,
+        setter_name: route.setter_name, // Allow updating setter name too
+      })
+      .where(eq(routes.id, route.id));
+    updatedCount++;
   }
 
   revalidatePath("/sets");
   revalidatePath("/sync");
-  
+
   return { success: true, count, archivedCount, updatedCount };
 }
 
@@ -809,17 +952,17 @@ export async function generateRoutePlan(): Promise<RoutePlan> {
   // Helper to get grade index
   const getGradeIdx = (r: BrowserRoute) => (GRADES as readonly string[]).indexOf(r.grade);
 
-  const warmUpRoutes = allRoutes.filter(r => {
+  const warmUpRoutes = allRoutes.filter((r) => {
     const idx = getGradeIdx(r);
     return idx >= Math.max(0, maxGradeIndex - 3) && idx < maxGradeIndex;
   });
 
-  const mainSetRoutes = allRoutes.filter(r => {
+  const mainSetRoutes = allRoutes.filter((r) => {
     const idx = getGradeIdx(r);
     return idx >= Math.max(0, maxGradeIndex - 1) && idx <= maxGradeIndex;
   });
 
-  const challengeRoutes = allRoutes.filter(r => {
+  const challengeRoutes = allRoutes.filter((r) => {
     const idx = getGradeIdx(r);
     // Challenge should be hard (Max to Max+2) and NOT sent/flashed
     return idx >= maxGradeIndex && idx <= maxGradeIndex + 2 && !r.user_status;
@@ -851,9 +994,7 @@ export async function updateUserBarcode(barcode: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  await db.update(users)
-    .set({ barcode })
-    .where(eq(users.id, session.user.id));
+  await db.update(users).set({ barcode }).where(eq(users.id, session.user.id));
 
   revalidatePath(`/profile/${session.user.id}`);
 }
@@ -862,9 +1003,7 @@ export async function resetUserBarcode() {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  await db.update(users)
-    .set({ barcode: null })
-    .where(eq(users.id, session.user.id));
+  await db.update(users).set({ barcode: null }).where(eq(users.id, session.user.id));
 
   revalidatePath(`/profile/${session.user.id}`);
 }
@@ -904,7 +1043,10 @@ export type GeneratedPlan = {
   sections: GeneratedPlanSection[];
 };
 
-const PLAN_ROUTE_COUNTS: Record<TrainingPlanLength, { progression: number[]; volume: number; project: number }> = {
+const PLAN_ROUTE_COUNTS: Record<
+  TrainingPlanLength,
+  { progression: number[]; volume: number; project: number }
+> = {
   short: { progression: [2, 2, 1], volume: 5, project: 1 },
   medium: { progression: [3, 4, 3], volume: 10, project: 2 },
   long: { progression: [4, 6, 5], volume: 15, project: 3 },
@@ -929,17 +1071,17 @@ export async function generateNewTrainingPlan(
   if (type === "progression") {
     const counts = PLAN_ROUTE_COUNTS[length].progression;
 
-    const warmUpRoutes = allRoutes.filter(r => {
+    const warmUpRoutes = allRoutes.filter((r) => {
       const idx = getGradeIdx(r);
       return idx >= Math.max(0, baseGradeIndex - 2) && idx < baseGradeIndex;
     });
 
-    const mainSetRoutes = allRoutes.filter(r => {
+    const mainSetRoutes = allRoutes.filter((r) => {
       const idx = getGradeIdx(r);
       return idx >= Math.max(0, baseGradeIndex - 1) && idx <= baseGradeIndex;
     });
 
-    const challengeRoutes = allRoutes.filter(r => {
+    const challengeRoutes = allRoutes.filter((r) => {
       const idx = getGradeIdx(r);
       return idx >= baseGradeIndex && idx <= baseGradeIndex + 2 && !r.user_status;
     });
@@ -967,7 +1109,7 @@ export async function generateNewTrainingPlan(
 
   if (type === "volume") {
     const count = PLAN_ROUTE_COUNTS[length].volume;
-    const volumeRoutes = allRoutes.filter(r => getGradeIdx(r) === baseGradeIndex);
+    const volumeRoutes = allRoutes.filter((r) => getGradeIdx(r) === baseGradeIndex);
 
     return {
       sections: [
@@ -982,7 +1124,7 @@ export async function generateNewTrainingPlan(
 
   if (type === "project") {
     const count = PLAN_ROUTE_COUNTS[length].project;
-    const projectRoutes = allRoutes.filter(r => {
+    const projectRoutes = allRoutes.filter((r) => {
       const idx = getGradeIdx(r);
       return idx >= baseGradeIndex + 1 && idx <= baseGradeIndex + 2 && !r.user_status;
     });
@@ -1019,18 +1161,21 @@ export async function saveTrainingPlan(data: {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  const [plan] = await db.insert(trainingPlans).values({
-    user_id: session.user.id,
-    name: data.name,
-    type: data.type,
-    base_grade: data.base_grade,
-    length: data.length,
-    is_public: false,
-  }).returning({ id: trainingPlans.id });
+  const [plan] = await db
+    .insert(trainingPlans)
+    .values({
+      user_id: session.user.id,
+      name: data.name,
+      type: data.type,
+      base_grade: data.base_grade,
+      length: data.length,
+      is_public: false,
+    })
+    .returning({ id: trainingPlans.id });
 
   if (data.routes.length > 0) {
     await db.insert(trainingPlanRoutes).values(
-      data.routes.map(r => ({
+      data.routes.map((r) => ({
         plan_id: plan.id,
         route_id: r.route_id,
         section_name: r.section_name,
@@ -1060,7 +1205,8 @@ export async function updateTrainingPlan(
   if (!plan || plan.user_id !== session.user.id) throw new Error("Unauthorized");
 
   if (data.name) {
-    await db.update(trainingPlans)
+    await db
+      .update(trainingPlans)
       .set({ name: data.name, updated_at: new Date() })
       .where(eq(trainingPlans.id, planId));
   }
@@ -1070,7 +1216,7 @@ export async function updateTrainingPlan(
 
     if (data.routes.length > 0) {
       await db.insert(trainingPlanRoutes).values(
-        data.routes.map(r => ({
+        data.routes.map((r) => ({
           plan_id: planId,
           route_id: r.route_id,
           section_name: r.section_name,
@@ -1102,17 +1248,21 @@ export async function getUserTrainingPlans(): Promise<SavedTrainingPlan[]> {
   const session = await auth();
   if (!session?.user?.id) return [];
 
-  const plans = await db.select().from(trainingPlans)
+  const plans = await db
+    .select()
+    .from(trainingPlans)
     .where(eq(trainingPlans.user_id, session.user.id))
     .orderBy(desc(trainingPlans.updated_at));
 
   const allRoutes = await getBrowserRoutes();
-  const routesMap = new Map(allRoutes.map(r => [r.id, r]));
+  const routesMap = new Map(allRoutes.map((r) => [r.id, r]));
 
   const plansWithRoutes: SavedTrainingPlan[] = [];
 
   for (const plan of plans) {
-    const planRoutes = await db.select().from(trainingPlanRoutes)
+    const planRoutes = await db
+      .select()
+      .from(trainingPlanRoutes)
       .where(eq(trainingPlanRoutes.plan_id, plan.id))
       .orderBy(trainingPlanRoutes.order_index);
 
@@ -1126,13 +1276,15 @@ export async function getUserTrainingPlans(): Promise<SavedTrainingPlan[]> {
       is_public: plan.is_public,
       created_at: plan.created_at,
       updated_at: plan.updated_at,
-      routes: planRoutes.map(pr => ({
-        id: pr.id,
-        route_id: pr.route_id,
-        section_name: pr.section_name,
-        order_index: pr.order_index,
-        route: routesMap.get(pr.route_id)!,
-      })).filter(pr => pr.route),
+      routes: planRoutes
+        .map((pr) => ({
+          id: pr.id,
+          route_id: pr.route_id,
+          section_name: pr.section_name,
+          order_index: pr.order_index,
+          route: routesMap.get(pr.route_id)!,
+        }))
+        .filter((pr) => pr.route),
     });
   }
 
@@ -1140,23 +1292,26 @@ export async function getUserTrainingPlans(): Promise<SavedTrainingPlan[]> {
 }
 
 export async function getCommunityTrainingPlans(): Promise<SavedTrainingPlan[]> {
-  const plans = await db.select().from(trainingPlans)
+  const plans = await db
+    .select()
+    .from(trainingPlans)
     .where(eq(trainingPlans.is_public, true))
     .orderBy(desc(trainingPlans.created_at));
 
   const allRoutes = await getBrowserRoutes();
-  const routesMap = new Map(allRoutes.map(r => [r.id, r]));
+  const routesMap = new Map(allRoutes.map((r) => [r.id, r]));
 
-  const userIds = [...new Set(plans.map(p => p.user_id))];
-  const usersData = userIds.length > 0
-    ? await db.select({ id: users.id, name: users.name }).from(users)
-    : [];
-  const usersMap = new Map(usersData.map(u => [u.id, u.name]));
+  const userIds = [...new Set(plans.map((p) => p.user_id))];
+  const usersData =
+    userIds.length > 0 ? await db.select({ id: users.id, name: users.name }).from(users) : [];
+  const usersMap = new Map(usersData.map((u) => [u.id, u.name]));
 
   const plansWithRoutes: SavedTrainingPlan[] = [];
 
   for (const plan of plans) {
-    const planRoutes = await db.select().from(trainingPlanRoutes)
+    const planRoutes = await db
+      .select()
+      .from(trainingPlanRoutes)
       .where(eq(trainingPlanRoutes.plan_id, plan.id))
       .orderBy(trainingPlanRoutes.order_index);
 
@@ -1171,13 +1326,15 @@ export async function getCommunityTrainingPlans(): Promise<SavedTrainingPlan[]> 
       created_at: plan.created_at,
       updated_at: plan.updated_at,
       user_name: usersMap.get(plan.user_id) || null,
-      routes: planRoutes.map(pr => ({
-        id: pr.id,
-        route_id: pr.route_id,
-        section_name: pr.section_name,
-        order_index: pr.order_index,
-        route: routesMap.get(pr.route_id)!,
-      })).filter(pr => pr.route),
+      routes: planRoutes
+        .map((pr) => ({
+          id: pr.id,
+          route_id: pr.route_id,
+          section_name: pr.section_name,
+          order_index: pr.order_index,
+          route: routesMap.get(pr.route_id)!,
+        }))
+        .filter((pr) => pr.route),
     });
   }
 
@@ -1194,7 +1351,8 @@ export async function togglePlanPublic(planId: string): Promise<void> {
 
   if (!plan || plan.user_id !== session.user.id) throw new Error("Unauthorized");
 
-  await db.update(trainingPlans)
+  await db
+    .update(trainingPlans)
     .set({ is_public: !plan.is_public, updated_at: new Date() })
     .where(eq(trainingPlans.id, planId));
 
@@ -1215,14 +1373,16 @@ export async function getTrainingPlan(planId: string): Promise<SavedTrainingPlan
   if (!plan.is_public && !isOwner) return null;
 
   const allRoutes = await getBrowserRoutes();
-  const routesMap = new Map(allRoutes.map(r => [r.id, r]));
+  const routesMap = new Map(allRoutes.map((r) => [r.id, r]));
 
-  const planRoutes = await db.select().from(trainingPlanRoutes)
+  const planRoutes = await db
+    .select()
+    .from(trainingPlanRoutes)
     .where(eq(trainingPlanRoutes.plan_id, plan.id))
     .orderBy(trainingPlanRoutes.order_index);
 
   const allUsers = await db.select({ id: users.id, name: users.name }).from(users);
-  const usersMap = new Map(allUsers.map(u => [u.id, u.name]));
+  const usersMap = new Map(allUsers.map((u) => [u.id, u.name]));
 
   return {
     id: plan.id,
@@ -1235,13 +1395,15 @@ export async function getTrainingPlan(planId: string): Promise<SavedTrainingPlan
     created_at: plan.created_at,
     updated_at: plan.updated_at,
     user_name: usersMap.get(plan.user_id) || null,
-    routes: planRoutes.map(pr => ({
-      id: pr.id,
-      route_id: pr.route_id,
-      section_name: pr.section_name,
-      order_index: pr.order_index,
-      route: routesMap.get(pr.route_id)!,
-    })).filter(pr => pr.route),
+    routes: planRoutes
+      .map((pr) => ({
+        id: pr.id,
+        route_id: pr.route_id,
+        section_name: pr.section_name,
+        order_index: pr.order_index,
+        route: routesMap.get(pr.route_id)!,
+      }))
+      .filter((pr) => pr.route),
   };
 }
 
@@ -1252,18 +1414,21 @@ export async function copyTrainingPlan(planId: string): Promise<{ id: string }> 
   const originalPlan = await getTrainingPlan(planId);
   if (!originalPlan) throw new Error("Plan not found");
 
-  const [newPlan] = await db.insert(trainingPlans).values({
-    user_id: session.user.id,
-    name: `${originalPlan.name} (Copy)`,
-    type: originalPlan.type,
-    base_grade: originalPlan.base_grade,
-    length: originalPlan.length,
-    is_public: false,
-  }).returning({ id: trainingPlans.id });
+  const [newPlan] = await db
+    .insert(trainingPlans)
+    .values({
+      user_id: session.user.id,
+      name: `${originalPlan.name} (Copy)`,
+      type: originalPlan.type,
+      base_grade: originalPlan.base_grade,
+      length: originalPlan.length,
+      is_public: false,
+    })
+    .returning({ id: trainingPlans.id });
 
   if (originalPlan.routes.length > 0) {
     await db.insert(trainingPlanRoutes).values(
-      originalPlan.routes.map(r => ({
+      originalPlan.routes.map((r) => ({
         plan_id: newPlan.id,
         route_id: r.route_id,
         section_name: r.section_name,
@@ -1338,10 +1503,7 @@ export async function getUserQuickStats(userId: string): Promise<UserQuickStats>
     .where(
       and(
         eq(activityLogs.user_id, userId),
-        or(
-          eq(activityLogs.action_type, "SEND"),
-          eq(activityLogs.action_type, "FLASH")
-        )
+        or(eq(activityLogs.action_type, "SEND"), eq(activityLogs.action_type, "FLASH"))
       )
     )
     .orderBy(desc(activityLogs.created_at));
@@ -1465,9 +1627,7 @@ export async function getDashboardData(userId?: string): Promise<DashboardData> 
     .from(routes)
     .where(eq(routes.status, "active"));
 
-  const totalClimbersPromise = db
-    .select({ count: sql<number>`count(*)` })
-    .from(users);
+  const totalClimbersPromise = db.select({ count: sql<number>`count(*)` }).from(users);
 
   const userActivityPromise = isLoggedIn
     ? db
@@ -1496,9 +1656,7 @@ export async function getDashboardData(userId?: string): Promise<DashboardData> 
         .limit(5)
     : Promise.resolve(null);
 
-  const userStatsPromise = isLoggedIn
-    ? getUserQuickStats(userId)
-    : Promise.resolve(null);
+  const userStatsPromise = isLoggedIn ? getUserQuickStats(userId) : Promise.resolve(null);
 
   const [
     globalActivity,
@@ -1528,4 +1686,302 @@ export async function getDashboardData(userId?: string): Promise<DashboardData> 
     totalActiveRoutes: Number(totalActiveRoutesResult[0]?.count || 0),
     totalClimbers: Number(totalClimbersResult[0]?.count || 0),
   };
+}
+
+export async function addAchievementReaction(
+  achievementId: string,
+  reactionType: "LIKE" | "FIRE" | "CELEBRATE" | "COMMENT",
+  content?: string
+) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const existingReaction = await db
+    .select()
+    .from(achievementReactions)
+    .where(
+      and(
+        eq(achievementReactions.achievement_id, achievementId),
+        eq(achievementReactions.user_id, session.user.id),
+        eq(achievementReactions.reaction_type, reactionType)
+      )
+    )
+    .limit(1);
+
+  if (existingReaction.length > 0 && reactionType !== "COMMENT") {
+    return { success: false, message: "Already reacted" };
+  }
+
+  await db.insert(achievementReactions).values({
+    achievement_id: achievementId,
+    user_id: session.user.id,
+    user_name: session.user.name || null,
+    user_image: session.user.image || null,
+    reaction_type: reactionType,
+    content: content || null,
+  });
+
+  revalidatePath("/feed");
+  return { success: true };
+}
+
+export async function removeAchievementReaction(
+  achievementId: string,
+  reactionType: "LIKE" | "FIRE" | "CELEBRATE"
+) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  await db
+    .delete(achievementReactions)
+    .where(
+      and(
+        eq(achievementReactions.achievement_id, achievementId),
+        eq(achievementReactions.user_id, session.user.id),
+        eq(achievementReactions.reaction_type, reactionType)
+      )
+    );
+
+  revalidatePath("/feed");
+  return { success: true };
+}
+
+export async function getAchievementReactions(achievementId: string) {
+  const session = await auth();
+  const currentUserId = session?.user?.id;
+
+  const allReactions = await db
+    .select()
+    .from(achievementReactions)
+    .where(eq(achievementReactions.achievement_id, achievementId));
+
+  const likes = allReactions.filter((r) => r.reaction_type === "LIKE").length;
+  const fires = allReactions.filter((r) => r.reaction_type === "FIRE").length;
+  const celebrates = allReactions.filter((r) => r.reaction_type === "CELEBRATE").length;
+  const comments = allReactions.filter((r) => r.reaction_type === "COMMENT");
+
+  const userReactions = currentUserId
+    ? allReactions
+        .filter((r) => r.user_id === currentUserId && r.reaction_type !== "COMMENT")
+        .map((r) => r.reaction_type as "LIKE" | "FIRE" | "CELEBRATE")
+    : [];
+
+  return {
+    likes,
+    fires,
+    celebrates,
+    comments,
+    userReactions,
+  };
+}
+
+export async function backfillUserAchievements(userId: string) {
+  const session = await auth();
+  if (!isAdmin(session?.user?.email)) throw new Error("Unauthorized - admin only");
+
+  const { checkAndAwardAchievements } = await import("@/lib/achievements");
+
+  const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+
+  if (!user[0]) {
+    const activityUser = await db
+      .select({
+        user_id: activityLogs.user_id,
+        user_name: activityLogs.user_name,
+        user_image: activityLogs.user_image,
+      })
+      .from(activityLogs)
+      .where(eq(activityLogs.user_id, userId))
+      .limit(1);
+
+    if (!activityUser[0]) {
+      return { success: false, message: "User not found" };
+    }
+
+    const result = await checkAndAwardAchievements(
+      userId,
+      activityUser[0].user_name,
+      activityUser[0].user_image
+    );
+
+    return { success: true, newAchievements: result.newAchievements.length };
+  }
+
+  const result = await checkAndAwardAchievements(userId, user[0].name, user[0].image);
+
+  return { success: true, newAchievements: result.newAchievements.length };
+}
+
+export async function backfillAllUsersAchievements() {
+  const session = await auth();
+  if (!isAdmin(session?.user?.email)) throw new Error("Unauthorized - admin only");
+
+  const { checkAndAwardAchievements } = await import("@/lib/achievements");
+
+  const uniqueUsers = await db
+    .selectDistinct({
+      user_id: activityLogs.user_id,
+      user_name: activityLogs.user_name,
+      user_image: activityLogs.user_image,
+    })
+    .from(activityLogs)
+    .where(sql`${activityLogs.user_id} IS NOT NULL`);
+
+  let totalAchievements = 0;
+  let processedUsers = 0;
+
+  for (const user of uniqueUsers) {
+    if (!user.user_id) continue;
+
+    const result = await checkAndAwardAchievements(user.user_id, user.user_name, user.user_image);
+
+    totalAchievements += result.newAchievements.length;
+    processedUsers++;
+  }
+
+  revalidatePath("/feed");
+  return {
+    success: true,
+    processedUsers,
+    totalAchievements,
+  };
+}
+
+export async function getAchievementsForFeed(limit = 20, cursor?: string) {
+  const conditions = [];
+
+  if (cursor) {
+    const [cursorTimestamp, cursorId] = cursor.split("_");
+    const cursorDate = new Date(cursorTimestamp);
+    conditions.push(
+      sql`(${achievements.created_at} < ${cursorDate} OR (${achievements.created_at} = ${cursorDate} AND ${achievements.id} < ${cursorId}))`
+    );
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const items = await db
+    .select()
+    .from(achievements)
+    .where(whereClause)
+    .orderBy(desc(achievements.created_at), desc(achievements.id))
+    .limit(limit + 1);
+
+  const hasMore = items.length > limit;
+  const resultItems = hasMore ? items.slice(0, limit) : items;
+
+  const lastItem = resultItems[resultItems.length - 1];
+  const nextCursor =
+    hasMore && lastItem?.created_at ? `${lastItem.created_at.toISOString()}_${lastItem.id}` : null;
+
+  return {
+    items: resultItems,
+    nextCursor,
+    hasMore,
+  };
+}
+
+export async function toggleActivityReaction(
+  activityId: string,
+  reactionType: "LIKE" | "FIRE" | "CELEBRATE"
+) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+
+  const existingReaction = await db
+    .select()
+    .from(activityReactions)
+    .where(
+      and(
+        eq(activityReactions.activity_id, activityId),
+        eq(activityReactions.user_id, session.user.id),
+        eq(activityReactions.reaction_type, reactionType)
+      )
+    )
+    .limit(1);
+
+  if (existingReaction.length > 0) {
+    await db.delete(activityReactions).where(eq(activityReactions.id, existingReaction[0].id));
+    return { success: true, action: "removed" };
+  }
+
+  await db.insert(activityReactions).values({
+    activity_id: activityId,
+    user_id: session.user.id,
+    user_name: session.user.name || null,
+    user_image: session.user.image || null,
+    reaction_type: reactionType,
+  });
+
+  return { success: true, action: "added" };
+}
+
+export async function getActivityReactions(activityId: string) {
+  const session = await auth();
+  const currentUserId = session?.user?.id;
+
+  const allReactions = await db
+    .select()
+    .from(activityReactions)
+    .where(eq(activityReactions.activity_id, activityId));
+
+  const likes = allReactions.filter((r) => r.reaction_type === "LIKE").length;
+  const fires = allReactions.filter((r) => r.reaction_type === "FIRE").length;
+  const celebrates = allReactions.filter((r) => r.reaction_type === "CELEBRATE").length;
+
+  const userReactions = currentUserId
+    ? allReactions
+        .filter((r) => r.user_id === currentUserId)
+        .map((r) => r.reaction_type as "LIKE" | "FIRE" | "CELEBRATE")
+    : [];
+
+  return {
+    likes,
+    fires,
+    celebrates,
+    userReactions,
+  };
+}
+
+export async function getActivityReactionsBatch(activityIds: string[]) {
+  if (activityIds.length === 0) return {};
+
+  const session = await auth();
+  const currentUserId = session?.user?.id;
+
+  const allReactions = await db
+    .select()
+    .from(activityReactions)
+    .where(
+      sql`${activityReactions.activity_id} IN (${sql.join(
+        activityIds.map((id) => sql`${id}`),
+        sql`, `
+      )})`
+    );
+
+  const reactionsByActivity: Record<
+    string,
+    {
+      likes: number;
+      fires: number;
+      celebrates: number;
+      userReactions: ("LIKE" | "FIRE" | "CELEBRATE")[];
+    }
+  > = {};
+
+  for (const id of activityIds) {
+    const activityReactionsList = allReactions.filter((r) => r.activity_id === id);
+    reactionsByActivity[id] = {
+      likes: activityReactionsList.filter((r) => r.reaction_type === "LIKE").length,
+      fires: activityReactionsList.filter((r) => r.reaction_type === "FIRE").length,
+      celebrates: activityReactionsList.filter((r) => r.reaction_type === "CELEBRATE").length,
+      userReactions: currentUserId
+        ? activityReactionsList
+            .filter((r) => r.user_id === currentUserId)
+            .map((r) => r.reaction_type as "LIKE" | "FIRE" | "CELEBRATE")
+        : [],
+    };
+  }
+
+  return reactionsByActivity;
 }

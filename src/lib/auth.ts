@@ -1,11 +1,15 @@
-import NextAuth from "next-auth"
-import Google from "next-auth/providers/google"
-import Credentials from "next-auth/providers/credentials"
+import NextAuth from "next-auth";
+import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
+import * as jose from "jose";
 
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { notifyNewUser } from "@/lib/telegram";
+
+// Google's public key set for verifying ID tokens
+const GOOGLE_JWKS = jose.createRemoteJWKSet(new URL("https://www.googleapis.com/oauth2/v3/certs"));
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -21,30 +25,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials) {
         if (!credentials?.idToken) return null;
-        
+
         try {
-          const { OAuth2Client } = await import("google-auth-library");
-          const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-          const ticket = await client.verifyIdToken({
-            idToken: credentials.idToken as string,
+          const { payload } = await jose.jwtVerify(credentials.idToken as string, GOOGLE_JWKS, {
+            issuer: ["https://accounts.google.com", "accounts.google.com"],
             audience: process.env.GOOGLE_CLIENT_ID,
           });
-          const payload = ticket.getPayload();
-          
-          if (!payload) return null;
+
+          if (!payload.sub || !payload.email) return null;
 
           return {
             id: payload.sub,
-            name: payload.name,
-            email: payload.email,
-            image: payload.picture,
+            name: payload.name as string | undefined,
+            email: payload.email as string,
+            image: payload.picture as string | undefined,
           };
         } catch (error) {
           console.error("Error verifying Google ID token:", error);
           return null;
         }
       },
-    })
+    }),
   ],
   callbacks: {
     async signIn({ user }) {
@@ -57,30 +58,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         console.log("Found Google image, attempting upload:", imageUrl);
         try {
           const { supabaseAdmin } = await import("@/lib/supabase");
-          
+
           // Fetch the image
           const response = await fetch(imageUrl);
           const buffer = await response.arrayBuffer();
-          
+
           const uniqueIdentifier = user.id || crypto.randomUUID();
           const fileName = `${uniqueIdentifier}_${Date.now()}.jpg`;
-          
+
           // Upload to Supabase
-          const { data, error } = await supabaseAdmin
-            .storage
-            .from('avatars')
+          const { data, error } = await supabaseAdmin.storage
+            .from("avatars")
             .upload(fileName, buffer, {
-              contentType: 'image/jpeg',
-              upsert: true
+              contentType: "image/jpeg",
+              upsert: true,
             });
 
           if (!error && data) {
             // Get public URL
-            const { data: { publicUrl } } = supabaseAdmin
-              .storage
-              .from('avatars')
-              .getPublicUrl(fileName);
-              
+            const {
+              data: { publicUrl },
+            } = supabaseAdmin.storage.from("avatars").getPublicUrl(fileName);
+
             console.log("Upload successful, new URL:", publicUrl);
             imageUrl = publicUrl;
           } else {
@@ -111,7 +110,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       } else {
         // Update info if changed
         if (existingUser.name !== user.name || existingUser.image !== imageUrl) {
-          await db.update(users)
+          await db
+            .update(users)
             .set({ name: user.name, image: imageUrl })
             .where(eq(users.email, user.email));
         }
@@ -140,10 +140,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
   },
-})
+});
 
 export function isAdmin(email: string | null | undefined) {
   if (!email) return false;
   const admins = process.env.ADMIN_EMAILS?.split(",") || [];
-  return admins.map(e => e.trim()).includes(email);
+  return admins.map((e) => e.trim()).includes(email);
 }

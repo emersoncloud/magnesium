@@ -118,7 +118,7 @@ export default function DashboardHero({ user, userStats }: DashboardHeroProps) {
               </div>
               <button
                 onClick={() => setIsFeedbackOpen(true)}
-                className="flex-shrink-0 h-10 p-3 bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                className="shrink-0 h-10 p-3 bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
                 aria-label="Send Feedback"
               >
                 <div className="flex text-white gap-2 justify-center align-baseline">
@@ -172,7 +172,7 @@ export default function DashboardHero({ user, userStats }: DashboardHeroProps) {
 
             <button
               onClick={() => setIsFeedbackOpen(true)}
-              className="flex-shrink-0 w-10 h-10 bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              className="shrink-0 w-10 h-10 bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
               aria-label="Send Feedback"
             >
               <MessageSquare className="w-5 h-5 text-white" />

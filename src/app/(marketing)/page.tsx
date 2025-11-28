@@ -28,7 +28,7 @@ export default async function LandingPage() {
   }));
 
   // 3. Process Recent Activity
-  const recentActivity = activity.slice(0, 5);
+  const recentActivity = activity.slice(0, 6);
   const recentSend =
     activity.find((a) => a.action_type === "SEND" || a.action_type === "FLASH") || null;
 

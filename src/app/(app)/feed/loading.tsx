@@ -5,7 +5,7 @@ function FeedItemSkeleton() {
     <div className="bg-white border-2 border-slate-200 rounded-lg overflow-hidden animate-pulse">
       <div className="h-16 bg-slate-100 border-b border-slate-200" />
       <div className="p-4 flex gap-3">
-        <div className="w-10 h-10 bg-slate-200 transform -skew-x-6 flex-shrink-0" />
+        <div className="w-10 h-10 bg-slate-200 transform -skew-x-6 shrink-0" />
         <div className="flex-1 space-y-2">
           <div className="h-4 bg-slate-200 rounded w-20" />
           <div className="h-3 bg-slate-100 rounded w-3/4" />
@@ -21,7 +21,7 @@ function FilterSkeleton() {
       {[1, 2, 3, 4, 5, 6].map((i) => (
         <div
           key={i}
-          className="h-9 w-24 bg-slate-200 rounded transform -skew-x-12 animate-pulse flex-shrink-0"
+          className="h-9 w-24 bg-slate-200 rounded transform -skew-x-12 animate-pulse shrink-0"
         />
       ))}
     </div>

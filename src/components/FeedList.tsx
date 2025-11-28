@@ -8,7 +8,6 @@ import { RouteBadge } from "@/components/RouteBadge";
 import { cn } from "@/lib/utils";
 import AchievementCard from "@/components/AchievementCard";
 import ActivityReactions from "@/components/ActivityReactions";
-import type { AchievementFeedItem } from "@/lib/achievements";
 
 type ActivityItem = {
   id: string;
@@ -74,10 +73,7 @@ function UserAvatar({
         className
       )}
     >
-      <Link
-        href={`/profile/${userId}`}
-        className="flex-shrink-0 relative group pointer-events-auto"
-      >
+      <Link href={`/profile/${userId}`} className="shrink-0 relative group pointer-events-auto">
         <div
           className={cn(
             sizeClasses,

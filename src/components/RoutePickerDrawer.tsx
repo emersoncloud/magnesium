@@ -36,7 +36,7 @@ export default function RoutePickerDrawer({
       <VaulDrawer.Portal>
         <VaulDrawer.Overlay className="fixed inset-0 bg-black/40 z-50" />
         <VaulDrawer.Content className="flex flex-col rounded-t-[10px] h-[85%] mt-24 fixed bottom-0 left-0 right-0 z-50 outline-none overflow-hidden bg-white">
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 w-12 h-1.5 flex-shrink-0 rounded-full bg-black/20" />
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 w-12 h-1.5 shrink-0 rounded-full bg-black/20" />
 
           <div className="flex-1 overflow-hidden flex flex-col pt-8">
             <div className="px-4 pb-4 border-b border-slate-200">

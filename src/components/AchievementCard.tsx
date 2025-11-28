@@ -183,7 +183,7 @@ export default function AchievementCard({
 
       <div className="relative z-10 p-4">
         <div className="flex items-start gap-3">
-          <Link href={`/profile/${item.user_id}`} className="flex-shrink-0 relative group/avatar">
+          <Link href={`/profile/${item.user_id}`} className="shrink-0 relative group/avatar">
             <div className="w-12 h-12 bg-white border-2 border-black transform -skew-x-6 flex items-center justify-center overflow-hidden shadow-md transition-transform group-hover/avatar:scale-105">
               {item.user_image ? (
                 // eslint-disable-next-line @next/next/no-img-element

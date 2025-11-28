@@ -17,8 +17,11 @@ export default async function WallPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="relative flex flex-col">
       {/* Header */}
-      <div className="relative z-10 p-6 pb-2 border-b-2 border-black/5 bg-white/80 backdrop-blur-sm flex-shrink-0">
-        <Link href="/sets" className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-rockmill transition-colors mb-4 font-mono">
+      <div className="relative z-10 p-6 pb-2 border-b-2 border-black/5 bg-white/80 backdrop-blur-sm shrink-0">
+        <Link
+          href="/sets"
+          className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-rockmill transition-colors mb-4 font-mono"
+        >
           <div className="w-6 h-6 border border-slate-300 group-hover:border-rockmill flex items-center justify-center transform -skew-x-12 transition-colors">
             <ArrowLeft className="w-3 h-3 transform skew-x-12" />
           </div>
@@ -30,7 +33,8 @@ export default async function WallPage({ params }: { params: Promise<{ id: strin
             {wall.name}
           </h1>
           <span className="text-sm font-mono text-slate-400 uppercase tracking-widest hidden md:inline-block">
-            {"// "}{wall.type} Set
+            {"// "}
+            {wall.type} Set
           </span>
         </div>
       </div>

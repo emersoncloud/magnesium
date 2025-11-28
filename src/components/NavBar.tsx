@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Activity, Library, Dumbbell, Settings, Trophy, User as UserIcon } from "lucide-react";
+import { Activity, Library, Dumbbell, Settings, Trophy, User as UserIcon, Box } from "lucide-react";
 import { User } from "next-auth";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -42,7 +42,10 @@ export default function NavBar({
       Mountain: MidnightLightning,
     },
     ...(experimentalFeatures
-      ? [{ name: "Train", href: "/train", icon: Dumbbell, Mountain: Dreamtime }]
+      ? [
+          { name: "3D Gym", href: "/gym", icon: Box, Mountain: TheRhino },
+          { name: "Train", href: "/train", icon: Dumbbell, Mountain: Dreamtime },
+        ]
       : []),
     {
       name: "Overview",

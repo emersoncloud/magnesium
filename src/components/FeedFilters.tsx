@@ -58,7 +58,7 @@ export default function FeedFilters({
                 key={option.value || "all"}
                 onClick={() => handleFilterClick(option.value)}
                 className={cn(
-                  "inline-flex items-center px-4 py-2 font-mono text-xs font-bold uppercase tracking-widest transform -skew-x-12 border-2 transition-all whitespace-nowrap flex-shrink-0",
+                  "inline-flex items-center px-4 py-2 font-mono text-xs font-bold uppercase tracking-widest transform -skew-x-12 border-2 transition-all whitespace-nowrap shrink-0",
                   "hover:scale-105 active:scale-95",
                   isActive
                     ? "bg-black text-white border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]"

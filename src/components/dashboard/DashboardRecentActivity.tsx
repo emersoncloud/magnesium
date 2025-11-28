@@ -73,7 +73,7 @@ export default function DashboardRecentActivity({
                 >
                   <div
                     className={cn(
-                      "w-8 h-8 flex items-center justify-center flex-shrink-0",
+                      "w-8 h-8 flex items-center justify-center shrink-0",
                       isFlash ? "bg-yellow-100" : "bg-green-100"
                     )}
                   >
@@ -108,7 +108,7 @@ export default function DashboardRecentActivity({
                     )}
                   </div>
 
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex-shrink-0">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
                     {timeAgo(item.created_at)}
                   </span>
                 </Card>

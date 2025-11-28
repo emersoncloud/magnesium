@@ -46,7 +46,7 @@ export default function TrainingPlanCard({ plan, showAuthor }: TrainingPlanCardP
               <p className="text-sm text-slate-500 truncate">by {plan.user_name}</p>
             )}
           </div>
-          <div className={cn("p-2 rounded-lg flex-shrink-0", typeColors[plan.type])}>
+          <div className={cn("p-2 rounded-lg shrink-0", typeColors[plan.type])}>
             <Icon className="w-4 h-4" />
           </div>
         </div>

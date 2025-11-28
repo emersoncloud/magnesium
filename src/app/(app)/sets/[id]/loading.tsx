@@ -5,8 +5,11 @@ import Link from "next/link";
 export default function Loading() {
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col">
-      <div className="relative z-10 p-6 pb-2 border-b-2 border-black/5 bg-white/80 backdrop-blur-sm flex-shrink-0">
-        <Link href="/sets" className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-rockmill transition-colors mb-4 font-mono">
+      <div className="relative z-10 p-6 pb-2 border-b-2 border-black/5 bg-white/80 backdrop-blur-sm shrink-0">
+        <Link
+          href="/sets"
+          className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-rockmill transition-colors mb-4 font-mono"
+        >
           <div className="w-6 h-6 border border-slate-300 group-hover:border-rockmill flex items-center justify-center transform -skew-x-12 transition-colors">
             <ArrowLeft className="w-3 h-3 transform skew-x-12" />
           </div>

@@ -57,7 +57,9 @@ export default function BarcodeDrawer({ barcode: initialBarcode }: BarcodeDrawer
         className="relative p-2 rounded-lg hover:bg-white/10 transition-colors group flex items-center justify-center gap-2"
         aria-label="Open barcode"
       >
-        <span className="text-xl group-hover:text-rockmill transition-colors">{barcodeIsLinked ? "Scan Card" : "Link Card"}</span>
+        <span className="text-xl group-hover:text-rockmill transition-colors">
+          {barcodeIsLinked ? "Scan Card" : "Link Card"}
+        </span>
         <ScanBarcode className="w-7 h-7 text-slate-700 group-hover:text-rockmill transition-colors" />
       </button>
 
@@ -65,7 +67,7 @@ export default function BarcodeDrawer({ barcode: initialBarcode }: BarcodeDrawer
         <VaulDrawer.Portal>
           <VaulDrawer.Overlay className="fixed inset-0 bg-black/40 z-50" />
           <VaulDrawer.Content className="flex flex-col rounded-t-[10px] mt-24 fixed bottom-0 left-0 right-0 z-50 outline-none overflow-hidden bg-white">
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 w-12 h-1.5 flex-shrink-0 rounded-full bg-black/20" />
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 w-12 h-1.5 shrink-0 rounded-full bg-black/20" />
 
             <div className="p-6 pt-10">
               <div className="flex items-center gap-3 mb-6 text-rockmill">
@@ -134,9 +136,7 @@ export default function BarcodeDrawer({ barcode: initialBarcode }: BarcodeDrawer
                       className="w-full justify-center"
                       disabled={!cardNumberInput.trim() || isLinking}
                     >
-                      {isLinking ? (
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      ) : null}
+                      {isLinking ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                       {isLinking ? "Linking..." : "Link Card"}
                     </Button>
                   </form>

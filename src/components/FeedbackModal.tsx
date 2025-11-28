@@ -29,8 +29,9 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
       // Try to find a survey named "feedback"
       posthog.getSurveys((surveys) => {
         // Prioritize exact match or specific ID if known, otherwise fuzzy match
-        const feedbackSurvey = surveys.find(s => s.name.toLowerCase() === "feedback") ||
-          surveys.find(s => s.name.toLowerCase().includes("feedback"));
+        const feedbackSurvey =
+          surveys.find((s) => s.name.toLowerCase() === "feedback") ||
+          surveys.find((s) => s.name.toLowerCase().includes("feedback"));
 
         if (feedbackSurvey) {
           console.log("Found feedback survey:", feedbackSurvey.id);
@@ -51,11 +52,11 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
       if (surveyId) {
         posthog.capture("survey sent", {
           $survey_id: surveyId,
-          $survey_response: feedback
+          $survey_response: feedback,
         });
       } else {
         posthog.capture("feedback_submitted", {
-          feedback: feedback
+          feedback: feedback,
         });
       }
 
@@ -76,9 +77,8 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-black/90 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
@@ -96,8 +96,12 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
             <MessageSquare className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-lg font-black uppercase tracking-tight">Help improve Rock Mill Magnesium</h3>
-            <p className="text-xs text-slate-500 font-mono uppercase tracking-widest mt-1">Share any feature requests, things that seem a little off, or any other comments.</p>
+            <h3 className="text-lg font-black uppercase tracking-tight">
+              Help improve Rock Mill Magnesium
+            </h3>
+            <p className="text-xs text-slate-500 font-mono uppercase tracking-widest mt-1">
+              Share any feature requests, things that seem a little off, or any other comments.
+            </p>
           </div>
         </div>
 
@@ -107,12 +111,16 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
               <Send className="w-8 h-8" />
             </div>
             <h4 className="text-xl font-bold">Thanks!</h4>
-            <p className="text-slate-600">We want this site to be awesome, and your feedback is (probably) super helpful.</p>
+            <p className="text-slate-600">
+              We want this site to be awesome, and your feedback is (probably) super helpful.
+            </p>
           </div>
         ) : (
           <div className="space-y-4">
             <div>
-              <label htmlFor="feedback" className="sr-only">Your Feedback</label>
+              <label htmlFor="feedback" className="sr-only">
+                Your Feedback
+              </label>
               <textarea
                 id="feedback"
                 value={feedback}
@@ -124,11 +132,7 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
             </div>
 
             <div className="flex justify-end gap-3">
-              <Button
-                variant="ghost"
-                onClick={onClose}
-                className="text-slate-500 hover:text-black"
-              >
+              <Button variant="ghost" onClick={onClose} className="text-slate-500 hover:text-black">
                 Cancel
               </Button>
               <Button

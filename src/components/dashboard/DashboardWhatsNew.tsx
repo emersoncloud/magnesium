@@ -6,10 +6,45 @@ import { Card } from "@/components/ui/Card";
 import { RouteBadge } from "@/components/RouteBadge";
 import { Sparkles, ArrowRight } from "lucide-react";
 import { WALLS } from "@/lib/constants/walls";
+import { parseDateString } from "@/lib/utils";
 
 type DashboardWhatsNewProps = {
   recentRoutes: RecentRoute[];
 };
+
+function formatRelativeSetDate(setDateString: string | null): string {
+  if (!setDateString) return "";
+
+  const setDate = parseDateString(setDateString);
+  const today = new Date();
+
+  const setDateNormalized = new Date(setDate.getFullYear(), setDate.getMonth(), setDate.getDate());
+  const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  const diffInMilliseconds = todayNormalized.getTime() - setDateNormalized.getTime();
+  const diffInDays = Math.floor(diffInMilliseconds / (1000 * 60 * 60 * 24));
+
+  if (diffInDays === 0) return "set today";
+  if (diffInDays === 1) return "set yesterday";
+  if (diffInDays < 7) return `set ${diffInDays} days ago`;
+  if (diffInDays < 14) return "set last week";
+  return `set ${Math.floor(diffInDays / 7)} weeks ago`;
+}
+
+function getMostRecentSetDate(routes: RecentRoute[]): string | null {
+  const routesWithDates = routes.filter((r) => r.set_date);
+  if (routesWithDates.length === 0) return null;
+
+  return routesWithDates.reduce(
+    (mostRecent, route) => {
+      if (!mostRecent) return route.set_date;
+      return parseDateString(route.set_date).getTime() > parseDateString(mostRecent).getTime()
+        ? route.set_date
+        : mostRecent;
+    },
+    null as string | null
+  );
+}
 
 export default function DashboardWhatsNew({ recentRoutes }: DashboardWhatsNewProps) {
   const routesByWall = recentRoutes.reduce(
@@ -49,6 +84,11 @@ export default function DashboardWhatsNew({ recentRoutes }: DashboardWhatsNewPro
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
                     {wallName}
+                    {getMostRecentSetDate(wallRoutes) && (
+                      <span className="text-slate-400 font-medium normal-case ml-2">
+                        • {formatRelativeSetDate(getMostRecentSetDate(wallRoutes))}
+                      </span>
+                    )}
                   </div>
                   <Link
                     href={`/sets/${wallId}`}
@@ -72,6 +112,7 @@ export default function DashboardWhatsNew({ recentRoutes }: DashboardWhatsNewPro
                           set_date: route.set_date,
                         }}
                         showWallName={false}
+                        size="sm"
                         className="hover:scale-105 transition-transform cursor-pointer"
                       />
                     </Link>

@@ -6,6 +6,7 @@ import RouteBrowser from "@/components/RouteBrowser";
 import { BrowserRoute } from "@/app/actions";
 import { LayoutGrid, List } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { parseDateString } from "@/lib/utils";
 
 type Route = {
   id: string;
@@ -36,10 +37,7 @@ interface SetsPageContentProps {
   browserRoutes: BrowserRoute[];
 }
 
-export default function SetsPageContent({
-  allRoutes,
-  browserRoutes,
-}: SetsPageContentProps) {
+export default function SetsPageContent({ allRoutes, browserRoutes }: SetsPageContentProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const viewMode: ViewMode = searchParams.get("view") === "list" ? "list" : "location";
@@ -56,12 +54,15 @@ export default function SetsPageContent({
 
   const activeRoutes = allRoutes.filter((route) => route.status === "active");
 
-  const routesByWall = activeRoutes.reduce((acc, route) => {
-    const wallId = route.wall_id;
-    if (!acc[wallId]) acc[wallId] = [];
-    acc[wallId].push(route);
-    return acc;
-  }, {} as Record<string, typeof activeRoutes>);
+  const routesByWall = activeRoutes.reduce(
+    (acc, route) => {
+      const wallId = route.wall_id;
+      if (!acc[wallId]) acc[wallId] = [];
+      acc[wallId].push(route);
+      return acc;
+    },
+    {} as Record<string, typeof activeRoutes>
+  );
 
   const renderWallCard = (wall: Wall, index: number, total: number) => {
     const wallRoutes = routesByWall[wall.id] || [];
@@ -70,7 +71,8 @@ export default function SetsPageContent({
     let mostRecentDate = null;
     if (wallRoutes.length > 0) {
       mostRecentDate = wallRoutes.reduce((latest, route) => {
-        return !latest || new Date(route.set_date) > new Date(latest)
+        return !latest ||
+          parseDateString(route.set_date).getTime() > parseDateString(latest).getTime()
           ? route.set_date
           : latest;
       }, wallRoutes[0].set_date);

@@ -13,7 +13,8 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   openGraph: {
     title: "Rock Mill Magnesium",
-    description: "Climbing community site for Rock Mill. Track your progress and share your climbs.",
+    description:
+      "Climbing community site for Rock Mill. Track your progress and share your climbs.",
     url: "https://mg.rockmillclimbing.com",
     siteName: "Rock Mill Magnesium",
     locale: "en_US",
@@ -30,7 +31,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Rock Mill Magnesium",
-    description: "Climbing community site for Rock Mill. Track your progress and share your climbs.",
+    description:
+      "Climbing community site for Rock Mill. Track your progress and share your climbs.",
     images: ["/api/og"],
   },
   appleWebApp: {
@@ -44,6 +46,7 @@ export const metadata: Metadata = {
 };
 
 import { Toaster } from "@/components/ui/Toaster";
+import { TooltipProvider } from "@/components/ui/Tooltip";
 
 export default function RootLayout({
   children,
@@ -56,7 +59,9 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
       <body className={`${outfit.className} bg-[#F8FAFC] text-slate-900 antialiased`}>
-        {children}
+        <TooltipProvider delayDuration={300} skipDelayDuration={0}>
+          {children}
+        </TooltipProvider>
         <Toaster />
       </body>
     </html>

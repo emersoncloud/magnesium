@@ -5,21 +5,12 @@ import RoutePlanView from "./RoutePlanView";
 import { WALLS, GRADES } from "@/lib/constants/walls";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useCallback } from "react";
-import {
-  ArrowUpDown,
-  Check,
-  Zap,
-  Star,
-  MessageSquare,
-  Filter,
-  Map,
-  Loader2,
-} from "lucide-react";
+import { ArrowUpDown, Check, Zap, Star, MessageSquare, Filter, Map, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { MultiSelect } from "@/components/ui/MultiSelect";
-import { getRouteColor } from "@/lib/utils";
+import { getRouteColor, parseDateString } from "@/lib/utils";
 import { GradeDisplay } from "@/components/GradeDisplay";
 
 type SortField =
@@ -61,21 +52,24 @@ export default function RouteBrowser({ routes, onSelect, excludeRouteIds }: Rout
   const sortDirection = (searchParams.get("dir") as SortDirection) || "desc";
 
   // Update URL when filters change
-  const updateParams = useCallback((updates: Record<string, Set<string> | string | null>) => {
-    const params = new URLSearchParams(searchParams.toString());
+  const updateParams = useCallback(
+    (updates: Record<string, Set<string> | string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
 
-    for (const [key, value] of Object.entries(updates)) {
-      if (value === null || (value instanceof Set && value.size === 0) || value === "") {
-        params.delete(key);
-      } else if (value instanceof Set) {
-        params.set(key, Array.from(value).join(","));
-      } else {
-        params.set(key, value);
+      for (const [key, value] of Object.entries(updates)) {
+        if (value === null || (value instanceof Set && value.size === 0) || value === "") {
+          params.delete(key);
+        } else if (value instanceof Set) {
+          params.set(key, Array.from(value).join(","));
+        } else {
+          params.set(key, value);
+        }
       }
-    }
 
-    router.replace(`?${params.toString()}`, { scroll: false });
-  }, [searchParams, router]);
+      router.replace(`?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router]
+  );
 
   const setFilterWalls = (v: Set<string>) => updateParams({ walls: v });
   const setFilterGrades = (v: Set<string>) => updateParams({ grades: v });
@@ -85,22 +79,15 @@ export default function RouteBrowser({ routes, onSelect, excludeRouteIds }: Rout
   const setFilterStatuses = (v: Set<string>) => updateParams({ status: v });
 
   const styles = useMemo(
-    () =>
-      Array.from(new Set(routes.map((r) => r.style).filter(Boolean))).sort(),
+    () => Array.from(new Set(routes.map((r) => r.style).filter(Boolean))).sort(),
     [routes]
   );
   const holds = useMemo(
-    () =>
-      Array.from(
-        new Set(routes.map((r) => r.hold_type).filter(Boolean))
-      ).sort(),
+    () => Array.from(new Set(routes.map((r) => r.hold_type).filter(Boolean))).sort(),
     [routes]
   );
   const setters = useMemo(
-    () =>
-      Array.from(
-        new Set(routes.map((r) => r.setter_name).filter(Boolean))
-      ).sort(),
+    () => Array.from(new Set(routes.map((r) => r.setter_name).filter(Boolean))).sort(),
     [routes]
   );
 
@@ -118,12 +105,14 @@ export default function RouteBrowser({ routes, onSelect, excludeRouteIds }: Rout
       if (filterWalls.size > 0 && !filterWalls.has(route.wall_id)) return false;
       if (filterGrades.size > 0 && !filterGrades.has(route.grade)) return false;
       if (filterStyles.size > 0 && route.style && !filterStyles.has(route.style)) return false;
-      if (filterHolds.size > 0 && route.hold_type && !filterHolds.has(route.hold_type)) return false;
+      if (filterHolds.size > 0 && route.hold_type && !filterHolds.has(route.hold_type))
+        return false;
       if (filterSetters.size > 0 && !filterSetters.has(route.setter_name)) return false;
 
       if (filterStatuses.size > 0) {
         const hasStatus =
-          (filterStatuses.has("sent") && (route.user_status === "SEND" || route.user_status === "FLASH")) ||
+          (filterStatuses.has("sent") &&
+            (route.user_status === "SEND" || route.user_status === "FLASH")) ||
           (filterStatuses.has("flashed") && route.user_status === "FLASH") ||
           (filterStatuses.has("unattempted") && !route.user_status);
         if (!hasStatus) return false;
@@ -312,7 +301,7 @@ export default function RouteBrowser({ routes, onSelect, excludeRouteIds }: Rout
               {sortedRoutes.map((route) => (
                 <tr
                   key={route.id}
-                  onClick={() => onSelect ? onSelect(route) : router.push(`/route/${route.id}`)}
+                  onClick={() => (onSelect ? onSelect(route) : router.push(`/route/${route.id}`))}
                   className="hover:bg-slate-50/50 transition-colors group cursor-pointer"
                 >
                   <td className="px-6 py-4 font-black text-slate-700 text-lg">
@@ -328,21 +317,14 @@ export default function RouteBrowser({ routes, onSelect, excludeRouteIds }: Rout
                         className="w-3 h-3 rounded-full shadow-sm ring-1 ring-slate-100"
                         style={{ backgroundColor: getRouteColor(route.color) }}
                       ></span>
-                      <span className="capitalize text-slate-600">
-                        {route.color}
-                      </span>
+                      <span className="capitalize text-slate-600">{route.color}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-slate-600 font-medium">
-                    {WALLS.find((w) => w.id === route.wall_id)?.name ||
-                      route.wall_id}
+                    {WALLS.find((w) => w.id === route.wall_id)?.name || route.wall_id}
                   </td>
-                  <td className="px-6 py-4 text-slate-600">
-                    {route.style || "-"}
-                  </td>
-                  <td className="px-6 py-4 text-slate-600">
-                    {route.hold_type || "-"}
-                  </td>
+                  <td className="px-6 py-4 text-slate-600">{route.style || "-"}</td>
+                  <td className="px-6 py-4 text-slate-600">{route.hold_type || "-"}</td>
                   <td className="px-6 py-4">
                     {route.avg_rating > 0 ? (
                       <Badge
@@ -358,8 +340,7 @@ export default function RouteBrowser({ routes, onSelect, excludeRouteIds }: Rout
                   </td>
                   <td className="px-6 py-4 text-slate-500">
                     <div className="flex items-center gap-1">
-                      {route.comment_count}{" "}
-                      <MessageSquare className="w-3 h-3" />
+                      {route.comment_count} <MessageSquare className="w-3 h-3" />
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -367,13 +348,11 @@ export default function RouteBrowser({ routes, onSelect, excludeRouteIds }: Rout
                       <div className="w-6 h-6 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-[10px] font-bold text-slate-600">
                         {route.setter_name.charAt(0)}
                       </div>
-                      <span className="text-slate-600">
-                        {route.setter_name}
-                      </span>
+                      <span className="text-slate-600">{route.setter_name}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-slate-400 whitespace-nowrap text-xs">
-                    {new Date(route.set_date).toLocaleDateString()}
+                    {parseDateString(route.set_date).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex justify-center">
@@ -395,9 +374,7 @@ export default function RouteBrowser({ routes, onSelect, excludeRouteIds }: Rout
           </table>
         </div>
         {sortedRoutes.length === 0 && (
-          <div className="p-12 text-center text-slate-400">
-            No routes found matching filters.
-          </div>
+          <div className="p-12 text-center text-slate-400">No routes found matching filters.</div>
         )}
       </Card>
     </div>

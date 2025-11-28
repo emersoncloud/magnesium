@@ -7,9 +7,21 @@ import RouteControls from "@/components/RouteControls";
 import RouteFeed from "@/components/RouteFeed";
 import StarRating from "@/components/StarRating";
 import { Badge } from "@/components/ui/Badge";
-import { getRouteColor } from "@/lib/utils";
+import { getRouteColor, parseDateString } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { Activity, ArrowLeft, GripHorizontal, Hash, Info, Rabbit, Smile, Star, Turtle, User, Zap } from "lucide-react";
+import {
+  Activity,
+  ArrowLeft,
+  GripHorizontal,
+  Hash,
+  Info,
+  Rabbit,
+  Smile,
+  Star,
+  Turtle,
+  User,
+  Zap,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Wall } from "@/lib/constants/walls";
@@ -55,9 +67,9 @@ export default function RouteDetailsView({
   // Compute grade consensus
   const getGradeConsensus = () => {
     if (gradeVotes.length === 0) return null;
-    const soft = gradeVotes.filter(v => v === -1).length;
-    const fair = gradeVotes.filter(v => v === 0).length;
-    const hard = gradeVotes.filter(v => v === 1).length;
+    const soft = gradeVotes.filter((v) => v === -1).length;
+    const fair = gradeVotes.filter((v) => v === 0).length;
+    const hard = gradeVotes.filter((v) => v === 1).length;
     const total = gradeVotes.length;
 
     // Find the majority
@@ -87,7 +99,6 @@ export default function RouteDetailsView({
         animate={{ borderRadius: 0 }}
       >
         <div className="relative z-10 max-w-4xl mx-auto pt-8 px-4 md:px-8">
-
           {/* Navigation Command */}
           <button
             onClick={() => router.back()}
@@ -132,13 +143,19 @@ export default function RouteDetailsView({
                 {(route.style || route.hold_type) && (
                   <div className="flex flex-wrap items-center gap-2 mt-4">
                     {route.style && (
-                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 gap-1 pl-2">
+                      <Badge
+                        variant="outline"
+                        className="bg-blue-50 text-blue-700 border-blue-200 gap-1 pl-2"
+                      >
                         <Zap className="w-3 h-3" />
                         {route.style}
                       </Badge>
                     )}
                     {route.hold_type && (
-                      <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 gap-1 pl-2">
+                      <Badge
+                        variant="outline"
+                        className="bg-orange-50 text-orange-700 border-orange-200 gap-1 pl-2"
+                      >
                         <GripHorizontal className="w-3 h-3" />
                         {route.hold_type}
                       </Badge>
@@ -151,7 +168,7 @@ export default function RouteDetailsView({
                   <span className="text-sm text-slate-600">
                     <span className="font-semibold">{route.setter_name}</span>
                     <span className="text-slate-400 ml-1 font-mono text-xs">
-                      {new Date(route.set_date).toLocaleDateString()}
+                      {parseDateString(route.set_date).toLocaleDateString()}
                     </span>
                   </span>
 
@@ -170,7 +187,9 @@ export default function RouteDetailsView({
 
                   <span className="text-slate-300">|</span>
                   {consensus ? (
-                    <span className={`flex items-center gap-1 text-sm font-medium ${consensus.color}`}>
+                    <span
+                      className={`flex items-center gap-1 text-sm font-medium ${consensus.color}`}
+                    >
                       <consensus.icon className="w-3.5 h-3.5" />
                       {consensus.pct}% {consensus.label}
                     </span>
@@ -190,10 +209,8 @@ export default function RouteDetailsView({
 
           {/* Data Terminal: Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12">
-
             {/* Left Column: Stats & Rating */}
             <div className="md:col-span-4 space-y-8">
-
               {/* Mobile-only Controls */}
               <div className="block md:hidden">
                 <RouteControls />
@@ -207,12 +224,8 @@ export default function RouteDetailsView({
                 </h3>
 
                 <div className="flex items-baseline gap-2 mb-4">
-                  <span className="text-5xl font-black text-slate-900">
-                    {avgRating || "-.-"}
-                  </span>
-                  <span className="text-sm text-slate-400 font-mono">
-                    / 5.0
-                  </span>
+                  <span className="text-5xl font-black text-slate-900">{avgRating || "-.-"}</span>
+                  <span className="text-sm text-slate-400 font-mono">/ 5.0</span>
                 </div>
 
                 <div className="text-xs text-slate-500 font-mono mb-6">
@@ -284,7 +297,6 @@ export default function RouteDetailsView({
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </motion.div>

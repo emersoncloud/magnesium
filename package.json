@@ -11,10 +11,18 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "validate": "npx tsc --noEmit -p tsconfig.validate.json",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:mobile": "playwright test --project='Mobile Chrome' --project='Mobile Safari'",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "cap:dev": "CAPACITOR_LOCAL_DEV=true npx cap sync android && CAPACITOR_LOCAL_DEV=true npx cap run android --no-sync",
+    "cap:prod": "npx cap sync android && npx cap run android --no-sync",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -31,6 +39,7 @@
     "@capacitor/cli": "^7.4.4",
     "@capacitor/core": "^7.4.4",
     "@capacitor/ios": "^7.4.4",
+    "@capacitor/status-bar": "^7.0.3",
     "@capgo/capacitor-social-login": "^7.20.0",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-three/drei": "^10.7.7",
@@ -63,18 +72,27 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.181.0",
+    "@vitejs/plugin-react": "^5.1.1",
+    "@vitest/coverage-v8": "^4.0.14",
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
     "husky": "^9.1.7",
+    "jsdom": "^27.2.0",
     "lint-staged": "^16.2.7",
+    "msw": "^2.12.3",
     "prettier": "^3.7.1",
     "tailwindcss": "^4",
     "tsx": "^4.20.6",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.14"
   }
 }

@@ -8,6 +8,7 @@ import StyleBreakdown from "@/components/StyleBreakdown";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SettingsProvider } from "@/context/SettingsContext";
+import { TooltipProvider } from "@/components/ui/Tooltip";
 import { Activity, BarChart3, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import posthog from "posthog-js";
@@ -359,8 +360,10 @@ function MarketingContent({
 
 export default function MarketingPageContent(props: MarketingPageContentProps) {
   return (
-    <SettingsProvider>
-      <MarketingContent {...props} />
-    </SettingsProvider>
+    <TooltipProvider>
+      <SettingsProvider>
+        <MarketingContent {...props} />
+      </SettingsProvider>
+    </TooltipProvider>
   );
 }

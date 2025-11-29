@@ -100,10 +100,6 @@ export default function DashboardHero({ user, userStats }: DashboardHeroProps) {
       <>
         <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
         <div className="relative overflow-hidden bg-rockmill p-6 md:p-8 mb-6">
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute inset-0 bg-[url('/grid.svg')] bg-repeat" />
-          </div>
-
           <div className="relative z-10">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
@@ -145,10 +141,6 @@ export default function DashboardHero({ user, userStats }: DashboardHeroProps) {
     <>
       <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
       <div className="relative overflow-hidden bg-rockmill p-6 md:p-8 mb-6">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-repeat" />
-        </div>
-
         <div className="relative z-10">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">

@@ -17,7 +17,7 @@ interface SettingsContextType {
   toggleExperimentalFeatures: () => void;
 }
 
-const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
+export const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 function getInitialValue<T>(key: string, defaultValue: T): T {
   if (typeof window === "undefined") return defaultValue;

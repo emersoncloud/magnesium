@@ -1,6 +1,7 @@
 "use client";
 
-import { useSettings } from "@/context/SettingsContext";
+import { useContext } from "react";
+import { SettingsContext } from "@/context/SettingsContext";
 import { cn } from "@/lib/utils";
 
 interface GradeDisplayProps {
@@ -16,9 +17,10 @@ export function GradeDisplay({
   difficulty,
   className,
   variant = "default",
-  showSecondary = true
+  showSecondary = true,
 }: GradeDisplayProps) {
-  const { gradeDisplay } = useSettings();
+  const settingsContext = useContext(SettingsContext);
+  const gradeDisplay = settingsContext?.gradeDisplay ?? "v-scale";
 
   // If no difficulty is provided, just show the grade
   if (!difficulty) {

@@ -8,7 +8,6 @@ import RouteFeed from "@/components/RouteFeed";
 import StarRating from "@/components/StarRating";
 import { Badge } from "@/components/ui/Badge";
 import { getRouteColor, parseDateString } from "@/lib/utils";
-import { motion } from "framer-motion";
 import {
   Activity,
   ArrowLeft,
@@ -91,12 +90,9 @@ export default function RouteDetailsView({
       user={user}
       routeGrade={route.grade}
     >
-      <motion.div
-        layoutId={`route-card-${route.id}`}
+      <div
         className="w-full pb-24 transition-colors duration-500 bg-white overflow-x-hidden"
         style={{ backgroundColor: `color-mix(in srgb, ${getRouteColor(route.color)} 25%, white)` }}
-        initial={{ borderRadius: 12 }}
-        animate={{ borderRadius: 0 }}
       >
         <div className="relative z-10 max-w-4xl mx-auto pt-8 px-4 md:px-8">
           {/* Navigation Command */}
@@ -129,7 +125,7 @@ export default function RouteDetailsView({
                 </div>
 
                 {/* Grade */}
-                <motion.div layoutId={`route-grade-${route.id}`}>
+                <div>
                   <h1 className="text-6xl md:text-7xl font-black tracking-tighter text-black leading-none">
                     <GradeDisplay
                       grade={route.grade}
@@ -137,7 +133,14 @@ export default function RouteDetailsView({
                       className="text-6xl md:text-7xl"
                     />
                   </h1>
-                </motion.div>
+                </div>
+
+                {/* Route Name */}
+                {route.name && (
+                  <p className="mt-2 text-xl md:text-2xl font-medium text-slate-600 italic">
+                    &ldquo;{route.name}&rdquo;
+                  </p>
+                )}
 
                 {/* Style tags */}
                 {(route.style || route.hold_type) && (
@@ -299,7 +302,7 @@ export default function RouteDetailsView({
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </RouteActivityProvider>
   );
 }

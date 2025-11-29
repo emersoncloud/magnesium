@@ -24,6 +24,7 @@ export const routes = pgTable("routes", {
   setter_beta: text("setter_beta"),
   style: text("style"),
   hold_type: text("hold_type"),
+  name: text("name"),
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
   removed_at: timestamp("removed_at", { withTimezone: true }),
 });

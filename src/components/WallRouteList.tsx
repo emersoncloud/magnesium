@@ -1,12 +1,12 @@
 "use client";
 
 import { BrowserRoute } from "@/app/actions";
-import Link from "next/link";
-import { Star, MessageSquare, Zap, CheckCircle2 } from "lucide-react";
+import { Star, MessageSquare, Zap, CheckCircle2, Loader2 } from "lucide-react";
 import { cn, getRouteColor } from "@/lib/utils";
-import { motion } from "framer-motion";
 import { GradeDisplay } from "@/components/GradeDisplay";
 import { usePathname } from "next/navigation";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 class SeededRNG {
   private seed: number;
@@ -47,11 +47,21 @@ function generateOrganicStyles(routeId: string, wallId: string, grade: string) {
 
 export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [loadingRouteId, setLoadingRouteId] = useState<string | null>(null);
   const pathnameMatchesRoutePattern = pathname.startsWith("/route/");
   const selectedRouteId = pathnameMatchesRoutePattern ? pathname.split("/route/")[1] : null;
 
+  const handleRouteClick = (routeId: string, color: string) => {
+    setLoadingRouteId(routeId);
+    startTransition(() => {
+      router.push(`/route/${routeId}?color=${encodeURIComponent(color)}`);
+    });
+  };
+
   return (
-    <motion.div className="flex-1 overflow-y-auto p-4 pb-32" layoutScroll>
+    <div className="flex-1 overflow-y-auto p-4 pb-32">
       {routes.length === 0 ? (
         <div className="h-[50vh] w-full flex items-center justify-center">
           <div className="text-center p-6 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
@@ -64,23 +74,25 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
           {routes.map((route) => {
             const styles = generateOrganicStyles(route.id, route.wall_id, route.grade);
             const routeIsSelected = selectedRouteId === route.id;
+            const routeIsLoading = isPending && loadingRouteId === route.id;
             const selectedScaleMultiplier = routeIsSelected ? 1.15 : 1;
             const computedScale = styles.scale * selectedScaleMultiplier;
 
             return (
-              <Link
+              <button
                 key={route.id}
-                href={`/route/${route.id}`}
+                onClick={() => handleRouteClick(route.id, route.color)}
+                disabled={isPending}
                 className={cn(
                   "relative group w-[6.5rem] h-[6.5rem] md:w-36 md:h-36 lg:w-44 lg:h-44 shrink-0 transition-[z-index] duration-300",
-                  routeIsSelected ? "z-20" : "z-0 hover:z-10"
+                  routeIsSelected ? "z-20" : "z-0 hover:z-10",
+                  isPending && !routeIsLoading && "opacity-50"
                 )}
                 style={{
                   transform: `translate(${styles.x}px, ${styles.y}px)`,
                 }}
               >
-                <motion.div
-                  layoutId={`route-card-${route.id}`}
+                <div
                   className={cn(
                     "w-full h-full shadow-lg transition-all duration-300 ease-out",
                     routeIsSelected
@@ -98,17 +110,25 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
                   <div className="absolute inset-0 rounded-[inherit] ring-1 ring-black/5 shadow-[inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-2px_4px_rgba(0,0,0,0.1)] pointer-events-none" />
 
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-2 md:p-3 lg:p-4 text-center">
-                    <motion.div
-                      layoutId={`route-grade-${route.id}`}
-                      className="relative z-10 bg-white/40 backdrop-blur-[2px] rounded-lg md:rounded-xl p-1 md:p-1.5 lg:p-2 min-w-[40px] md:min-w-[50px] lg:min-w-[60px] flex flex-col items-center justify-center shadow-sm"
-                    >
-                      <GradeDisplay
-                        grade={route.grade}
-                        difficulty={route.difficulty_label}
-                        variant="badge"
-                        className="text-base md:text-xl lg:text-3xl"
-                      />
-                    </motion.div>
+                    {routeIsLoading ? (
+                      <div className="relative z-10 bg-white/60 backdrop-blur-sm rounded-lg md:rounded-xl p-2 md:p-3 lg:p-4 flex items-center justify-center shadow-sm">
+                        <Loader2 className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 animate-spin text-black/70" />
+                      </div>
+                    ) : (
+                      <div className="relative z-10 bg-white/40 backdrop-blur-[2px] rounded-lg md:rounded-xl p-1 md:p-1.5 lg:p-2 min-w-[40px] md:min-w-[50px] lg:min-w-[60px] flex flex-col items-center justify-center shadow-sm">
+                        <GradeDisplay
+                          grade={route.grade}
+                          difficulty={route.difficulty_label}
+                          variant="badge"
+                          className="text-base md:text-xl lg:text-3xl"
+                        />
+                        {route.name && (
+                          <span className="text-[7px] md:text-[9px] lg:text-xs font-medium text-black/70 mt-0.5 truncate max-w-full px-1">
+                            {route.name}
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     {route.user_status && (
                       <div className="absolute top-1 right-1 md:top-3 md:right-3">
@@ -151,12 +171,12 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
                       </div>
                     )}
                   </div>
-                </motion.div>
-              </Link>
+                </div>
+              </button>
             );
           })}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

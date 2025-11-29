@@ -230,6 +230,9 @@ export default function RouteBrowser({ routes, onSelect, excludeRouteIds }: Rout
                     Grade <ArrowUpDown className="w-3 h-3" />
                   </div>
                 </th>
+                <th className="px-6 py-4">
+                  <div className="flex items-center gap-1">Name</div>
+                </th>
                 <th
                   className="px-6 py-4 cursor-pointer hover:text-violet-600 transition-colors"
                   onClick={() => handleSort("color")}
@@ -310,6 +313,9 @@ export default function RouteBrowser({ routes, onSelect, excludeRouteIds }: Rout
                       difficulty={route.difficulty_label}
                       className="text-lg"
                     />
+                  </td>
+                  <td className="px-6 py-4 text-slate-600 italic max-w-[150px] truncate">
+                    {route.name || "-"}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">

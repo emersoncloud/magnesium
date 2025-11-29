@@ -20,6 +20,7 @@ import { WALLS, GRADES } from "@/lib/constants/walls";
 import { auth, isAdmin, signOut } from "@/lib/auth";
 import { notifyFeedback, notifyRouteSend } from "@/lib/telegram";
 import { checkAndAwardAchievements } from "@/lib/achievements";
+import { generateRouteNames } from "@/lib/generate-route-name";
 
 export async function logout() {
   await signOut({ redirectTo: "/" });
@@ -670,6 +671,7 @@ export type BrowserRoute = {
   difficulty_label: string | null;
   style: string | null;
   hold_type: string | null;
+  name: string | null;
   avg_rating: number;
   comment_count: number;
   user_status: "SEND" | "FLASH" | null;
@@ -693,6 +695,7 @@ export async function getBrowserRoutes(): Promise<BrowserRoute[]> {
       difficulty_label: routes.difficulty_label,
       style: routes.style,
       hold_type: routes.hold_type,
+      name: routes.name,
       status: routes.status,
       avg_rating: sql<number>`COALESCE(AVG(CASE WHEN ${activityLogs.action_type} = 'RATING' THEN CAST(${activityLogs.content} AS INTEGER) END), 0)`,
       comment_count: sql<number>`COUNT(CASE WHEN ${activityLogs.action_type} = 'COMMENT' THEN 1 END)`,
@@ -736,11 +739,12 @@ export async function getBrowserRoutes(): Promise<BrowserRoute[]> {
       grade: route.grade,
       color: route.color,
       setter_name: route.setter_name,
-      set_date: route.set_date, // Ensure string
+      set_date: route.set_date,
       attributes: route.attributes || [],
       difficulty_label: route.difficulty_label,
       style: route.style,
       hold_type: route.hold_type,
+      name: route.name,
       avg_rating: Number(route.avg_rating),
       comment_count: Number(route.comment_count),
       user_status: userStatusMap.get(route.id) || null,
@@ -758,6 +762,7 @@ export type SyncRoute = {
   difficulty_label: string | null;
   style: string | null;
   hold_type: string | null;
+  name: string | null;
 };
 
 export type SyncPreview = {
@@ -812,7 +817,7 @@ export async function previewSync(): Promise<SyncPreview> {
         r.set_date === dateIso // Strict date match
     );
 
-    const routeData = {
+    const routeData: SyncRoute = {
       wall_id: wall.id,
       grade,
       color,
@@ -821,10 +826,11 @@ export async function previewSync(): Promise<SyncPreview> {
       difficulty_label: label || null,
       style: style || null,
       hold_type: holdType || null,
+      name: null,
     };
 
     if (existingRoute) {
-      existingRoutes.push({ ...existingRoute, ...routeData, id: existingRoute.id });
+      existingRoutes.push({ ...routeData, id: existingRoute.id, name: existingRoute.name });
       processedRouteIds.add(existingRoute.id);
     } else {
       newRoutes.push(routeData);
@@ -849,12 +855,37 @@ export async function confirmSync() {
   let archivedCount = 0;
   let updatedCount = 0;
 
-  // Insert New
-  for (const route of newRoutes) {
+  // Generate names for all new routes in a single LLM call
+  let generatedNames: string[] = [];
+  if (newRoutes.length > 0) {
+    try {
+      const routesForNaming = newRoutes.map((route) => {
+        const wall = WALLS.find((w) => w.id === route.wall_id);
+        return {
+          grade: route.grade,
+          color: route.color,
+          style: route.style,
+          holdType: route.hold_type,
+          wallName: wall?.name || route.wall_id,
+        };
+      });
+      generatedNames = await generateRouteNames(routesForNaming);
+    } catch (nameGenerationError) {
+      console.error("Failed to generate route names:", nameGenerationError);
+      generatedNames = newRoutes.map(() => null) as unknown as string[];
+    }
+  }
+
+  // Insert new routes with generated names
+  for (let i = 0; i < newRoutes.length; i++) {
+    const route = newRoutes[i];
+    const generatedName = generatedNames[i] || null;
+
     await db.insert(routes).values({
       ...route,
       status: "active",
       attributes: [],
+      name: generatedName,
     });
     count++;
   }

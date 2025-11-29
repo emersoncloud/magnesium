@@ -1,17 +1,24 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
 
 const outfit = Outfit({ subsets: ["latin"] });
 
+export const viewport: Viewport = {
+  themeColor: "#F8FAFC",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   title: {
     default: "Rock Mill Magnesium",
     template: "%s | Mg",
   },
   description: "Climbing community site for Rock Mill. Track your progress and share your climbs.",
   manifest: "/manifest.json",
-  themeColor: "#F8FAFC",
   icons: {
     icon: "/web-app-manifest-192x192.png",
     apple: "/web-app-manifest-192x192.png",
@@ -60,9 +67,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-      </head>
       <body className={`${outfit.className} bg-[#F8FAFC] text-slate-900 antialiased`}>
         <TooltipProvider delayDuration={300} skipDelayDuration={0}>
           {children}

@@ -7,6 +7,7 @@ import { WALLS } from "@/lib/constants/walls";
 import { notifyRouteSync, notifyTooManyRoutesToArchive } from "@/lib/telegram";
 import { revalidatePath } from "next/cache";
 import { backfillAllAchievements } from "@/lib/achievements";
+import { generateRouteNames } from "@/lib/generate-route-name";
 
 type SyncRoute = {
   id?: string;
@@ -97,11 +98,36 @@ async function performSync() {
   let archivedCount = 0;
   const addedRoutesSummary: Array<{ grade: string; color: string }> = [];
 
-  for (const route of newRoutes) {
+  // Generate names for all new routes in a single LLM call
+  let generatedNames: string[] = [];
+  if (newRoutes.length > 0) {
+    try {
+      const routesForNaming = newRoutes.map((route) => {
+        const wall = WALLS.find((w) => w.id === route.wall_id);
+        return {
+          grade: route.grade,
+          color: route.color,
+          style: route.style,
+          holdType: route.hold_type,
+          wallName: wall?.name || route.wall_id,
+        };
+      });
+      generatedNames = await generateRouteNames(routesForNaming);
+    } catch (nameGenerationError) {
+      console.error("Failed to generate route names:", nameGenerationError);
+      generatedNames = newRoutes.map(() => null) as unknown as string[];
+    }
+  }
+
+  for (let i = 0; i < newRoutes.length; i++) {
+    const route = newRoutes[i];
+    const generatedName = generatedNames[i] || null;
+
     await db.insert(routes).values({
       ...route,
       status: "active",
       attributes: [],
+      name: generatedName,
     });
     addedCount++;
     addedRoutesSummary.push({ grade: route.grade, color: route.color });

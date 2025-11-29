@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { User } from "next-auth";
 import Link from "next/link";
-import { Library, Dumbbell, User as UserIcon, ArrowRight } from "lucide-react";
+import { Library, Dumbbell, User as UserIcon, ArrowRight, Smartphone } from "lucide-react";
 import { signIn } from "next-auth/react";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
+import InstallAppDrawer from "@/components/pwa/InstallAppDrawer";
 
 type DashboardQuickActionsProps = {
   user: User | null;
@@ -14,6 +17,15 @@ export default function DashboardQuickActions({
   user,
   showTraining = false,
 }: DashboardQuickActionsProps) {
+  const [isInstallDrawerOpen, setIsInstallDrawerOpen] = useState(false);
+  const {
+    showInstallButton,
+    platform,
+    canPromptNativeInstall,
+    promptNativeInstall,
+    dismissInstall,
+  } = usePWAInstall();
+
   const handleSignIn = async () => {
     signIn("google", { callbackUrl: "/overview" });
   };
@@ -58,6 +70,29 @@ export default function DashboardQuickActions({
           </div>
           <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-900 transition-colors" />
         </Link>
+
+        {showInstallButton && (
+          <>
+            <button onClick={() => setIsInstallDrawerOpen(true)} className={actionButtonClasses}>
+              <div className="w-10 h-10 bg-slate-100 flex items-center justify-center group-hover:bg-rockmill/10 transition-colors">
+                <Smartphone className="w-5 h-5 text-slate-700 group-hover:text-rockmill transition-colors" />
+              </div>
+              <div className="flex-1 text-left">
+                <div className="font-bold text-slate-900 text-sm">Install App</div>
+                <div className="text-xs text-slate-500">Add to home screen</div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-900 transition-colors" />
+            </button>
+            <InstallAppDrawer
+              isOpen={isInstallDrawerOpen}
+              onClose={() => setIsInstallDrawerOpen(false)}
+              platform={platform}
+              canPromptNativeInstall={canPromptNativeInstall}
+              onNativeInstall={promptNativeInstall}
+              onDismiss={dismissInstall}
+            />
+          </>
+        )}
       </div>
     );
   }
@@ -85,6 +120,29 @@ export default function DashboardQuickActions({
         </div>
         <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-900 transition-colors" />
       </button>
+
+      {showInstallButton && (
+        <>
+          <button onClick={() => setIsInstallDrawerOpen(true)} className={actionButtonClasses}>
+            <div className="w-10 h-10 bg-slate-100 flex items-center justify-center group-hover:bg-rockmill/10 transition-colors">
+              <Smartphone className="w-5 h-5 text-slate-700 group-hover:text-rockmill transition-colors" />
+            </div>
+            <div className="flex-1 text-left">
+              <div className="font-bold text-slate-900 text-sm">Install App</div>
+              <div className="text-xs text-slate-500">Add to home screen</div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-900 transition-colors" />
+          </button>
+          <InstallAppDrawer
+            isOpen={isInstallDrawerOpen}
+            onClose={() => setIsInstallDrawerOpen(false)}
+            platform={platform}
+            canPromptNativeInstall={canPromptNativeInstall}
+            onNativeInstall={promptNativeInstall}
+            onDismiss={dismissInstall}
+          />
+        </>
+      )}
     </div>
   );
 }

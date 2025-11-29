@@ -21,6 +21,7 @@ interface RouteBadgeProps {
   comment_count?: number;
   style?: string | null;
   hold_type?: string | null;
+  name?: string | null;
 }
 
 export function RouteBadge({
@@ -131,6 +132,11 @@ export function RouteBadge({
                   className="text-lg"
                 />
               </h4>
+              {route.name && (
+                <p className="text-sm font-medium text-slate-600 italic mt-0.5">
+                  &ldquo;{route.name}&rdquo;
+                </p>
+              )}
               <div className="flex items-center gap-2 mt-1">
                 <div
                   className="w-2 h-2 rounded-full border border-black"

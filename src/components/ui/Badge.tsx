@@ -9,8 +9,9 @@ interface BadgeProps {
 }
 
 export function Badge({ children, variant = "default", className = "", color }: BadgeProps) {
-  const baseStyles = "inline-flex items-center px-3 py-1 text-xs font-bold uppercase tracking-widest transform -skew-x-12 transition-colors font-mono border-2";
-  
+  const baseStyles =
+    "inline-flex items-center px-3 py-1 text-xs font-bold uppercase tracking-widest transform -skew-x-12 transition-colors font-mono border-2";
+
   const variants = {
     default: "bg-black text-white border-black hover:bg-slate-900",
     secondary: "bg-slate-100 text-slate-900 border-slate-200 hover:bg-slate-200",
@@ -23,9 +24,7 @@ export function Badge({ children, variant = "default", className = "", color }: 
 
   return (
     <div className={cn(baseStyles, variants[variant], className)} style={style}>
-      <span className="transform skew-x-12 inline-block">
-        {children}
-      </span>
+      <span className="transform skew-x-12 inline-block">{children}</span>
     </div>
   );
 }

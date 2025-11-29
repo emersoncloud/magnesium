@@ -31,13 +31,11 @@ export default function RoutePlanView({ plan }: { plan: RoutePlan }) {
   );
 }
 
-function PlanSection({ section, color }: { section: RoutePlan["warmUp"], color: string }) {
+function PlanSection({ section, color }: { section: RoutePlan["warmUp"]; color: string }) {
   return (
     <div className="space-y-4">
       <div className={`pl-4 border-l-4 ${color}`}>
-        <h3 className="text-xl font-bold flex items-center gap-2">
-          {section.title}
-        </h3>
+        <h3 className="text-xl font-bold flex items-center gap-2">{section.title}</h3>
         <p className="text-slate-500 text-sm">{section.description}</p>
       </div>
 
@@ -55,7 +53,9 @@ function PlanSection({ section, color }: { section: RoutePlan["warmUp"], color: 
                 </div>
                 <div className="flex gap-1">
                   {route.user_status === "SEND" && <Check className="w-4 h-4 text-green-500" />}
-                  {route.user_status === "FLASH" && <Zap className="w-4 h-4 text-yellow-500 fill-current" />}
+                  {route.user_status === "FLASH" && (
+                    <Zap className="w-4 h-4 text-yellow-500 fill-current" />
+                  )}
                 </div>
               </div>
 
@@ -68,7 +68,7 @@ function PlanSection({ section, color }: { section: RoutePlan["warmUp"], color: 
                   />
                 </div>
                 <div className="text-xs text-slate-500 font-medium">
-                  {WALLS.find(w => w.id === route.wall_id)?.name || route.wall_id}
+                  {WALLS.find((w) => w.id === route.wall_id)?.name || route.wall_id}
                 </div>
               </div>
 

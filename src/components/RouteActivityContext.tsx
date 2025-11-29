@@ -1,7 +1,24 @@
 "use client";
 
-import { createContext, useContext, useOptimistic, useRef, useState, useTransition, ReactNode } from "react";
-import { logActivity, savePersonalNote, logAttempt, updateActivity, deleteActivity, proposeGrade, removeGradeProposal, toggleFlash } from "@/app/actions";
+import {
+  createContext,
+  useContext,
+  useOptimistic,
+  useRef,
+  useState,
+  useTransition,
+  ReactNode,
+} from "react";
+import {
+  logActivity,
+  savePersonalNote,
+  logAttempt,
+  updateActivity,
+  deleteActivity,
+  proposeGrade,
+  removeGradeProposal,
+  toggleFlash,
+} from "@/app/actions";
 import { useSettings } from "@/context/SettingsContext";
 
 export type ActivityLog = {
@@ -34,7 +51,12 @@ type RouteActivityContextType = {
   setPersonalNote: (note: string) => void;
   isSavingNote: boolean;
   handleSaveNote: () => Promise<void>;
-  handleAction: (actionType: string, content: string, metadata?: { is_beta?: boolean }, isPublic?: boolean) => Promise<void>;
+  handleAction: (
+    actionType: string,
+    content: string,
+    metadata?: { is_beta?: boolean },
+    isPublic?: boolean
+  ) => Promise<void>;
   handleAttempt: () => Promise<void>;
   handleUpdate: (id: string, content: string) => Promise<void>;
   handleDelete: (id: string, confirmDelete?: boolean) => Promise<void>;

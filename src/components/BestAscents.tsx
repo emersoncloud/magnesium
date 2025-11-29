@@ -9,7 +9,7 @@ type ActivityLog = {
 
 export default function BestAscents({ activity }: { activity: ActivityLog[] }) {
   const getBestGrade = (type: "SEND" | "FLASH") => {
-    const relevant = activity.filter(a => a.action_type === type && a.route_grade);
+    const relevant = activity.filter((a) => a.action_type === type && a.route_grade);
     if (relevant.length === 0) return null;
 
     // Sort by grade index
@@ -31,7 +31,9 @@ export default function BestAscents({ activity }: { activity: ActivityLog[] }) {
         <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
           <Crown className="w-16 h-16 text-green-600" />
         </div>
-        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Best Send</h3>
+        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">
+          Best Send
+        </h3>
         <div className="text-4xl font-black text-slate-900">
           {bestSend || <span className="text-slate-300 text-2xl">-</span>}
         </div>
@@ -41,7 +43,9 @@ export default function BestAscents({ activity }: { activity: ActivityLog[] }) {
         <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
           <Zap className="w-16 h-16 text-yellow-500 fill-current" />
         </div>
-        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Best Flash</h3>
+        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">
+          Best Flash
+        </h3>
         <div className="text-4xl font-black text-slate-900">
           {bestFlash || <span className="text-slate-300 text-2xl">-</span>}
         </div>

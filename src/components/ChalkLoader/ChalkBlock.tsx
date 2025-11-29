@@ -11,21 +11,9 @@ export function ChalkBlock({ scale = 1, className }: ChalkBlockProps) {
   const size = 40 * scale;
 
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 40 40"
-      className={cn("chalk-block", className)}
-    >
+    <svg width={size} height={size} viewBox="0 0 40 40" className={cn("chalk-block", className)}>
       {/* Main chalk block - simple rounded square */}
-      <rect
-        x="2"
-        y="2"
-        width="36"
-        height="36"
-        rx="4"
-        className="fill-slate-800"
-      />
+      <rect x="2" y="2" width="36" height="36" rx="4" className="fill-slate-800" />
 
       {/* Inner border for depth */}
       <rect

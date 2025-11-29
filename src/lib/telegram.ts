@@ -37,9 +37,7 @@ export async function sendTelegramMessage(message: string): Promise<boolean> {
   }
 }
 
-export async function notifyTooManyRoutesToArchive(
-  routesToArchiveCount: number
-): Promise<void> {
+export async function notifyTooManyRoutesToArchive(routesToArchiveCount: number): Promise<void> {
   const message = `⚠️ <b>Sync Warning: Too Many Routes to Archive</b>\n\nFound ${routesToArchiveCount} routes to archive, which exceeds the safety limit of 10.\n\nNo routes were archived. Please review the Google Sheet manually.`;
   await sendTelegramMessage(message);
 }
@@ -52,9 +50,7 @@ export async function notifyRouteSync(
     return;
   }
 
-  const addedRoutesList = addedRoutes
-    .map((r) => `${r.grade} ${r.color}`)
-    .join(", ");
+  const addedRoutesList = addedRoutes.map((r) => `${r.grade} ${r.color}`).join(", ");
 
   const addedSection =
     addedRoutes.length > 0
@@ -62,9 +58,7 @@ export async function notifyRouteSync(
       : "";
 
   const archivedSection =
-    archivedCount > 0
-      ? `📦 Archived: ${archivedCount} route${archivedCount > 1 ? "s" : ""}`
-      : "";
+    archivedCount > 0 ? `📦 Archived: ${archivedCount} route${archivedCount > 1 ? "s" : ""}` : "";
 
   const messageParts = ["🔄 <b>Route Sync Complete</b>"];
   if (addedSection) messageParts.push(addedSection);
@@ -73,10 +67,7 @@ export async function notifyRouteSync(
   await sendTelegramMessage(messageParts.join("\n"));
 }
 
-export async function notifyFeedback(
-  userName: string,
-  feedback: string
-): Promise<void> {
+export async function notifyFeedback(userName: string, feedback: string): Promise<void> {
   const message = `💬 <b>New Feedback from ${userName}</b>\n---\n${feedback}`;
   await sendTelegramMessage(message);
 }
@@ -94,10 +85,7 @@ export async function notifyRouteSend(
   await sendTelegramMessage(message);
 }
 
-export async function notifyNewUser(
-  userName: string,
-  email: string
-): Promise<void> {
+export async function notifyNewUser(userName: string, email: string): Promise<void> {
   const message = `👋 <b>New user signed up!</b>\nName: ${userName}\nEmail: ${email}`;
   await sendTelegramMessage(message);
 }

@@ -1,4 +1,3 @@
-
 import "dotenv/config";
 import { db } from "@/lib/db";
 import { activityLogs, personalNotes, users } from "@/lib/db/schema";
@@ -9,7 +8,7 @@ const MIGRATION_MAP: Record<string, string[]> = {
   "kyletrusler@gmail.com": [
     "24479482-43b5-44f9-b8bd-b7bfdf78aa97", // Old UUID
     "kyletrusler@gmail.com", // Current Email ID
-    "kyle@rowship.com" // Another email alias? If we want to merge this too.
+    "kyle@rowship.com", // Another email alias? If we want to merge this too.
   ],
   // Add others if needed
 };
@@ -27,14 +26,18 @@ async function main() {
 
     if (!user) {
       console.log(`- Creating user for ${targetEmail}`);
-      const result = await db.insert(users).values({
-        email: targetEmail,
-        name: "Kyle Trusler", // Hardcoded for migration, or fetch from logs?
-        image: "https://lh3.googleusercontent.com/a/ACg8ocIRTFkK1lyctOZ50Y78iJbRtkcckUo8t-m6i9PyBcHfndnEBlzQog=s96-c",
-      }).returning();
+      const result = await db
+        .insert(users)
+        .values({
+          email: targetEmail,
+          name: "Kyle Trusler", // Hardcoded for migration, or fetch from logs?
+          image:
+            "https://lh3.googleusercontent.com/a/ACg8ocIRTFkK1lyctOZ50Y78iJbRtkcckUo8t-m6i9PyBcHfndnEBlzQog=s96-c",
+        })
+        .returning();
       user = result[0];
     }
-    
+
     console.log(`- Target User UUID: ${user.id}`);
 
     // 2. Migrate Activity Logs
@@ -42,7 +45,8 @@ async function main() {
       if (oldId === user.id) continue; // Skip if already same (unlikely)
 
       console.log(`  - Migrating logs from ${oldId}...`);
-      const logs = await db.update(activityLogs)
+      const logs = await db
+        .update(activityLogs)
         .set({ user_id: user.id })
         .where(eq(activityLogs.user_id, oldId))
         .returning({ id: activityLogs.id });
@@ -50,7 +54,8 @@ async function main() {
 
       // 3. Migrate Personal Notes
       console.log(`  - Migrating notes from ${oldId}...`);
-      const notes = await db.update(personalNotes)
+      const notes = await db
+        .update(personalNotes)
         .set({ user_id: user.id })
         .where(eq(personalNotes.user_id, oldId))
         .returning({ id: personalNotes.id });
@@ -61,4 +66,6 @@ async function main() {
   console.log("Migration complete.");
 }
 
-main().catch(console.error).then(() => process.exit(0));
+main()
+  .catch(console.error)
+  .then(() => process.exit(0));

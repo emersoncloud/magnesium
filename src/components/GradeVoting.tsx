@@ -10,7 +10,7 @@ type GradeVote = -1 | 0 | 1; // -1: Soft, 0: Fair, 1: Hard
 export default function GradeVoting({
   routeId,
   initialVotes,
-  userVote
+  userVote,
 }: {
   routeId: string;
   initialVotes: number[];
@@ -21,22 +21,23 @@ export default function GradeVoting({
 
   // Calculate initial counts
   const getCounts = (votes: number[]) => ({
-    soft: votes.filter(v => v === -1).length,
-    fair: votes.filter(v => v === 0).length,
-    hard: votes.filter(v => v === 1).length,
+    soft: votes.filter((v) => v === -1).length,
+    fair: votes.filter((v) => v === 0).length,
+    hard: votes.filter((v) => v === 1).length,
   });
 
   const [optimisticState, setOptimisticState] = useOptimistic(
     { votes: initialVotes, userVote },
     (state, newVote: number) => {
       // Remove previous vote if exists
-      const filteredVotes = state.userVote !== null
-        ? state.votes.filter((_, i) => i !== state.votes.indexOf(state.userVote!))
-        : state.votes;
+      const filteredVotes =
+        state.userVote !== null
+          ? state.votes.filter((_, i) => i !== state.votes.indexOf(state.userVote!))
+          : state.votes;
 
       return {
         votes: [...filteredVotes, newVote],
-        userVote: newVote
+        userVote: newVote,
       };
     }
   );
@@ -64,7 +65,7 @@ export default function GradeVoting({
 
   const REASONS = {
     [-1]: ["Tall Beta", "Soft", "Juggy"],
-    [1]: ["Scrunchy", "Reachy", "Sandbagged", "Technical"]
+    [1]: ["Scrunchy", "Reachy", "Sandbagged", "Technical"],
   };
 
   if (pendingVote !== null) {

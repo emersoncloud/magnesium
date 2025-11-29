@@ -9,7 +9,10 @@ import RouteHold from "./RouteHold";
 interface TrainingPlanEditorProps {
   plan: GeneratedPlan;
   browserRoutes: BrowserRoute[];
-  onSave: (name: string, routes: { route_id: string; section_name: string | null; order_index: number }[]) => Promise<void>;
+  onSave: (
+    name: string,
+    routes: { route_id: string; section_name: string | null; order_index: number }[]
+  ) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -85,7 +88,11 @@ export default function TrainingPlanEditor({
     if (!planName.trim()) return;
 
     startTransition(async () => {
-      const routesWithOrder: { route_id: string; section_name: string | null; order_index: number }[] = [];
+      const routesWithOrder: {
+        route_id: string;
+        section_name: string | null;
+        order_index: number;
+      }[] = [];
       let orderIndex = 0;
 
       for (const section of sections) {
@@ -103,7 +110,6 @@ export default function TrainingPlanEditor({
   };
 
   const totalRoutes = sections.reduce((sum, s) => sum + s.routes.length, 0);
-
 
   return (
     <div className="space-y-8">
@@ -136,11 +142,7 @@ export default function TrainingPlanEditor({
             <div className="flex flex-wrap items-center gap-4 md:gap-6">
               {section.routes.map((route, routeIndex) => (
                 <div key={`${route.id}-${routeIndex}`} className="relative group">
-                  <RouteHold
-                    route={route}
-                    size="sm"
-                    showStats={false}
-                  />
+                  <RouteHold route={route} size="sm" showStats={false} />
                   <div className="absolute -top-2 -right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-30">
                     <button
                       onClick={() => handleEditRoute(sectionIndex, routeIndex)}

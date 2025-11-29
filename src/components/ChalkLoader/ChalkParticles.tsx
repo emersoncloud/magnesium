@@ -38,7 +38,10 @@ export const ChalkParticles = forwardRef<ChalkParticlesHandle, ChalkParticlesPro
         if (!container) return;
 
         const emittersPlugin = container.plugins.get("emitters");
-        if (emittersPlugin && typeof (emittersPlugin as { play?: () => void }).play === "function") {
+        if (
+          emittersPlugin &&
+          typeof (emittersPlugin as { play?: () => void }).play === "function"
+        ) {
           (emittersPlugin as { play: () => void }).play();
         }
       },

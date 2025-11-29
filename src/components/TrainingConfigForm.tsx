@@ -25,13 +25,18 @@ const projectLengthOptions: { value: TrainingPlanLength; label: string; descript
 ];
 
 const typeDescriptions: Record<TrainingPlanType, string> = {
-  progression: "Configure your progression session. Routes will be selected based on your target grade.",
+  progression:
+    "Configure your progression session. Routes will be selected based on your target grade.",
   volume: "Configure your volume session. All routes will be at your selected grade.",
   project: "Configure your project session. Routes will be above your target grade.",
   custom: "Start with an empty plan and add routes manually.",
 };
 
-export default function TrainingConfigForm({ type, onGenerate, isPending }: TrainingConfigFormProps) {
+export default function TrainingConfigForm({
+  type,
+  onGenerate,
+  isPending,
+}: TrainingConfigFormProps) {
   const [baseGrade, setBaseGrade] = useState("V3");
   const [length, setLength] = useState<TrainingPlanLength>("medium");
 
@@ -53,9 +58,7 @@ export default function TrainingConfigForm({ type, onGenerate, isPending }: Trai
       {!isCustomType && (
         <>
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-slate-700">
-              Target Grade
-            </label>
+            <label className="block text-sm font-medium text-slate-700">Target Grade</label>
             <select
               value={baseGrade}
               onChange={(e) => setBaseGrade(e.target.value)}
@@ -75,9 +78,7 @@ export default function TrainingConfigForm({ type, onGenerate, isPending }: Trai
           </div>
 
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-slate-700">
-              Session Length
-            </label>
+            <label className="block text-sm font-medium text-slate-700">Session Length</label>
             <div className="flex gap-3">
               {currentLengthOptions.map((option) => (
                 <button

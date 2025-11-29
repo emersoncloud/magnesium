@@ -24,10 +24,12 @@ export default async function SeasonsPage() {
   return (
     <div className="min-h-screen relative bg-slate-50 font-sans selection:bg-yellow-400 selection:text-black overflow-hidden">
       {/* Global Technical Grid Background */}
-      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.03]"
+      <div
+        className="fixed inset-0 pointer-events-none z-0 opacity-[0.03]"
         style={{
-          backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)',
-          backgroundSize: '40px 40px'
+          backgroundImage:
+            "linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
         }}
       />
 
@@ -36,14 +38,19 @@ export default async function SeasonsPage() {
         <div className="mb-12 relative">
           <div className="absolute -left-4 top-0 bottom-0 w-1 bg-rockmill transform -skew-x-12" />
           <h1 className="text-5xl md:text-8xl font-black text-black tracking-tighter uppercase transform -skew-x-6 mb-4 leading-none">
-            SEASON <span className="text-transparent bg-clip-text bg-gradient-to-r from-rockmill to-red-600">LEADERBOARD</span>
+            SEASON{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-rockmill to-red-600">
+              LEADERBOARD
+            </span>
           </h1>
 
           <div className="flex flex-wrap items-center gap-4 text-sm font-mono uppercase tracking-widest">
             <div className="bg-black text-white px-3 py-1 transform -skew-x-12">
               <div className="flex items-center gap-2 transform skew-x-12">
                 <Calendar className="w-4 h-4" />
-                <span>{formatDate(startDate)} - {formatDate(endDate)}</span>
+                <span>
+                  {formatDate(startDate)} - {formatDate(endDate)}
+                </span>
               </div>
             </div>
             <div className="flex items-center gap-2 text-black font-bold">

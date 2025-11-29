@@ -50,7 +50,9 @@ export default function TrainingTypeSelector({ onSelect }: TrainingTypeSelectorP
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-slate-800">Choose Training Type</h2>
-        <p className="text-sm text-slate-500 mt-1">Select the type of session you want to create.</p>
+        <p className="text-sm text-slate-500 mt-1">
+          Select the type of session you want to create.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -58,10 +60,7 @@ export default function TrainingTypeSelector({ onSelect }: TrainingTypeSelectorP
           <button
             key={type}
             onClick={() => onSelect(type)}
-            className={cn(
-              "p-6 rounded-xl border-2 text-left transition-all",
-              color
-            )}
+            className={cn("p-6 rounded-xl border-2 text-left transition-all", color)}
           >
             <div className="flex items-start gap-4">
               <div className="p-2 rounded-lg bg-white shadow-sm">

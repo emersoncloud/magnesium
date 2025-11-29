@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import Barcode from 'react-barcode';
-import { resetUserBarcode } from '@/app/actions';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Loader2, Trash2, ScanLine } from 'lucide-react';
-import { useState } from 'react';
+import Barcode from "react-barcode";
+import { resetUserBarcode } from "@/app/actions";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Loader2, Trash2, ScanLine } from "lucide-react";
+import { useState } from "react";
 
 export default function UserBarcode({ barcode }: { barcode: string }) {
   const [isResetting, setIsResetting] = useState(false);
@@ -52,7 +52,11 @@ export default function UserBarcode({ barcode }: { barcode: string }) {
           className="w-full text-red-500 hover:text-red-600 hover:bg-red-50"
           disabled={isResetting}
         >
-          {isResetting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trash2 className="w-4 h-4 mr-2" />}
+          {isResetting ? (
+            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+          ) : (
+            <Trash2 className="w-4 h-4 mr-2" />
+          )}
           Unlink Card
         </Button>
       </div>

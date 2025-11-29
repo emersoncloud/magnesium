@@ -35,9 +35,7 @@ export function MultiSelect({ label, options, selected, onChange }: MultiSelectP
     onChange(next);
   };
 
-  const displayLabel = selected.size > 0
-    ? `${label} (${selected.size})`
-    : `All ${label}`;
+  const displayLabel = selected.size > 0 ? `${label} (${selected.size})` : `All ${label}`;
 
   return (
     <div ref={ref} className="relative">
@@ -48,9 +46,7 @@ export function MultiSelect({ label, options, selected, onChange }: MultiSelectP
           selected.size > 0 ? "border-black" : "border-black"
         )}
       >
-        <span className={selected.size > 0 ? "text-black" : "text-slate-600"}>
-          {displayLabel}
-        </span>
+        <span className={selected.size > 0 ? "text-black" : "text-slate-600"}>{displayLabel}</span>
         <ChevronDown className={cn("w-3 h-3 transition-transform", open && "rotate-180")} />
       </button>
 
@@ -63,9 +59,7 @@ export function MultiSelect({ label, options, selected, onChange }: MultiSelectP
               className="w-full px-3 py-2 text-xs font-mono uppercase tracking-widest text-left flex items-center justify-between hover:bg-slate-50"
             >
               <span>{option.label}</span>
-              {selected.has(option.value) && (
-                <Check className="w-3 h-3 text-black" />
-              )}
+              {selected.has(option.value) && <Check className="w-3 h-3 text-black" />}
             </button>
           ))}
           {selected.size > 0 && (

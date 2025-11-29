@@ -9,7 +9,11 @@ import ProfileSettings from "@/components/ProfileSettings";
 import BarcodeDrawer from "@/components/BarcodeDrawer";
 import { LogoutButton } from "@/components/LogoutButton";
 
-export default async function PublicProfilePage({ params }: { params: Promise<{ userId: string }> }) {
+export default async function PublicProfilePage({
+  params,
+}: {
+  params: Promise<{ userId: string }>;
+}) {
   const session = await auth();
   if (!session?.user) redirect("/api/auth/signin");
 
@@ -57,7 +61,11 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
       <div className="flex items-center gap-6 mb-8">
         {user.image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={user.image} alt={user.name} className="w-24 h-24 rounded-full border-4 border-white shadow-md" />
+          <img
+            src={user.image}
+            alt={user.name}
+            className="w-24 h-24 rounded-full border-4 border-white shadow-md"
+          />
         ) : (
           <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-3xl shadow-md">
             {user.name[0]}
@@ -76,7 +84,9 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
 
       {isOwnProfile && (
         <div className="mt-12 pt-8 border-t border-slate-200">
-          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Account</h3>
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
+            Account
+          </h3>
           <LogoutButton />
         </div>
       )}

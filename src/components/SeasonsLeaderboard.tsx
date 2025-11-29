@@ -39,33 +39,48 @@ export default function SeasonsLeaderboard({
             )}
           >
             {/* Card Background & Border */}
-            <div className={cn(
-              "absolute inset-0 border-2 border-black transition-all duration-200",
-              isCurrentUser
-                ? "bg-yellow-50 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
-                : "bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
-            )} />
+            <div
+              className={cn(
+                "absolute inset-0 border-2 border-black transition-all duration-200",
+                isCurrentUser
+                  ? "bg-yellow-50 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+                  : "bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
+              )}
+            />
 
             {/* Content */}
             <div className="relative p-4 md:p-6 flex items-center gap-4 min-h-[5rem]">
               {/* Rank Badge */}
-              <div className={cn(
-                "w-12 h-12 flex items-center justify-center font-black text-xl border-2 border-black transform -skew-x-12",
-                rank === 1 ? "bg-yellow-400 text-black" :
-                  rank === 2 ? "bg-slate-200 text-black" :
-                    rank === 3 ? "bg-orange-300 text-black" :
-                      "bg-white text-slate-400"
-              )}>
+              <div
+                className={cn(
+                  "w-12 h-12 flex items-center justify-center font-black text-xl border-2 border-black transform -skew-x-12",
+                  rank === 1
+                    ? "bg-yellow-400 text-black"
+                    : rank === 2
+                      ? "bg-slate-200 text-black"
+                      : rank === 3
+                        ? "bg-orange-300 text-black"
+                        : "bg-white text-slate-400"
+                )}
+              >
                 <span className="transform skew-x-12">
-                  {rank === 1 ? <Trophy className="w-5 h-5" /> :
-                    rank === 2 ? <Medal className="w-5 h-5" /> :
-                      rank === 3 ? <Award className="w-5 h-5" /> :
-                        `#${rank}`}
+                  {rank === 1 ? (
+                    <Trophy className="w-5 h-5" />
+                  ) : rank === 2 ? (
+                    <Medal className="w-5 h-5" />
+                  ) : rank === 3 ? (
+                    <Award className="w-5 h-5" />
+                  ) : (
+                    `#${rank}`
+                  )}
                 </span>
               </div>
 
               {/* User Info */}
-              <Link href={`/profile/${entry.userId}`} className="flex items-center gap-4 flex-1 group/link min-w-0">
+              <Link
+                href={`/profile/${entry.userId}`}
+                className="flex items-center gap-4 flex-1 group/link min-w-0"
+              >
                 <div className="relative w-10 h-10 border-2 border-black overflow-hidden bg-slate-100">
                   {entry.userImage ? (
                     <Image
@@ -82,15 +97,22 @@ export default function SeasonsLeaderboard({
                 </div>
 
                 <div className="min-w-0">
-                  <div className={cn(
-                    "font-black uppercase tracking-tight text-base md:text-lg leading-tight group-hover/link:text-yellow-600 transition-colors line-clamp-2",
-                    isCurrentUser ? "text-black" : "text-slate-800"
-                  )}>
+                  <div
+                    className={cn(
+                      "font-black uppercase tracking-tight text-base md:text-lg leading-tight group-hover/link:text-yellow-600 transition-colors line-clamp-2",
+                      isCurrentUser ? "text-black" : "text-slate-800"
+                    )}
+                  >
                     {entry.userName || "Anonymous Climber"}
-                    {isCurrentUser && <span className="ml-2 text-[10px] bg-black text-white px-1.5 py-0.5 rounded-sm align-middle tracking-widest font-mono">YOU</span>}
+                    {isCurrentUser && (
+                      <span className="ml-2 text-[10px] bg-black text-white px-1.5 py-0.5 rounded-sm align-middle tracking-widest font-mono">
+                        YOU
+                      </span>
+                    )}
                   </div>
                   <div className="text-xs font-mono text-slate-500 uppercase tracking-widest mt-1">
-                    Best: <GradeDisplay grade={entry.topGrade || "-"} className="font-bold text-black" />
+                    Best:{" "}
+                    <GradeDisplay grade={entry.topGrade || "-"} className="font-bold text-black" />
                   </div>
                 </div>
               </Link>
@@ -98,15 +120,21 @@ export default function SeasonsLeaderboard({
               {/* Stats Grid */}
               <div className="flex items-center gap-6 text-right">
                 <div className="hidden sm:block">
-                  <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-0.5">Sends</div>
+                  <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-0.5">
+                    Sends
+                  </div>
                   <div className="font-mono font-bold text-black">{entry.sends}</div>
                 </div>
                 <div className="hidden sm:block">
-                  <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-0.5">Flashes</div>
+                  <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-0.5">
+                    Flashes
+                  </div>
                   <div className="font-mono font-bold text-black">{entry.flashes}</div>
                 </div>
                 <div className="w-28 pl-4 border-l-2 border-slate-100">
-                  <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-0.5">Score</div>
+                  <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-0.5">
+                    Score
+                  </div>
                   <div className="text-2xl font-black text-black leading-none tracking-tighter">
                     {entry.score.toLocaleString()}
                   </div>

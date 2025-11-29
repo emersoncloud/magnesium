@@ -7,7 +7,6 @@ export default async function RoutesPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-
       <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading routes...</div>}>
         <RouteBrowser routes={routes} />
       </Suspense>

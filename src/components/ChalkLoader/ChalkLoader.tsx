@@ -134,10 +134,7 @@ export function ChalkLoader({
 
   return (
     <div
-      className={cn(
-        "relative flex flex-col items-center justify-center",
-        className
-      )}
+      className={cn("relative flex flex-col items-center justify-center", className)}
       style={{
         width: config.containerWidth,
         height: config.containerHeight + (shouldShowText ? 32 : 0),

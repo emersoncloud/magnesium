@@ -12,21 +12,32 @@ export default async function RouteDetails({ id }: { id: string }) {
   const personalNote = await getPersonalNote(id);
   const session = await auth();
 
-  const user = session?.user?.email ? {
-    id: session.user.id || session.user.email,
-    email: session.user.email,
-    name: session.user.name || null,
-    image: session.user.image || null,
-  } : null;
+  const user = session?.user?.email
+    ? {
+        id: session.user.id || session.user.email,
+        email: session.user.email,
+        name: session.user.name || null,
+        image: session.user.image || null,
+      }
+    : null;
 
-  const myRatingLog = activity.find(a => a.user_id === session?.user?.email && a.action_type === "RATING");
+  const myRatingLog = activity.find(
+    (a) => a.user_id === session?.user?.email && a.action_type === "RATING"
+  );
   const myRating = myRatingLog ? parseInt(myRatingLog.content || "0") : 0;
 
-  const ratings = activity.filter(a => a.action_type === "RATING" && a.content).map(a => parseInt(a.content!));
-  const avgRating = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : null;
+  const ratings = activity
+    .filter((a) => a.action_type === "RATING" && a.content)
+    .map((a) => parseInt(a.content!));
+  const avgRating =
+    ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : null;
 
-  const gradeVotes = activity.filter(a => a.action_type === "VOTE" && a.content).map(a => parseInt(a.content!));
-  const myVoteLog = activity.find(a => a.user_id === session?.user?.email && a.action_type === "VOTE");
+  const gradeVotes = activity
+    .filter((a) => a.action_type === "VOTE" && a.content)
+    .map((a) => parseInt(a.content!));
+  const myVoteLog = activity.find(
+    (a) => a.user_id === session?.user?.email && a.action_type === "VOTE"
+  );
   const myVote = myVoteLog ? parseInt(myVoteLog.content || "0") : null;
 
   return (

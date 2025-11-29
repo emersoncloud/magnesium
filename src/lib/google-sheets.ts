@@ -14,7 +14,7 @@ export async function getSheetData() {
     version: "v4",
     auth,
   });
-  
+
   const spreadsheetId = "13LROXbpx5mnFop2FWkN131TOGyEi6v9LebT5_pbZdGs";
 
   // 1. Get the first sheet's name dynamically
@@ -28,8 +28,8 @@ export async function getSheetData() {
   // 2. Fetch data from the first tab
   // Range: A2:H (ZONE, ROUTE, COLOR, GRADE, STYLE, HOLD TYPE, SETTER, DATE)
   // We use single quotes around the title in case it has spaces
-  const range = `'${firstSheetTitle}'!A2:H`; 
-  
+  const range = `'${firstSheetTitle}'!A2:H`;
+
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
     range,

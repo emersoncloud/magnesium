@@ -23,18 +23,26 @@ export default function VisitHistory({ activity }: { activity: ActivityLog[] }) 
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
 
   // Group by Date
-  const visits = activity.reduce((acc, log) => {
-    if (!log.created_at) return acc;
-    const date = new Date(log.created_at).toLocaleDateString(undefined, {
-      weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
-    });
+  const visits = activity.reduce(
+    (acc, log) => {
+      if (!log.created_at) return acc;
+      const date = new Date(log.created_at).toLocaleDateString(undefined, {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
 
-    if (!acc[date]) acc[date] = [];
-    acc[date].push(log);
-    return acc;
-  }, {} as Record<string, ActivityLog[]>);
+      if (!acc[date]) acc[date] = [];
+      acc[date].push(log);
+      return acc;
+    },
+    {} as Record<string, ActivityLog[]>
+  );
 
-  const sortedDates = Object.keys(visits).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  const sortedDates = Object.keys(visits).sort(
+    (a, b) => new Date(b).getTime() - new Date(a).getTime()
+  );
   console.log(visits);
   return (
     <Card className="p-6">
@@ -45,15 +53,16 @@ export default function VisitHistory({ activity }: { activity: ActivityLog[] }) 
       <div className="space-y-4">
         {sortedDates.map((date) => {
           const logs = visits[date];
-          const sends = logs.filter(l => l.action_type === "SEND").length;
-          const flashes = logs.filter(l => l.action_type === "FLASH").length;
-          const attempts = logs.filter(l => l.action_type === "ATTEMPT").length;
+          const sends = logs.filter((l) => l.action_type === "SEND").length;
+          const flashes = logs.filter((l) => l.action_type === "FLASH").length;
+          const attempts = logs.filter((l) => l.action_type === "ATTEMPT").length;
 
           // Find best send of the day
           const bestGrade = logs
-            .filter(l => (l.action_type === "SEND" || l.action_type === "FLASH") && l.route_grade)
-            .sort((a, b) => (b.route_grade || "").localeCompare(a.route_grade || "")) // Simple string sort for now, ideally use GRADES index
-          [0]?.route_grade;
+            .filter((l) => (l.action_type === "SEND" || l.action_type === "FLASH") && l.route_grade)
+            .sort((a, b) =>
+              (b.route_grade || "").localeCompare(a.route_grade || "")
+            )[0]?.route_grade; // Simple string sort for now, ideally use GRADES index
 
           const isExpanded = expandedDate === date;
 
@@ -66,12 +75,20 @@ export default function VisitHistory({ activity }: { activity: ActivityLog[] }) 
                 <div>
                   <div className="font-bold text-slate-900">{date}</div>
                   <div className="text-xs text-slate-500 mt-1 flex gap-3">
-                    {(sends + flashes) > 0 && <span className="text-green-600 font-medium">{sends + flashes} Sends</span>}
+                    {sends + flashes > 0 && (
+                      <span className="text-green-600 font-medium">{sends + flashes} Sends</span>
+                    )}
                     {attempts > 0 && <span>{attempts} Attempts</span>}
-                    {bestGrade && <span className="text-violet-600 font-bold">Best: {bestGrade}</span>}
+                    {bestGrade && (
+                      <span className="text-violet-600 font-bold">Best: {bestGrade}</span>
+                    )}
                   </div>
                 </div>
-                {isExpanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                {isExpanded ? (
+                  <ChevronUp className="w-4 h-4 text-slate-400" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                )}
               </button>
 
               {isExpanded && (
@@ -79,12 +96,21 @@ export default function VisitHistory({ activity }: { activity: ActivityLog[] }) 
                   {logs.map((log) => (
                     <div key={log.id} className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2">
-                        {log.action_type === "FLASH" && <Zap className="w-3 h-3 text-yellow-500 fill-current" />}
+                        {log.action_type === "FLASH" && (
+                          <Zap className="w-3 h-3 text-yellow-500 fill-current" />
+                        )}
                         {log.action_type === "SEND" && <Check className="w-3 h-3 text-green-500" />}
-                        {log.action_type === "ATTEMPT" && <CheckCircle2 className="w-3 h-3 text-gray-500" />}
+                        {log.action_type === "ATTEMPT" && (
+                          <CheckCircle2 className="w-3 h-3 text-gray-500" />
+                        )}
                         {log.action_type === "COMMENT" && <X className="w-3 h-3 text-red-500" />}
-                        {log.action_type === "PROPOSE_GRADE" && <Check className="w-3 h-3 text-green-500" />}
-                        {log.route_id && log.route_grade && log.route_color && log.action_type !== "DELETE" ? (
+                        {log.action_type === "PROPOSE_GRADE" && (
+                          <Check className="w-3 h-3 text-green-500" />
+                        )}
+                        {log.route_id &&
+                        log.route_grade &&
+                        log.route_color &&
+                        log.action_type !== "DELETE" ? (
                           <Link href={`/route/${log.route_id}`}>
                             <RouteBadge
                               route={{
@@ -102,12 +128,18 @@ export default function VisitHistory({ activity }: { activity: ActivityLog[] }) 
                           </Link>
                         ) : (
                           <span className="font-medium text-slate-700">
-                            {log.route_grade || "Unknown Route"} <span className="text-slate-400 font-normal">- {log.route_color}</span>
+                            {log.route_grade || "Unknown Route"}{" "}
+                            <span className="text-slate-400 font-normal">- {log.route_color}</span>
                           </span>
                         )}
                       </div>
                       <span className="text-xs text-slate-400">
-                        {log.created_at ? new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                        {log.created_at
+                          ? new Date(log.created_at).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : ""}
                       </span>
                     </div>
                   ))}

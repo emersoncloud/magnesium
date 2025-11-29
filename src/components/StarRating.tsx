@@ -4,7 +4,13 @@ import { rateRoute } from "@/app/actions";
 import { Star } from "lucide-react";
 import { useState, useOptimistic } from "react";
 
-export default function StarRating({ routeId, initialRating }: { routeId: string, initialRating: number }) {
+export default function StarRating({
+  routeId,
+  initialRating,
+}: {
+  routeId: string;
+  initialRating: number;
+}) {
   const [rating, setRating] = useState(initialRating);
   const [optimisticRating, setOptimisticRating] = useOptimistic(rating);
 

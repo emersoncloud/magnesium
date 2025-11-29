@@ -28,9 +28,7 @@ export default function DashboardQuickStats({
             Best Send
           </h3>
           <div className="text-3xl font-black text-slate-900">
-            {userStats.bestSendGrade || (
-              <span className="text-slate-300 text-xl">-</span>
-            )}
+            {userStats.bestSendGrade || <span className="text-slate-300 text-xl">-</span>}
           </div>
         </Card>
 
@@ -42,9 +40,7 @@ export default function DashboardQuickStats({
             Best Flash
           </h3>
           <div className="text-3xl font-black text-slate-900">
-            {userStats.bestFlashGrade || (
-              <span className="text-slate-300 text-xl">-</span>
-            )}
+            {userStats.bestFlashGrade || <span className="text-slate-300 text-xl">-</span>}
           </div>
         </Card>
 
@@ -67,9 +63,7 @@ export default function DashboardQuickStats({
           <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
             This Week
           </h3>
-          <div className="text-3xl font-black text-slate-900">
-            {userStats.routesThisWeek}
-          </div>
+          <div className="text-3xl font-black text-slate-900">{userStats.routesThisWeek}</div>
         </Card>
       </div>
     );
@@ -84,9 +78,7 @@ export default function DashboardQuickStats({
         <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
           Active Routes
         </h3>
-        <div className="text-3xl font-black text-slate-900">
-          {totalActiveRoutes}
-        </div>
+        <div className="text-3xl font-black text-slate-900">{totalActiveRoutes}</div>
       </Card>
 
       <Card className="p-4 relative overflow-hidden group border-l-4 border-l-slate-400">

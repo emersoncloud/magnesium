@@ -34,10 +34,17 @@ export default function TrainPageContent({
   const [showCreateForm, setShowCreateForm] = useState(!hasPlans);
   const [selectedType, setSelectedType] = useState<TrainingPlanType | null>(null);
   const [generatedPlan, setGeneratedPlan] = useState<GeneratedPlan | null>(null);
-  const [planConfig, setPlanConfig] = useState<{ baseGrade: string; length: TrainingPlanLength } | null>(null);
+  const [planConfig, setPlanConfig] = useState<{
+    baseGrade: string;
+    length: TrainingPlanLength;
+  } | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const handleGeneratePlan = (type: TrainingPlanType, baseGrade: string, length: TrainingPlanLength) => {
+  const handleGeneratePlan = (
+    type: TrainingPlanType,
+    baseGrade: string,
+    length: TrainingPlanLength
+  ) => {
     startTransition(async () => {
       const plan = await generateNewTrainingPlan(type, baseGrade, length);
       setGeneratedPlan(plan);
@@ -45,7 +52,10 @@ export default function TrainPageContent({
     });
   };
 
-  const handleSavePlan = async (name: string, routes: { route_id: string; section_name: string | null; order_index: number }[]) => {
+  const handleSavePlan = async (
+    name: string,
+    routes: { route_id: string; section_name: string | null; order_index: number }[]
+  ) => {
     if (!selectedType || !planConfig) return;
 
     await saveTrainingPlan({
@@ -112,9 +122,10 @@ export default function TrainPageContent({
 
   const renderPlansTab = () => {
     const plans = activeTab === "my-plans" ? userPlans : communityPlans;
-    const emptyMessage = activeTab === "my-plans"
-      ? "You haven't created any training plans yet."
-      : "No community plans have been shared yet.";
+    const emptyMessage =
+      activeTab === "my-plans"
+        ? "You haven't created any training plans yet."
+        : "No community plans have been shared yet.";
 
     if (plans.length === 0) {
       return (
@@ -136,11 +147,7 @@ export default function TrainPageContent({
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans.map((plan) => (
-          <TrainingPlanCard
-            key={plan.id}
-            plan={plan}
-            showAuthor={activeTab === "community"}
-          />
+          <TrainingPlanCard key={plan.id} plan={plan} showAuthor={activeTab === "community"} />
         ))}
       </div>
     );
@@ -149,9 +156,7 @@ export default function TrainPageContent({
   return (
     <div className="space-y-8 py-8 md:py-12">
       <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-        <h1 className="text-2xl font-bold text-slate-800 uppercase tracking-wider">
-          Train
-        </h1>
+        <h1 className="text-2xl font-bold text-slate-800 uppercase tracking-wider">Train</h1>
 
         {!showCreateForm && hasPlans && (
           <button

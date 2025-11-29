@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { updateUserBarcode } from '@/app/actions';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Loader2, ScanLine } from 'lucide-react';
+import { useState } from "react";
+import { updateUserBarcode } from "@/app/actions";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Loader2, ScanLine } from "lucide-react";
 
 export default function BarcodeScanner({ onComplete }: { onComplete?: () => void }) {
-  const [barcode, setBarcode] = useState('');
+  const [barcode, setBarcode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,7 +17,7 @@ export default function BarcodeScanner({ onComplete }: { onComplete?: () => void
     setIsLoading(true);
     try {
       await updateUserBarcode(barcode.trim());
-      setBarcode('');
+      setBarcode("");
       if (onComplete) onComplete();
     } catch (error) {
       console.error("Failed to update barcode:", error);
@@ -39,7 +39,9 @@ export default function BarcodeScanner({ onComplete }: { onComplete?: () => void
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="barcode" className="sr-only">Card Number</label>
+          <label htmlFor="barcode" className="sr-only">
+            Card Number
+          </label>
           <input
             id="barcode"
             type="text"
@@ -58,7 +60,7 @@ export default function BarcodeScanner({ onComplete }: { onComplete?: () => void
           disabled={!barcode.trim() || isLoading}
         >
           {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-          {isLoading ? 'Linking...' : 'Link Card'}
+          {isLoading ? "Linking..." : "Link Card"}
         </Button>
       </form>
     </Card>

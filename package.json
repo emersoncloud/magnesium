@@ -21,8 +21,6 @@
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "cap:dev": "CAPACITOR_LOCAL_DEV=true npx cap sync android && CAPACITOR_LOCAL_DEV=true npx cap run android --no-sync",
-    "cap:prod": "npx cap sync android && npx cap run android --no-sync",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -35,12 +33,6 @@
     ]
   },
   "dependencies": {
-    "@capacitor/android": "^7.4.4",
-    "@capacitor/cli": "^7.4.4",
-    "@capacitor/core": "^7.4.4",
-    "@capacitor/ios": "^7.4.4",
-    "@capacitor/status-bar": "^7.0.3",
-    "@capgo/capacitor-social-login": "^7.20.0",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.4.0",

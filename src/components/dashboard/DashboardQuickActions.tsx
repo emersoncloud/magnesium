@@ -4,12 +4,6 @@ import { User } from "next-auth";
 import Link from "next/link";
 import { Library, Dumbbell, User as UserIcon, ArrowRight } from "lucide-react";
 import { signIn } from "next-auth/react";
-import { Capacitor } from "@capacitor/core";
-import { SocialLogin } from "@capgo/capacitor-social-login";
-
-type SocialLoginResult = {
-  idToken?: string;
-};
 
 type DashboardQuickActionsProps = {
   user: User | null;
@@ -21,35 +15,7 @@ export default function DashboardQuickActions({
   showTraining = false,
 }: DashboardQuickActionsProps) {
   const handleSignIn = async () => {
-    if (Capacitor.isNativePlatform()) {
-      try {
-        await SocialLogin.initialize({
-          google: {
-            webClientId: "499412392042-255j7a3fvvhfcob0tofgago3q86fjpmn.apps.googleusercontent.com",
-            iOSClientId: "499412392042-jobevm2j3d30fptnabu20hth37hm5jrq.apps.googleusercontent.com",
-          },
-        });
-        const res = await SocialLogin.login({
-          provider: "google",
-          options: {
-            scopes: ["email", "profile"],
-            forceRefreshToken: true,
-          },
-        });
-
-        const loginResult = res.result as SocialLoginResult;
-        if (loginResult.idToken) {
-          await signIn("google-native", {
-            idToken: loginResult.idToken,
-            callbackUrl: "/overview",
-          });
-        }
-      } catch (error) {
-        console.error("Native Google Sign-In failed:", error);
-      }
-    } else {
-      signIn("google", { callbackUrl: "/overview" });
-    }
+    signIn("google", { callbackUrl: "/overview" });
   };
 
   const actionButtonClasses =

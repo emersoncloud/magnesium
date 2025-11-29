@@ -11,6 +11,11 @@ export const metadata: Metadata = {
   },
   description: "Climbing community site for Rock Mill. Track your progress and share your climbs.",
   manifest: "/manifest.json",
+  themeColor: "#F8FAFC",
+  icons: {
+    icon: "/web-app-manifest-192x192.png",
+    apple: "/web-app-manifest-192x192.png",
+  },
   openGraph: {
     title: "Rock Mill Magnesium",
     description:
@@ -47,7 +52,6 @@ export const metadata: Metadata = {
 
 import { Toaster } from "@/components/ui/Toaster";
 import { TooltipProvider } from "@/components/ui/Tooltip";
-import { CapacitorStatusBar } from "@/components/CapacitorStatusBar";
 
 export default function RootLayout({
   children,
@@ -60,7 +64,6 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
       <body className={`${outfit.className} bg-[#F8FAFC] text-slate-900 antialiased`}>
-        <CapacitorStatusBar />
         <TooltipProvider delayDuration={300} skipDelayDuration={0}>
           {children}
         </TooltipProvider>

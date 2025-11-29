@@ -1,8 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">Magnesium</string>
-    <string name="title_activity_main">Magnesium</string>
-    <string name="package_name">com.magnesium</string>
-    <string name="custom_url_scheme">com.magnesium</string>
-    <string name="server_client_id">499412392042-0od33amqe4e63erbjd4rgk937bqnhmj0.apps.googleusercontent.com</string>
-</resources>

@@ -29,34 +29,6 @@ vi.mock("next/cache", () => ({
   unstable_cache: vi.fn((fn) => fn),
 }));
 
-vi.mock("@capacitor/core", () => ({
-  Capacitor: {
-    isNativePlatform: () => false,
-    getPlatform: () => "web",
-    isPluginAvailable: () => false,
-  },
-}));
-
-vi.mock("@capacitor/status-bar", () => ({
-  StatusBar: {
-    setStyle: vi.fn(),
-    setBackgroundColor: vi.fn(),
-  },
-  Style: {
-    Dark: "DARK",
-    Light: "LIGHT",
-  },
-}));
-
-vi.mock("@capgo/capacitor-social-login", () => ({
-  SocialLogin: {
-    initialize: vi.fn().mockResolvedValue(undefined),
-    login: vi.fn().mockResolvedValue({
-      result: { idToken: "mock-id-token" },
-    }),
-  },
-}));
-
 vi.mock("next-auth/react", () => ({
   signIn: vi.fn(),
   signOut: vi.fn(),

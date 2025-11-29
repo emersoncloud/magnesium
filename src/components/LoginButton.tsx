@@ -8,16 +8,8 @@ interface LoginButtonProps {
 }
 
 export function LoginButton({ children, ...props }: LoginButtonProps) {
-  const handleLogin = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    await loginWithGoogle();
-  };
-
   return (
-    <Button
-      variant="secondary"
-      onClick={handleLogin}
-      {...props}
-    >
+    <Button variant="secondary" onClick={loginWithGoogle} {...props}>
       {children || "Sign In"}
     </Button>
   );

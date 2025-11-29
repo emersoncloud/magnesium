@@ -43,7 +43,7 @@ function MarketingContent({
   exampleUserActivity,
   recentSend,
   newSet,
-  gymStats
+  gymStats,
 }: MarketingPageContentProps) {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
@@ -52,26 +52,33 @@ function MarketingContent({
       <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
 
       {/* Global Technical Grid Background */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0"
-        style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '40px 40px' }}
+      <div
+        className="fixed inset-0 pointer-events-none opacity-[0.03] z-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
       />
 
       {/* Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-4 lg:px-8 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 flex items-center border-b-2 border-black bg-white/90 backdrop-blur-md">
+      <header className="fixed top-0 left-0 right-0 z-50 px-4 lg:px-8 pt-[calc(1rem+var(--safe-area-top))] pb-4 flex items-center border-b-2 border-black bg-white/90 backdrop-blur-md">
         <Link className="flex items-center justify-center group" href="#">
-          <span className="text-2xl font-black font-rockmill tracking-tighter uppercase hidden sm:inline-block text-rockmill">Rock Mill <span className="text-slate-400">Magnesium</span></span>
-          <span className="text-2xl font-black font-rockmill tracking-tighter sm:hidden text-rockmill">RM<span className="text-slate-400">Mg</span></span>
+          <span className="text-2xl font-black font-rockmill tracking-tighter uppercase hidden sm:inline-block text-rockmill">
+            Rock Mill <span className="text-slate-400">Magnesium</span>
+          </span>
+          <span className="text-2xl font-black font-rockmill tracking-tighter sm:hidden text-rockmill">
+            RM<span className="text-slate-400">Mg</span>
+          </span>
         </Link>
         <nav className="ml-auto flex gap-6 items-center">
-
           <LoginButton />
         </nav>
       </header>
 
-      <main className="flex-1 pt-[calc(6rem+env(safe-area-inset-top))]">
+      <main className="flex-1 pt-[calc(6rem+var(--safe-area-top))]">
         {/* Hero Section - Component Composition */}
         <section className="relative w-full min-h-[90vh] flex flex-col xl:flex-row items-center justify-center container mx-auto px-4 md:px-6 gap-12 xl:gap-24">
-
           {/* Hero Text */}
           <div className="flex-1 text-center xl:text-left z-10 pt-10 xl:pt-0">
             <div className="inline-block mb-6 px-4 py-1 border-2 border-black bg-rockmill transform -skew-x-12 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -85,23 +92,34 @@ function MarketingContent({
                 backgroundImage: "url('/chalk.png')",
                 backgroundSize: "cover",
                 backgroundPosition: "center",
-                filter: "drop-shadow(0px 2px 0px rgba(0,0,0,0.1))"
+                filter: "drop-shadow(0px 2px 0px rgba(0,0,0,0.1))",
               }}
             >
               A community logbook for Rock Mill climbers
             </h1>
             <p className="max-w-xl text-lg md:text-xl text-slate-600 font-medium mb-10 leading-relaxed mx-auto xl:mx-0 text-balance">
-              View the live routes set at Rock Mill. Track your sends and attempts to build your personal profile. Comment and rate routes to provide feedback to the setters.
+              View the live routes set at Rock Mill. Track your sends and attempts to build your
+              personal profile. Comment and rate routes to provide feedback to the setters.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center xl:justify-start">
               <Link href="/sets">
-                <Button onClick={() => posthog.capture('marketing_page_view_live_routes_button_click')} size="lg" variant="primary" className="h-16 px-10 text-base bg-black hover:bg-slate-800 text-white border-none">
+                <Button
+                  onClick={() => posthog.capture("marketing_page_view_live_routes_button_click")}
+                  size="lg"
+                  variant="primary"
+                  className="h-16 px-10 text-base bg-black hover:bg-slate-800 text-white border-none"
+                >
                   View the Routes
                 </Button>
               </Link>
               <Link href="/login">
-                <Button onClick={() => posthog.capture('marketing_page_start_logging_button_click')} size="lg" variant="secondary" className="h-16 px-10 text-base">
+                <Button
+                  onClick={() => posthog.capture("marketing_page_start_logging_button_click")}
+                  size="lg"
+                  variant="secondary"
+                  className="h-16 px-10 text-base"
+                >
                   Start your Logbook
                 </Button>
               </Link>
@@ -124,13 +142,19 @@ function MarketingContent({
                     <div className="w-10 h-10 bg-black text-white flex items-center justify-center font-bold rounded-full overflow-hidden">
                       {recentSend.user_image ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={recentSend.user_image} alt="User" className="w-full h-full object-cover" />
+                        <img
+                          src={recentSend.user_image}
+                          alt="User"
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         recentSend.user_name?.[0] || "?"
                       )}
                     </div>
                     <div>
-                      <div className="font-bold text-sm mb-1">{recentSend.user_name || "Climber"}</div>
+                      <div className="font-bold text-sm mb-1">
+                        {recentSend.user_name || "Climber"}
+                      </div>
                       <RouteBadge
                         route={{
                           id: recentSend.route_id,
@@ -156,8 +180,12 @@ function MarketingContent({
                   <TrendingUp className="w-5 h-5" />
                   <span className="font-mono uppercase tracking-widest text-xs">Gym Stats</span>
                 </div>
-                <div className="text-4xl text-black mb-1">{gymStats.totalRoutes} <span className="text-black text-lg">Routes</span></div>
-                <div className="text-sm text-black mb-4">Across {gymStats.gradeCount} difficulties</div>
+                <div className="text-4xl text-black mb-1">
+                  {gymStats.totalRoutes} <span className="text-black text-lg">Routes</span>
+                </div>
+                <div className="text-sm text-black mb-4">
+                  Across {gymStats.gradeCount} difficulties
+                </div>
                 <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
                   <div className="h-full bg-rockmill w-3/4" />
                 </div>
@@ -183,13 +211,22 @@ function MarketingContent({
         </section>
 
         {/* Live Route Ticker */}
-        <section id="routes" className="w-full bg-black text-white py-4 border-y-2 border-black overflow-hidden">
+        <section
+          id="routes"
+          className="w-full bg-black text-white py-4 border-y-2 border-black overflow-hidden"
+        >
           <div className="flex whitespace-nowrap animate-marquee">
             {[...routes, ...routes].map((route, i) => (
-              <div key={i} className="inline-flex items-center mx-8 gap-3 opacity-80 hover:opacity-100 transition-opacity cursor-default">
+              <div
+                key={i}
+                className="inline-flex items-center mx-8 gap-3 opacity-80 hover:opacity-100 transition-opacity cursor-default"
+              >
                 <span className="text-rockmill font-mono text-sm">[{route.grade}]</span>
                 <span className="font-black uppercase tracking-tight">{route.route_name}</span>
-                <span className="text-zinc-500 text-xs font-mono uppercase">{"// Set by "}{route.setter}</span>
+                <span className="text-zinc-500 text-xs font-mono uppercase">
+                  {"// Set by "}
+                  {route.setter}
+                </span>
               </div>
             ))}
           </div>
@@ -205,14 +242,25 @@ function MarketingContent({
                   <span>Deep Analytics</span>
                 </div>
                 <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">
-                  Know Your<br />Climbing Style.
+                  Know Your
+                  <br />
+                  Climbing Style.
                 </h2>
                 <p className="text-lg text-slate-600">
-                  Magnesium automatically analyzes your sends to visualize your grade pyramid, consistency, and style preferences.
+                  Magnesium automatically analyzes your sends to visualize your grade pyramid,
+                  consistency, and style preferences.
                 </p>
                 <ul className="space-y-3">
-                  {["Grade Distribution Charts", "Session Consistency Tracking", "Style & Hold Analysis", "Personal Bests"].map((item, i) => (
-                    <li key={i} className="flex items-center gap-3 font-bold uppercase tracking-tight text-sm">
+                  {[
+                    "Grade Distribution Charts",
+                    "Session Consistency Tracking",
+                    "Style & Hold Analysis",
+                    "Personal Bests",
+                  ].map((item, i) => (
+                    <li
+                      key={i}
+                      className="flex items-center gap-3 font-bold uppercase tracking-tight text-sm"
+                    >
                       <div className="w-1.5 h-1.5 bg-black transform rotate-45" />
                       {item}
                     </li>
@@ -222,7 +270,11 @@ function MarketingContent({
 
               <div className="flex-1 w-full space-y-6">
                 <div className="grid gap-6">
-                  <GradeChart activity={exampleUserActivity} externalMode={"DIFFICULTY"} hideControls />
+                  <GradeChart
+                    activity={exampleUserActivity}
+                    externalMode={"DIFFICULTY"}
+                    hideControls
+                  />
                   <StyleBreakdown activity={exampleUserActivity} />
                 </div>
               </div>
@@ -234,7 +286,9 @@ function MarketingContent({
         <section id="community" className="py-24 bg-slate-100 border-b-2 border-black">
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4">Community Pulse</h2>
+              <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4">
+                Community Pulse
+              </h2>
               <p className="text-slate-500 font-mono uppercase tracking-widest">
                 {"// Real-time activity from the gym"}
               </p>
@@ -245,7 +299,10 @@ function MarketingContent({
 
             <div className="text-center mt-12">
               <Link href="/sets">
-                <Button variant="secondary" className="border-2 border-black bg-transparent hover:bg-black hover:text-white">
+                <Button
+                  variant="secondary"
+                  className="border-2 border-black bg-transparent hover:bg-black hover:text-white"
+                >
                   View All Activity
                 </Button>
               </Link>
@@ -263,7 +320,10 @@ function MarketingContent({
               </span>
             </div>
             <nav className="flex items-center gap-6">
-              <Link href="https://rockmillclimbing.com" className="text-sm font-bold uppercase tracking-tight hover:text-rockmill transition-colors">
+              <Link
+                href="https://rockmillclimbing.com"
+                className="text-sm font-bold uppercase tracking-tight hover:text-rockmill transition-colors"
+              >
                 Rock Mill Climbing
               </Link>
               <button
@@ -273,22 +333,28 @@ function MarketingContent({
                 Feedback
               </button>
             </nav>
-            <p className="text-xs text-slate-400 font-mono uppercase tracking-widest">Data Driven Climbing.</p>
+            <p className="text-xs text-slate-400 font-mono uppercase tracking-widest">
+              Data Driven Climbing.
+            </p>
           </div>
         </div>
       </footer>
 
       <style jsx global>{`
         @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
         }
         .animate-marquee {
           animation: marquee 30s linear infinite;
         }
       `}</style>
     </div>
-  )
+  );
 }
 
 export default function MarketingPageContent(props: MarketingPageContentProps) {

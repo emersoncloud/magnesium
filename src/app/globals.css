@@ -4,11 +4,12 @@
   --foreground-rgb: 15, 23, 42;
   --background-start-rgb: 248, 250, 252;
   --background-end-rgb: 241, 245, 249;
+  --safe-area-top: env(safe-area-inset-top);
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: #F8FAFC;
+  background: #f8fafc;
   min-height: 100vh;
 }
 
@@ -16,11 +17,11 @@ body {
   .text-balance {
     text-wrap: balance;
   }
-  
+
   .glass {
     @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-sm;
   }
-  
+
   .glass-hover {
     @apply hover:bg-white/80 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5;
   }
@@ -30,7 +31,7 @@ body {
   }
 
   .safe-area-top {
-    padding-top: env(safe-area-inset-top);
+    padding-top: var(--safe-area-top);
   }
 
   .pb-nav-safe {
@@ -38,24 +39,24 @@ body {
   }
 
   .pt-header-safe {
-    padding-top: calc(5rem + env(safe-area-inset-top));
+    padding-top: calc(5rem + var(--safe-area-top));
   }
 }
 
 @theme {
-  --color-rockmill: #E1261D;
+  --color-rockmill: #e1261d;
 
   /* Route Colors */
-  --color-route-purple: #7E297E;
-  --color-route-pink: #DB518C;
-  --color-route-blue: #468CCB;
-  --color-route-yellow: #F4EC1A;
-  --color-route-orange: #F58120;
+  --color-route-purple: #7e297e;
+  --color-route-pink: #db518c;
+  --color-route-blue: #468ccb;
+  --color-route-yellow: #f4ec1a;
+  --color-route-orange: #f58120;
   --color-route-black: #040706;
-  --color-route-white: #FCFDFF;
-  --color-route-green: #0D8040;
-  --color-route-tan: #CAA46D;
-  --color-route-wood: #F2EBD7;
+  --color-route-white: #fcfdff;
+  --color-route-green: #0d8040;
+  --color-route-tan: #caa46d;
+  --color-route-wood: #f2ebd7;
 }
 
 @keyframes shimmer {

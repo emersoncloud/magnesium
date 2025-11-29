@@ -47,6 +47,7 @@ export const metadata: Metadata = {
 
 import { Toaster } from "@/components/ui/Toaster";
 import { TooltipProvider } from "@/components/ui/Tooltip";
+import { CapacitorStatusBar } from "@/components/CapacitorStatusBar";
 
 export default function RootLayout({
   children,
@@ -59,6 +60,7 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
       <body className={`${outfit.className} bg-[#F8FAFC] text-slate-900 antialiased`}>
+        <CapacitorStatusBar />
         <TooltipProvider delayDuration={300} skipDelayDuration={0}>
           {children}
         </TooltipProvider>

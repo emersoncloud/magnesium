@@ -35,6 +35,7 @@ const createMockRoute = (overrides: Partial<BrowserRoute> = {}): BrowserRoute =>
   avg_rating: 4.2,
   comment_count: 5,
   user_status: null,
+  name: "Test Route",
   ...overrides,
 });
 

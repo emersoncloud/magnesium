@@ -22,12 +22,32 @@ export const routes = pgTable("routes", {
   attributes: jsonb("attributes").$type<string[]>().default([]),
   setter_notes: text("setter_notes"),
   setter_beta: text("setter_beta"),
+  setter_comment: text("setter_comment"),
   style: text("style"),
   hold_type: text("hold_type"),
   name: text("name"),
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
   removed_at: timestamp("removed_at", { withTimezone: true }),
 });
+
+export const upcomingRoutes = pgTable(
+  "upcoming_routes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    wall_id: text("wall_id").notNull(),
+    grade: text("grade").notNull(),
+    color: text("color").notNull(),
+    difficulty_label: text("difficulty_label"),
+    setter_comment: text("setter_comment"),
+    created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => {
+    return {
+      wallIdx: index("upcoming_routes_wall_idx").on(table.wall_id),
+    };
+  }
+);
 
 export const activityLogs = pgTable(
   "activity_logs",

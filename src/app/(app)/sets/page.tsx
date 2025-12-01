@@ -1,4 +1,4 @@
-import { getRoutes, getBrowserRoutes } from "@/app/actions";
+import { getRoutes, getBrowserRoutes, getUpcomingRoutes } from "@/app/actions";
 import { Suspense } from "react";
 import { WallCardSkeleton } from "@/components/skeletons";
 import SetsPageContent from "@/components/SetsPageContent";
@@ -47,11 +47,19 @@ function SetsPageSkeleton() {
 }
 
 export default async function SetsPage() {
-  const [allRoutes, browserRoutes] = await Promise.all([getRoutes(), getBrowserRoutes()]);
+  const [allRoutes, browserRoutes, upcomingRoutes] = await Promise.all([
+    getRoutes(),
+    getBrowserRoutes(),
+    getUpcomingRoutes(),
+  ]);
 
   return (
     <Suspense fallback={<SetsPageSkeleton />}>
-      <SetsPageContent allRoutes={allRoutes} browserRoutes={browserRoutes} />
+      <SetsPageContent
+        allRoutes={allRoutes}
+        browserRoutes={browserRoutes}
+        upcomingRoutes={upcomingRoutes}
+      />
     </Suspense>
   );
 }

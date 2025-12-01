@@ -11,6 +11,7 @@ import {
   achievements,
   achievementReactions,
   activityReactions,
+  upcomingRoutes,
 } from "@/lib/db/schema";
 import { desc, eq, sql, and, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -2015,4 +2016,26 @@ export async function getActivityReactionsBatch(activityIds: string[]) {
   }
 
   return reactionsByActivity;
+}
+
+export type UpcomingRouteData = {
+  id: string;
+  wall_id: string;
+  grade: string;
+  color: string;
+  difficulty_label: string | null;
+  setter_comment: string | null;
+};
+
+export async function getUpcomingRoutes(): Promise<UpcomingRouteData[]> {
+  const upcomingRoutesData = await db.select().from(upcomingRoutes);
+  return upcomingRoutesData;
+}
+
+export async function getUpcomingRoutesForWall(wallId: string): Promise<UpcomingRouteData[]> {
+  const upcomingRoutesData = await db
+    .select()
+    .from(upcomingRoutes)
+    .where(eq(upcomingRoutes.wall_id, wallId));
+  return upcomingRoutesData;
 }

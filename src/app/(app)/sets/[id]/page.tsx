@@ -1,9 +1,9 @@
-import { getBrowserRoutes } from "@/app/actions";
+import { getBrowserRoutes, getUpcomingRoutesForWall } from "@/app/actions";
 import { WALLS } from "@/lib/constants/walls";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import WallRouteList from "@/components/WallRouteList";
+import WallPageContent from "@/components/WallPageContent";
 
 export default async function WallPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -11,12 +11,15 @@ export default async function WallPage({ params }: { params: Promise<{ id: strin
 
   if (!wall) return notFound();
 
-  const allRoutes = await getBrowserRoutes();
+  const [allRoutes, upcomingRoutes] = await Promise.all([
+    getBrowserRoutes(),
+    getUpcomingRoutesForWall(id),
+  ]);
+
   const wallRoutes = allRoutes.filter((r) => r.wall_id === id);
 
   return (
     <div className="relative flex flex-col">
-      {/* Header */}
       <div className="relative z-10 p-6 pb-2 border-b-2 border-black/5 bg-white/80 backdrop-blur-sm shrink-0">
         <Link
           href="/sets"
@@ -39,8 +42,7 @@ export default async function WallPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
-      {/* Kinetic Shard Container */}
-      <WallRouteList routes={wallRoutes} />
+      <WallPageContent wallId={id} wallRoutes={wallRoutes} upcomingRoutes={upcomingRoutes} />
     </div>
   );
 }

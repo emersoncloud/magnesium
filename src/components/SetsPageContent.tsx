@@ -3,7 +3,7 @@
 import { WALLS } from "@/lib/constants/walls";
 import { SetCard } from "@/components/SetCard";
 import RouteBrowser from "@/components/RouteBrowser";
-import { BrowserRoute } from "@/app/actions";
+import { BrowserRoute, UpcomingRouteData } from "@/app/actions";
 import { LayoutGrid, List } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { parseDateString } from "@/lib/utils";
@@ -35,9 +35,14 @@ type ViewMode = "location" | "list";
 interface SetsPageContentProps {
   allRoutes: Route[];
   browserRoutes: BrowserRoute[];
+  upcomingRoutes: UpcomingRouteData[];
 }
 
-export default function SetsPageContent({ allRoutes, browserRoutes }: SetsPageContentProps) {
+export default function SetsPageContent({
+  allRoutes,
+  browserRoutes,
+  upcomingRoutes,
+}: SetsPageContentProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const viewMode: ViewMode = searchParams.get("view") === "list" ? "list" : "location";
@@ -64,9 +69,20 @@ export default function SetsPageContent({ allRoutes, browserRoutes }: SetsPageCo
     {} as Record<string, typeof activeRoutes>
   );
 
+  const upcomingRoutesByWall = upcomingRoutes.reduce(
+    (acc, route) => {
+      const wallId = route.wall_id;
+      if (!acc[wallId]) acc[wallId] = [];
+      acc[wallId].push({ grade: route.grade, color: route.color });
+      return acc;
+    },
+    {} as Record<string, { grade: string; color: string }[]>
+  );
+
   const renderWallCard = (wall: Wall, index: number, total: number) => {
     const wallRoutes = routesByWall[wall.id] || [];
     const routeCount = wallRoutes.length;
+    const wallUpcomingRoutes = upcomingRoutesByWall[wall.id] || [];
 
     let mostRecentDate = null;
     if (wallRoutes.length > 0) {
@@ -96,6 +112,7 @@ export default function SetsPageContent({ allRoutes, browserRoutes }: SetsPageCo
           routeCount={routeCount}
           date={mostRecentDate || undefined}
           colors={uniqueColors}
+          upcomingRoutes={wallUpcomingRoutes}
           className="h-full relative z-10"
         />
       </div>

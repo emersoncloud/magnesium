@@ -16,7 +16,7 @@ import {
 import { desc, eq, sql, and, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redis } from "@/lib/kv";
-import { getSheetData } from "@/lib/google-sheets";
+import { getSheetData, getUpcomingRoutesData } from "@/lib/google-sheets";
 import { WALLS, GRADES } from "@/lib/constants/walls";
 import { auth, isAdmin, signOut } from "@/lib/auth";
 import { notifyFeedback, notifyRouteSend } from "@/lib/telegram";
@@ -766,10 +766,19 @@ export type SyncRoute = {
   name: string | null;
 };
 
+export type UpcomingSyncRoute = {
+  wall_id: string;
+  grade: string;
+  color: string;
+  difficulty_label: string | null;
+  setter_comment: string | null;
+};
+
 export type SyncPreview = {
   newRoutes: SyncRoute[];
   existingRoutes: SyncRoute[];
   missingRoutes: SyncRoute[];
+  upcomingRoutes: UpcomingSyncRoute[];
 };
 
 export async function previewSync(): Promise<SyncPreview> {
@@ -840,7 +849,9 @@ export async function previewSync(): Promise<SyncPreview> {
 
   const missingRoutes = activeRoutes.filter((r) => !processedRouteIds.has(r.id));
 
-  return { newRoutes, existingRoutes, missingRoutes };
+  const upcomingRoutesFromSheet = await getUpcomingRoutesData();
+
+  return { newRoutes, existingRoutes, missingRoutes, upcomingRoutes: upcomingRoutesFromSheet };
 }
 
 export async function confirmSync() {
@@ -849,8 +860,12 @@ export async function confirmSync() {
     throw new Error("Unauthorized");
   }
 
-  // Re-run logic to be safe and stateless
-  const { newRoutes, existingRoutes, missingRoutes } = await previewSync();
+  const {
+    newRoutes,
+    existingRoutes,
+    missingRoutes,
+    upcomingRoutes: upcomingRoutesFromSheet,
+  } = await previewSync();
 
   let count = 0;
   let archivedCount = 0;
@@ -907,22 +922,64 @@ export async function confirmSync() {
   // Update Existing (Mutable fields)
   for (const route of existingRoutes) {
     if (!route.id) continue;
-    // We could optimize this to only update if changed, but for now just update mutable fields
     await db
       .update(routes)
       .set({
         style: route.style,
         hold_type: route.hold_type,
-        setter_name: route.setter_name, // Allow updating setter name too
+        setter_name: route.setter_name,
       })
       .where(eq(routes.id, route.id));
     updatedCount++;
   }
 
+  const existingRoutesWithoutNames = existingRoutes.filter((r) => r.id && !r.name);
+  let namedCount = 0;
+
+  if (existingRoutesWithoutNames.length > 0) {
+    try {
+      const routesForNaming = existingRoutesWithoutNames.map((route) => {
+        const wall = WALLS.find((w) => w.id === route.wall_id);
+        return {
+          grade: route.grade,
+          color: route.color,
+          style: route.style,
+          holdType: route.hold_type,
+          wallName: wall?.name || route.wall_id,
+        };
+      });
+      const backfillNames = await generateRouteNames(routesForNaming);
+
+      for (let i = 0; i < existingRoutesWithoutNames.length; i++) {
+        const route = existingRoutesWithoutNames[i];
+        const generatedName = backfillNames[i];
+        if (generatedName && route.id) {
+          await db.update(routes).set({ name: generatedName }).where(eq(routes.id, route.id));
+          namedCount++;
+        }
+      }
+    } catch (nameBackfillError) {
+      console.error("Failed to backfill route names:", nameBackfillError);
+    }
+  }
+
+  await db.execute(sql`TRUNCATE TABLE upcoming_routes`);
+  let upcomingCount = 0;
+  for (const route of upcomingRoutesFromSheet) {
+    await db.insert(upcomingRoutes).values({
+      wall_id: route.wall_id,
+      grade: route.grade,
+      color: route.color,
+      difficulty_label: route.difficulty_label,
+      setter_comment: route.setter_comment,
+    });
+    upcomingCount++;
+  }
+
   revalidatePath("/sets");
   revalidatePath("/sync");
 
-  return { success: true, count, archivedCount, updatedCount };
+  return { success: true, count, archivedCount, updatedCount, namedCount, upcomingCount };
 }
 
 export type RoutePlanSection = {

@@ -5,8 +5,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function parseDateString(dateString: string | null | undefined): Date {
+export function parseDateString(dateString: string | Date | null | undefined): Date {
   if (!dateString) return new Date();
+
+  if (dateString instanceof Date) {
+    return dateString;
+  }
+
+  const dateStringAlreadyHasTimeComponent = dateString.includes("T");
+  if (dateStringAlreadyHasTimeComponent) {
+    return new Date(dateString);
+  }
+
   return new Date(dateString + "T12:00:00");
 }
 export const ROUTE_COLORS: Record<string, string> = {

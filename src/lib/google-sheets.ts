@@ -47,97 +47,56 @@ export type UpcomingRoute = {
 export async function getUpcomingRoutesData(): Promise<UpcomingRoute[]> {
   const sheets = getSheetsClient();
 
-  const drawSheetRowsForFirstFourSets = "'Draw Sheet'!A1:L10";
-  const drawSheetRowsForSecondFourSets = "'Draw Sheet'!A12:L21";
+  const zoneSheetRanges = WALLS.map((_, index) => `'Zone ${index + 1}'!A2:I50`);
 
-  const [firstBatchResponse, secondBatchResponse, notesResponse] = await Promise.all([
-    sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
-      range: drawSheetRowsForFirstFourSets,
-    }),
-    sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
-      range: drawSheetRowsForSecondFourSets,
-    }),
-    sheets.spreadsheets.get({
-      spreadsheetId: SPREADSHEET_ID,
-      ranges: ["'Draw Sheet'!A1:L21"],
-      fields: "sheets.data.rowData.values(note,formattedValue)",
-    }),
-  ]);
-
-  const notesMap = new Map<string, string>();
-  const sheetData = notesResponse.data.sheets?.[0];
-  const rowData = sheetData?.data?.[0]?.rowData || [];
-  for (let rowIndex = 0; rowIndex < rowData.length; rowIndex++) {
-    const row = rowData[rowIndex];
-    const values = row.values || [];
-    for (let colIndex = 0; colIndex < values.length; colIndex++) {
-      const cell = values[colIndex];
-      if (cell.note) {
-        const cellKey = `${rowIndex}:${colIndex}`;
-        notesMap.set(cellKey, cell.note);
-      }
-    }
-  }
+  const zoneDataResponses = await Promise.all(
+    zoneSheetRanges.map((range) =>
+      sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range,
+      })
+    )
+  );
 
   const upcomingRoutes: UpcomingRoute[] = [];
 
-  const setsConfigForFirstBatch = [
-    { setNumber: 1, startCol: 0 },
-    { setNumber: 2, startCol: 3 },
-    { setNumber: 3, startCol: 6 },
-    { setNumber: 4, startCol: 9 },
-  ];
+  const todayInEST = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
+  todayInEST.setHours(0, 0, 0, 0);
 
-  const setsConfigForSecondBatch = [
-    { setNumber: 5, startCol: 0 },
-    { setNumber: 6, startCol: 3 },
-    { setNumber: 7, startCol: 6 },
-    { setNumber: 8, startCol: 9 },
-  ];
+  for (let zoneIndex = 0; zoneIndex < zoneDataResponses.length; zoneIndex++) {
+    const response = zoneDataResponses[zoneIndex];
+    const rows = response.data.values || [];
+    const wall = WALLS[zoneIndex];
 
-  function parseSetRoutes(
-    rows: string[][] | null | undefined,
-    setsConfig: { setNumber: number; startCol: number }[],
-    rowOffset: number
-  ) {
-    if (!rows) return;
+    for (const row of rows) {
+      const difficultyLabel = row[0] || null;
+      const color = row[1];
+      const grade = row[2];
+      const dateStr = row[7];
+      const notes = row[8] || null;
 
-    for (const { setNumber, startCol } of setsConfig) {
-      const zoneIndex = setNumber - 1;
-      if (zoneIndex >= WALLS.length) continue;
+      if (!color || !grade) continue;
 
-      const wall = WALLS[zoneIndex];
+      if (!dateStr) continue;
 
-      for (let rowIdx = 2; rowIdx < rows.length; rowIdx++) {
-        const row = rows[rowIdx];
-        if (!row) continue;
+      const parsedDate = new Date(dateStr);
+      if (isNaN(parsedDate.getTime())) continue;
 
-        const difficultyLabel = row[startCol] || null;
-        const color = row[startCol + 1];
-        const grade = row[startCol + 2];
+      const currentYear = new Date().getFullYear();
+      parsedDate.setFullYear(currentYear);
 
-        if (!color || !grade) continue;
+      const routeDateIsInFuture = parsedDate.getTime() > todayInEST.getTime();
+      if (!routeDateIsInFuture) continue;
 
-        const actualRowInSheet = rowOffset + rowIdx;
-        const gradeColIndex = startCol + 2;
-        const noteKey = `${actualRowInSheet}:${gradeColIndex}`;
-        const setterComment = notesMap.get(noteKey) || null;
-
-        upcomingRoutes.push({
-          wall_id: wall.id,
-          grade,
-          color,
-          difficulty_label: difficultyLabel,
-          setter_comment: setterComment,
-        });
-      }
+      upcomingRoutes.push({
+        wall_id: wall.id,
+        grade,
+        color,
+        difficulty_label: difficultyLabel,
+        setter_comment: notes,
+      });
     }
   }
-
-  parseSetRoutes(firstBatchResponse.data.values, setsConfigForFirstBatch, 0);
-  parseSetRoutes(secondBatchResponse.data.values, setsConfigForSecondBatch, 11);
 
   return upcomingRoutes;
 }

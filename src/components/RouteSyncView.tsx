@@ -6,9 +6,10 @@ import {
   confirmSync,
   SyncPreview,
   SyncRoute,
+  UpcomingSyncRoute,
   backfillAllUsersAchievements,
 } from "@/app/actions";
-import { RefreshCw, Check, AlertTriangle, Save, Trophy } from "lucide-react";
+import { RefreshCw, Check, AlertTriangle, Save, Trophy, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 // SyncRoute imported from actions
@@ -22,6 +23,8 @@ export default function RouteSyncView() {
     count: number;
     archivedCount: number;
     updatedCount: number;
+    namedCount: number;
+    upcomingCount: number;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [achievementStatus, setAchievementStatus] = useState<
@@ -183,14 +186,14 @@ export default function RouteSyncView() {
 
   if (status === "success" && syncResult) {
     return (
-      <div className="bg-green-50 p-8 rounded-xl border border-green-200 text-center max-w-2xl mx-auto">
+      <div className="bg-green-50 p-8 rounded-xl border border-green-200 text-center max-w-4xl mx-auto">
         <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
           <Check className="w-8 h-8 text-green-600" />
         </div>
         <h2 className="text-2xl font-bold text-green-900 mb-4">Sync Complete!</h2>
-        <div className="grid grid-cols-3 gap-4 mb-8 text-left">
+        <div className="grid grid-cols-5 gap-4 mb-8 text-left">
           <div className="bg-white p-4 rounded-lg border border-green-100 shadow-sm">
-            <div className="text-sm text-gray-500 mb-1">New Routes</div>
+            <div className="text-sm text-gray-500 mb-1">New</div>
             <div className="text-2xl font-bold text-green-600">+{syncResult.count}</div>
           </div>
           <div className="bg-white p-4 rounded-lg border border-green-100 shadow-sm">
@@ -200,6 +203,14 @@ export default function RouteSyncView() {
           <div className="bg-white p-4 rounded-lg border border-green-100 shadow-sm">
             <div className="text-sm text-gray-500 mb-1">Archived</div>
             <div className="text-2xl font-bold text-red-600">-{syncResult.archivedCount}</div>
+          </div>
+          <div className="bg-white p-4 rounded-lg border border-purple-100 shadow-sm">
+            <div className="text-sm text-gray-500 mb-1">Named</div>
+            <div className="text-2xl font-bold text-purple-600">{syncResult.namedCount}</div>
+          </div>
+          <div className="bg-white p-4 rounded-lg border border-amber-100 shadow-sm">
+            <div className="text-sm text-gray-500 mb-1">Upcoming</div>
+            <div className="text-2xl font-bold text-amber-600">{syncResult.upcomingCount}</div>
           </div>
         </div>
         <button
@@ -213,7 +224,7 @@ export default function RouteSyncView() {
   }
 
   if (status === "preview" && previewData) {
-    const { newRoutes, existingRoutes, missingRoutes } = previewData;
+    const { newRoutes, existingRoutes, missingRoutes, upcomingRoutes } = previewData;
 
     // For existing routes, we might want to filter or show only if we had a way to know they changed.
     // The current previewSync logic returns ALL existing routes.
@@ -239,7 +250,7 @@ export default function RouteSyncView() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* New Routes */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="bg-green-50 px-4 py-3 border-b border-green-100 flex justify-between items-center">
@@ -352,6 +363,54 @@ export default function RouteSyncView() {
                   </li>
                 )}
               </ul>
+            </div>
+          </div>
+
+          {/* Upcoming Routes */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-amber-50 px-4 py-3 border-b border-amber-100 flex justify-between items-center">
+              <h3 className="font-bold text-amber-800 flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                Upcoming
+              </h3>
+              <span className="bg-amber-200 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">
+                {upcomingRoutes.length}
+              </span>
+            </div>
+            <div className="max-h-96 overflow-y-auto p-0">
+              {upcomingRoutes.length === 0 ? (
+                <div className="p-8 text-center text-gray-400 italic">No upcoming routes</div>
+              ) : (
+                <ul className="divide-y divide-gray-100">
+                  {upcomingRoutes.slice(0, 15).map((route: UpcomingSyncRoute, i: number) => (
+                    <li key={i} className="p-3 hover:bg-gray-50">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="font-bold text-gray-900">
+                            {route.grade} - {route.color}
+                          </div>
+                          <div className="text-xs text-gray-500">{route.wall_id}</div>
+                        </div>
+                        {route.difficulty_label && (
+                          <span className="text-xs bg-amber-100 px-1.5 py-0.5 rounded text-amber-700">
+                            {route.difficulty_label}
+                          </span>
+                        )}
+                      </div>
+                      {route.setter_comment && (
+                        <div className="text-xs text-gray-500 mt-1 italic">
+                          {route.setter_comment}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                  {upcomingRoutes.length > 15 && (
+                    <li className="p-3 text-center text-xs text-gray-500 italic">
+                      ...and {upcomingRoutes.length - 15} more
+                    </li>
+                  )}
+                </ul>
+              )}
             </div>
           </div>
         </div>

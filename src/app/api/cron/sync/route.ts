@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { routes, activityLogs } from "@/lib/db/schema";
+import { routes, upcomingRoutes } from "@/lib/db/schema";
 import { eq, sql } from "drizzle-orm";
-import { getSheetData } from "@/lib/google-sheets";
+import { getSheetData, getUpcomingRoutesData } from "@/lib/google-sheets";
 import { WALLS } from "@/lib/constants/walls";
 import { notifyRouteSync, notifyTooManyRoutesToArchive } from "@/lib/telegram";
 import { revalidatePath } from "next/cache";
@@ -156,13 +156,64 @@ async function performSync() {
       .where(eq(routes.id, route.id));
   }
 
+  const routesWithoutNames = activeRoutes.filter((r) => !r.name && processedRouteIds.has(r.id));
+  let namedCount = 0;
+
+  if (routesWithoutNames.length > 0) {
+    try {
+      const routesForNaming = routesWithoutNames.map((route) => {
+        const wall = WALLS.find((w) => w.id === route.wall_id);
+        return {
+          grade: route.grade,
+          color: route.color,
+          style: route.style,
+          holdType: route.hold_type,
+          wallName: wall?.name || route.wall_id,
+        };
+      });
+      const backfillNames = await generateRouteNames(routesForNaming);
+
+      for (let i = 0; i < routesWithoutNames.length; i++) {
+        const route = routesWithoutNames[i];
+        const generatedName = backfillNames[i];
+        if (generatedName) {
+          await db.update(routes).set({ name: generatedName }).where(eq(routes.id, route.id));
+          namedCount++;
+        }
+      }
+    } catch (nameBackfillError) {
+      console.error("Failed to backfill route names:", nameBackfillError);
+    }
+  }
+
   return {
     addedCount,
     archivedCount,
+    namedCount,
     addedRoutesSummary,
     skippedDueToTooManyArchives: false,
     routesThatWouldBeArchivedCount: 0,
   };
+}
+
+async function performUpcomingSync() {
+  const upcomingRoutesFromSheet = await getUpcomingRoutesData();
+
+  await db.execute(sql`TRUNCATE TABLE upcoming_routes`);
+
+  let addedCount = 0;
+  for (const route of upcomingRoutesFromSheet) {
+    await db.insert(upcomingRoutes).values({
+      wall_id: route.wall_id,
+      grade: route.grade,
+      color: route.color,
+      difficulty_label: route.difficulty_label,
+      setter_comment: route.setter_comment,
+    });
+    addedCount++;
+  }
+
+  return { upcomingCount: addedCount };
 }
 
 export async function GET(request: NextRequest) {
@@ -177,10 +228,13 @@ export async function GET(request: NextRequest) {
     const {
       addedCount,
       archivedCount,
+      namedCount,
       addedRoutesSummary,
       skippedDueToTooManyArchives,
       routesThatWouldBeArchivedCount,
     } = await performSync();
+
+    const { upcomingCount } = await performUpcomingSync();
 
     if (skippedDueToTooManyArchives) {
       await notifyTooManyRoutesToArchive(routesThatWouldBeArchivedCount);
@@ -188,6 +242,7 @@ export async function GET(request: NextRequest) {
         success: false,
         added: 0,
         archived: 0,
+        upcoming: upcomingCount,
         skipped: true,
         message: `Sync skipped: ${routesThatWouldBeArchivedCount} routes would be archived, which exceeds the safety limit of 10. A warning was sent to Telegram.`,
       });
@@ -195,9 +250,10 @@ export async function GET(request: NextRequest) {
 
     if (addedCount > 0 || archivedCount > 0) {
       await notifyRouteSync(addedRoutesSummary, archivedCount);
-      revalidatePath("/sets");
-      revalidatePath("/sync");
     }
+
+    revalidatePath("/sets");
+    revalidatePath("/sync");
 
     try {
       await backfillAllAchievements();
@@ -205,14 +261,22 @@ export async function GET(request: NextRequest) {
       console.error("Achievement backfill during sync failed:", achievementError);
     }
 
+    const messageParts = [];
+    if (addedCount > 0) messageParts.push(`${addedCount} added`);
+    if (archivedCount > 0) messageParts.push(`${archivedCount} archived`);
+    if (namedCount && namedCount > 0) messageParts.push(`${namedCount} named`);
+    messageParts.push(`${upcomingCount} upcoming`);
+
     return NextResponse.json({
       success: true,
       added: addedCount,
       archived: archivedCount,
+      named: namedCount || 0,
+      upcoming: upcomingCount,
       message:
-        addedCount === 0 && archivedCount === 0
-          ? "No changes detected"
-          : `Synced: ${addedCount} added, ${archivedCount} archived`,
+        addedCount === 0 && archivedCount === 0 && (!namedCount || namedCount === 0)
+          ? `No route changes detected. ${upcomingCount} upcoming routes synced.`
+          : `Synced: ${messageParts.join(", ")}`,
     });
   } catch (error) {
     console.error("Cron sync failed:", error);

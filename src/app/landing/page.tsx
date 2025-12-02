@@ -62,11 +62,13 @@ export default async function LandingPage() {
         )
       );
 
+      const maxDateObject = new Date(maxDate);
+      const formattedDateForSetCard = `${maxDateObject.getFullYear()}-${String(maxDateObject.getMonth() + 1).padStart(2, "0")}-${String(maxDateObject.getDate()).padStart(2, "0")}`;
       newestSet = {
         wallName,
         count: data.count,
         colors: setColors,
-        date: new Date(maxDate).toISOString(),
+        date: formattedDateForSetCard,
       };
     }
   });

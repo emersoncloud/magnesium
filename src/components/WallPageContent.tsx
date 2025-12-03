@@ -6,6 +6,7 @@ import WallRouteList from "@/components/WallRouteList";
 import { Sparkles, Eye, EyeOff } from "lucide-react";
 import { cn, getRouteColor } from "@/lib/utils";
 import { GradeDisplay } from "@/components/GradeDisplay";
+import { useBrowserRoutes } from "@/hooks/useRoutes";
 
 class SeededRNG {
   private seed: number;
@@ -46,15 +47,19 @@ function generateOrganicStyles(routeId: string, wallId: string, grade: string) {
 
 interface WallPageContentProps {
   wallId: string;
-  wallRoutes: BrowserRoute[];
+  initialBrowserRoutes: BrowserRoute[];
   upcomingRoutes: UpcomingRouteData[];
 }
 
 export default function WallPageContent({
   wallId,
-  wallRoutes,
+  initialBrowserRoutes,
   upcomingRoutes,
 }: WallPageContentProps) {
+  // Use cached routes - filters by wallId from the full cached dataset
+  const { data: allRoutes = initialBrowserRoutes } = useBrowserRoutes(initialBrowserRoutes);
+  const wallRoutes = allRoutes.filter((r) => r.wall_id === wallId);
+
   const [showUpcoming, setShowUpcoming] = useState(false);
   const hasUpcomingRoutes = upcomingRoutes.length > 0;
 

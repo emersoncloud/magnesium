@@ -11,14 +11,17 @@ import { WallSelector } from "./WallSelector";
 import { Preload } from "@react-three/drei";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { useBrowserRoutes } from "@/hooks/useRoutes";
 
 const DEFAULT_CAMERA_POSITION: [number, number, number] = [8, 8, 15];
 
 type GymSceneProps = {
-  routes: BrowserRoute[];
+  initialRoutes: BrowserRoute[];
 };
 
-export default function GymScene({ routes }: GymSceneProps) {
+export default function GymScene({ initialRoutes }: GymSceneProps) {
+  // Use cached routes with server-fetched initial data
+  const { data: routes = initialRoutes } = useBrowserRoutes(initialRoutes);
   const [selectedWallId, setSelectedWallId] = useState<string | null>(null);
 
   const selectedWallRoutes = routes.filter((r) => r.wall_id === selectedWallId);

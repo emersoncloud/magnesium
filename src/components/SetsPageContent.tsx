@@ -7,22 +7,8 @@ import { BrowserRoute, UpcomingRouteData } from "@/app/actions";
 import { LayoutGrid, List } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { parseDateString } from "@/lib/utils";
-
-type Route = {
-  id: string;
-  wall_id: string;
-  grade: string;
-  color: string;
-  setter_name: string;
-  set_date: string;
-  status: string;
-  attributes: string[] | null;
-  difficulty_label: string | null;
-  setter_notes: string | null;
-  setter_beta: string | null;
-  style: string | null;
-  hold_type: string | null;
-};
+import { useBrowserRoutes, useUpcomingRoutes } from "@/hooks/useRoutes";
+import { WallCardSkeleton } from "@/components/skeletons";
 
 type Wall = {
   id: string;
@@ -33,16 +19,20 @@ type Wall = {
 type ViewMode = "location" | "list";
 
 interface SetsPageContentProps {
-  allRoutes: Route[];
-  browserRoutes: BrowserRoute[];
-  upcomingRoutes: UpcomingRouteData[];
+  initialBrowserRoutes?: BrowserRoute[];
+  initialUpcomingRoutes?: UpcomingRouteData[];
 }
 
 export default function SetsPageContent({
-  allRoutes,
-  browserRoutes,
-  upcomingRoutes,
+  initialBrowserRoutes,
+  initialUpcomingRoutes,
 }: SetsPageContentProps) {
+  // Use cached queries - will use cache if available, otherwise fetch
+  const { data: browserRoutes, isLoading: routesLoading } = useBrowserRoutes(initialBrowserRoutes);
+  const { data: upcomingRoutes = [] } = useUpcomingRoutes(initialUpcomingRoutes);
+
+  // Show skeleton only if truly loading (no cached data)
+  const isLoading = routesLoading && !browserRoutes;
   const searchParams = useSearchParams();
   const router = useRouter();
   const viewMode: ViewMode = searchParams.get("view") === "list" ? "list" : "location";
@@ -57,19 +47,18 @@ export default function SetsPageContent({
     router.replace(`/sets?${params.toString()}`, { scroll: false });
   };
 
-  const activeRoutes = allRoutes.filter((route) => route.status === "active");
-
-  const routesByWall = activeRoutes.reduce(
+  // browserRoutes already contains only active routes
+  const routesByWall = (browserRoutes || []).reduce(
     (acc, route) => {
       const wallId = route.wall_id;
       if (!acc[wallId]) acc[wallId] = [];
       acc[wallId].push(route);
       return acc;
     },
-    {} as Record<string, typeof activeRoutes>
+    {} as Record<string, BrowserRoute[]>
   );
 
-  const upcomingRoutesByWall = upcomingRoutes.reduce(
+  const upcomingRoutesByWall = (upcomingRoutes || []).reduce(
     (acc, route) => {
       const wallId = route.wall_id;
       if (!acc[wallId]) acc[wallId] = [];
@@ -163,12 +152,14 @@ export default function SetsPageContent({
               Right to Left
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-8">
-              {WALLS.map((wall, i) => renderWallCard(wall, i, WALLS.length))}
+              {isLoading
+                ? Array.from({ length: 12 }).map((_, i) => <WallCardSkeleton key={i} />)
+                : WALLS.map((wall, i) => renderWallCard(wall, i, WALLS.length))}
             </div>
           </div>
         </div>
       ) : (
-        <RouteBrowser routes={browserRoutes} />
+        <RouteBrowser routes={browserRoutes || []} />
       )}
     </div>
   );

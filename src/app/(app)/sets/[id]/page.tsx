@@ -16,8 +16,6 @@ export default async function WallPage({ params }: { params: Promise<{ id: strin
     getUpcomingRoutesForWall(id),
   ]);
 
-  const wallRoutes = allRoutes.filter((r) => r.wall_id === id);
-
   return (
     <div className="relative flex flex-col">
       <div className="relative z-10 p-6 pb-2 border-b-2 border-black/5 bg-white/80 backdrop-blur-sm shrink-0">
@@ -42,7 +40,11 @@ export default async function WallPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
-      <WallPageContent wallId={id} wallRoutes={wallRoutes} upcomingRoutes={upcomingRoutes} />
+      <WallPageContent
+        wallId={id}
+        initialBrowserRoutes={allRoutes}
+        upcomingRoutes={upcomingRoutes}
+      />
     </div>
   );
 }

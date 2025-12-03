@@ -9,5 +9,5 @@ export const metadata = {
 export default async function GymPage() {
   const routes = await getBrowserRoutes();
 
-  return <GymScene routes={routes} />;
+  return <GymScene initialRoutes={routes} />;
 }

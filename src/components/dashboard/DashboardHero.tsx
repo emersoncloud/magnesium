@@ -62,41 +62,37 @@ export default function DashboardHero({ user, userStats }: DashboardHeroProps) {
 
   if (user) {
     const firstName = user.name?.split(" ")[0] || "Climber";
-    const weeklyActivitySuffix = userStats?.routesThisWeek
-      ? ` — ${userStats.routesThisWeek} route${userStats.routesThisWeek === 1 ? "" : "s"} this week`
-      : "";
 
     return (
       <>
         <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
-        <div className="relative overflow-hidden bg-rockmill p-6 md:p-8 mb-6">
+        <div className="relative overflow-hidden bg-rockmill p-4 md:p-8 mb-6">
           <div className="relative z-10">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter mb-2">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tighter">
                   {firstName}
                 </h1>
-                <p className="text-white/80 text-lg font-medium mb-3">
-                  {greetingMessage}
-                  {weeklyActivitySuffix}
+                <p className="text-white/80 text-sm md:text-lg font-medium">{greetingMessage}</p>
+                <p className="text-white/60 text-xs md:text-sm italic mt-1">
+                  &ldquo;{inspirationalMessage}&rdquo;
                 </p>
-                <p className="text-white/60 text-sm italic">&ldquo;{inspirationalMessage}&rdquo;</p>
               </div>
               <button
                 onClick={() => setIsFeedbackOpen(true)}
-                className="shrink-0 h-10 p-3 bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                className="shrink-0 h-8 md:h-10 px-2 md:p-3 bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
                 aria-label="Send Feedback"
               >
-                <div className="flex text-white gap-2 justify-center align-baseline">
-                  <span>Feedback</span>
-                  <MessageSquare className="w-5 h-5 text-white" />
+                <div className="flex text-white gap-1.5 md:gap-2 justify-center items-center">
+                  <span className="text-sm md:text-base">Feedback</span>
+                  <MessageSquare className="w-4 h-4 md:w-5 md:h-5 text-white" />
                 </div>
               </button>
             </div>
 
             {userStats && userStats.currentStreak > 0 && (
-              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-2 mt-4">
-                <span className="text-white font-black text-sm">
+              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-3 py-1.5 md:px-4 md:py-2 mt-3">
+                <span className="text-white font-black text-xs md:text-sm">
                   {userStats.currentStreak} day streak
                 </span>
               </div>
@@ -110,17 +106,17 @@ export default function DashboardHero({ user, userStats }: DashboardHeroProps) {
   return (
     <>
       <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
-      <div className="relative overflow-hidden bg-rockmill p-6 md:p-8 mb-6">
+      <div className="relative overflow-hidden bg-rockmill p-4 md:p-8 mb-6">
         <div className="relative z-10">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter mb-2">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tighter">
                 Overview
               </h1>
-              <p className="text-white/80 text-lg font-medium mb-3 max-w-md">
+              <p className="text-white/80 text-sm md:text-lg font-medium max-w-md">
                 Track your sends, explore routes, and level up your climbing game.
               </p>
-              <p className="text-white/60 text-sm italic mb-6">
+              <p className="text-white/60 text-xs md:text-sm italic mt-1 mb-4">
                 &ldquo;{inspirationalMessage}&rdquo;
               </p>
 
@@ -134,10 +130,10 @@ export default function DashboardHero({ user, userStats }: DashboardHeroProps) {
 
             <button
               onClick={() => setIsFeedbackOpen(true)}
-              className="shrink-0 w-10 h-10 bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              className="shrink-0 w-8 h-8 md:w-10 md:h-10 bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
               aria-label="Send Feedback"
             >
-              <MessageSquare className="w-5 h-5 text-white" />
+              <MessageSquare className="w-4 h-4 md:w-5 md:h-5 text-white" />
             </button>
           </div>
         </div>

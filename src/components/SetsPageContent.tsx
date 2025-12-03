@@ -136,58 +136,68 @@ export default function SetsPageContent({
     );
   };
 
+  const viewToggle = (
+    <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
+      <button
+        onClick={() => setViewMode("location")}
+        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
+          viewMode === "location"
+            ? "bg-white text-slate-900 shadow-sm"
+            : "text-slate-500 hover:text-slate-700"
+        }`}
+      >
+        <LayoutGrid className="w-4 h-4" />
+        <span className="hidden sm:inline">Grid</span>
+      </button>
+      <button
+        onClick={() => setViewMode("list")}
+        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
+          viewMode === "list"
+            ? "bg-white text-slate-900 shadow-sm"
+            : "text-slate-500 hover:text-slate-700"
+        }`}
+      >
+        <List className="w-4 h-4" />
+        <span className="hidden sm:inline">List</span>
+      </button>
+    </div>
+  );
+
   return (
-    <div className="space-y-8 py-8 md:py-12">
-      <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-6xl font-black text-slate-900 uppercase tracking-tighter mb-2">
-            Current Sets
-          </h1>
-          <p className="text-slate-500 font-mono text-sm uppercase tracking-widest">
-            What&apos;s on the wall
-          </p>
-        </div>
-        <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
-          <button
-            onClick={() => setViewMode("location")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-              viewMode === "location"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            <LayoutGrid className="w-10 h-10" />
-            <span className="hidden sm:inline text-xl">By Location</span>
-          </button>
-          <button
-            onClick={() => setViewMode("list")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-              viewMode === "list"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            <List className="w-10 h-10" />
-            <span className="hidden sm:inline text-xl">As List</span>
-          </button>
-        </div>
+    <div className="py-6 md:py-8">
+      <div className="mb-6">
+        <h1 className="text-3xl md:text-5xl font-black text-slate-900 uppercase tracking-tighter">
+          Current Sets
+        </h1>
+        <p className="text-slate-500 font-mono text-xs md:text-sm uppercase tracking-widest mt-1">
+          What&apos;s on the wall
+        </p>
       </div>
 
       {viewMode === "location" ? (
-        <div className="space-y-12">
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-800 uppercase tracking-wider border-b border-slate-200 pb-2">
+        <div>
+          <div className="flex items-center justify-between border-b border-slate-200 pb-2 mb-4">
+            <h2 className="text-sm font-bold text-slate-600 uppercase tracking-wider">
               Right to Left
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-8">
-              {isLoading
-                ? Array.from({ length: 12 }).map((_, i) => <WallCardSkeleton key={i} />)
-                : WALLS.map((wall, i) => renderWallCard(wall, i, WALLS.length))}
-            </div>
+            {viewToggle}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {isLoading
+              ? Array.from({ length: 12 }).map((_, i) => <WallCardSkeleton key={i} />)
+              : WALLS.map((wall, i) => renderWallCard(wall, i, WALLS.length))}
           </div>
         </div>
       ) : (
-        <RouteBrowser routes={browserRoutes || []} />
+        <div>
+          <div className="flex items-center justify-between border-b border-slate-200 pb-2 mb-4">
+            <h2 className="text-sm font-bold text-slate-600 uppercase tracking-wider">
+              All Routes
+            </h2>
+            {viewToggle}
+          </div>
+          <RouteBrowser routes={browserRoutes || []} />
+        </div>
       )}
     </div>
   );

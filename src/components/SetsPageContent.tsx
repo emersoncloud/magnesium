@@ -9,6 +9,9 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { parseDateString } from "@/lib/utils";
 import { useBrowserRoutes, useUpcomingRoutes } from "@/hooks/useRoutes";
 import { WallCardSkeleton } from "@/components/skeletons";
+import { useEffect } from "react";
+
+const SCROLL_KEY = "sets-scroll-position";
 
 type Wall = {
   id: string;
@@ -36,6 +39,30 @@ export default function SetsPageContent({
   const searchParams = useSearchParams();
   const router = useRouter();
   const viewMode: ViewMode = searchParams.get("view") === "list" ? "list" : "location";
+
+  // Restore scroll position after data loads
+  useEffect(() => {
+    const saved = sessionStorage.getItem(SCROLL_KEY);
+    if (!saved) return;
+
+    // Only restore once we have data (not loading)
+    if (isLoading || !browserRoutes) return;
+
+    const scrollY = parseInt(saved, 10);
+    sessionStorage.removeItem(SCROLL_KEY);
+
+    // Double RAF to ensure DOM is fully settled after React render
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: scrollY, behavior: "instant" });
+      });
+    });
+  }, [isLoading, browserRoutes]);
+
+  // Save scroll position before navigating to a wall
+  const saveScrollPosition = () => {
+    sessionStorage.setItem(SCROLL_KEY, window.scrollY.toString());
+  };
 
   const setViewMode = (mode: ViewMode) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -103,6 +130,7 @@ export default function SetsPageContent({
           colors={uniqueColors}
           upcomingRoutes={wallUpcomingRoutes}
           className="h-full relative z-10"
+          onClick={saveScrollPosition}
         />
       </div>
     );

@@ -4,6 +4,10 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  experimental: {
+    // Disable Next.js scroll restoration so we can handle it manually
+    scrollRestoration: true,
+  },
   rewrites: async () => {
     return [
       {

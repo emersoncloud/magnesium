@@ -16,6 +16,7 @@ interface SetCardProps {
   wallId?: string;
   className?: string;
   upcomingRoutes?: UpcomingRoutePreview[];
+  onClick?: () => void;
 }
 
 const COLOR_MAP: Record<string, string> = {
@@ -61,6 +62,7 @@ export function SetCard({
   wallId,
   className,
   upcomingRoutes = [],
+  onClick,
 }: SetCardProps) {
   const sevenDaysInMs = 1000 * 60 * 60 * 24 * 7;
   const isNew = date && new Date().getTime() - new Date(date).getTime() < sevenDaysInMs;
@@ -141,7 +143,7 @@ export function SetCard({
 
   if (wallId) {
     return (
-      <Link href={`/sets/${wallId}`} className="block">
+      <Link href={`/sets/${wallId}`} className="block" onClick={onClick}>
         {Content}
       </Link>
     );

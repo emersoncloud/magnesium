@@ -772,6 +772,7 @@ export type UpcomingSyncRoute = {
   color: string;
   difficulty_label: string | null;
   setter_comment: string | null;
+  set_date: string;
 };
 
 export type SyncPreview = {
@@ -972,6 +973,7 @@ export async function confirmSync() {
       color: route.color,
       difficulty_label: route.difficulty_label,
       setter_comment: route.setter_comment,
+      set_date: route.set_date,
     });
     upcomingCount++;
   }
@@ -2082,6 +2084,7 @@ export type UpcomingRouteData = {
   color: string;
   difficulty_label: string | null;
   setter_comment: string | null;
+  set_date: string | null;
 };
 
 export async function getUpcomingRoutes(): Promise<UpcomingRouteData[]> {

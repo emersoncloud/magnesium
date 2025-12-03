@@ -42,6 +42,7 @@ export type UpcomingRoute = {
   color: string;
   difficulty_label: string | null;
   setter_comment: string | null;
+  set_date: string; // YYYY-MM-DD format
 };
 
 export async function getUpcomingRoutesData(): Promise<UpcomingRoute[]> {
@@ -94,6 +95,7 @@ export async function getUpcomingRoutesData(): Promise<UpcomingRoute[]> {
         color,
         difficulty_label: difficultyLabel,
         setter_comment: notes,
+        set_date: parsedDate.toISOString().split("T")[0], // YYYY-MM-DD
       });
     }
   }

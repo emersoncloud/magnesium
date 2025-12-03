@@ -1,12 +1,7 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { cn, parseDateString } from "@/lib/utils";
-import { Sparkles } from "lucide-react";
-
-type UpcomingRoutePreview = {
-  grade: string;
-  color: string;
-};
+import { Flame } from "lucide-react";
 
 interface SetCardProps {
   wallName: string;
@@ -15,7 +10,7 @@ interface SetCardProps {
   colors?: string[];
   wallId?: string;
   className?: string;
-  upcomingRoutes?: UpcomingRoutePreview[];
+  changingDate?: string | null; // YYYY-MM-DD format - when the wall will be reset
   onClick?: () => void;
 }
 
@@ -61,7 +56,7 @@ export function SetCard({
   colors = [],
   wallId,
   className,
-  upcomingRoutes = [],
+  changingDate,
   onClick,
 }: SetCardProps) {
   const sevenDaysInMs = 1000 * 60 * 60 * 24 * 7;
@@ -69,9 +64,13 @@ export function SetCard({
   const reversedColors = [...colors].reverse();
   const colorWidths = getNormalizedWidths(reversedColors);
 
-  const hasUpcomingRoutes = upcomingRoutes.length > 0;
-  const upcomingColorsForPreview = upcomingRoutes.map((r) => r.color);
-  const upcomingColorWidths = getNormalizedWidths(upcomingColorsForPreview);
+  // Format the changing date for display
+  const formattedChangingDate = changingDate
+    ? parseDateString(changingDate).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      })
+    : null;
 
   const Content = (
     <Card
@@ -83,14 +82,16 @@ export function SetCard({
       <div className="flex items-center justify-between mb-2">
         <div className="font-black uppercase tracking-tighter text-lg">{wallName}</div>
         <div className="flex items-center gap-2">
-          {hasUpcomingRoutes && (
-            <div className="text-xs font-mono bg-amber-500 px-2 py-0.5 text-white transform -skew-x-12 flex items-center gap-1">
-              <Sparkles className="w-3 h-3 transform skew-x-12" />
-              <span className="transform skew-x-12 block">COMING</span>
+          {formattedChangingDate && (
+            <div className="text-xs font-mono bg-amber-500 px-2 py-0.5 text-white transform -skew-x-12">
+              <span className="transform skew-x-12 block">
+                CHANGING {formattedChangingDate.toUpperCase()}
+              </span>
             </div>
           )}
           {isNew && (
-            <div className="text-xs font-mono bg-rockmill px-2 py-0.5 text-white transform -skew-x-12">
+            <div className="text-xs font-mono bg-lime-500 px-2 py-0.5 text-white transform -skew-x-12 flex items-center gap-1">
+              <Flame className="w-3 h-3 transform skew-x-12" />
               <span className="transform skew-x-12 block">FRESH</span>
             </div>
           )}
@@ -116,27 +117,6 @@ export function SetCard({
             />
           ))}
         </div>
-
-        {hasUpcomingRoutes && (
-          <div className="pt-2 border-t border-dashed border-slate-300">
-            <div className="flex items-center justify-between text-xs font-mono text-amber-600 mb-2">
-              <span className="flex items-center gap-1">
-                <Sparkles className="w-3 h-3" />
-                Coming Soon
-              </span>
-              <span>{upcomingRoutes.length} new routes</span>
-            </div>
-            <div className="flex h-3 w-full rounded overflow-hidden border border-amber-400 opacity-75">
-              {upcomingColorsForPreview.map((colorName, i) => (
-                <div
-                  key={i}
-                  style={{ width: `${upcomingColorWidths[i]}%` }}
-                  className={cn("h-full", COLOR_MAP[colorName] || "bg-gray-400")}
-                />
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </Card>
   );

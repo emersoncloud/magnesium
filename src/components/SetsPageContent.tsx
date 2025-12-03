@@ -85,20 +85,23 @@ export default function SetsPageContent({
     {} as Record<string, BrowserRoute[]>
   );
 
-  const upcomingRoutesByWall = (upcomingRoutes || []).reduce(
+  // Get the earliest changing date per wall
+  const changingDateByWall = (upcomingRoutes || []).reduce(
     (acc, route) => {
       const wallId = route.wall_id;
-      if (!acc[wallId]) acc[wallId] = [];
-      acc[wallId].push({ grade: route.grade, color: route.color });
+      if (!route.set_date) return acc;
+      if (!acc[wallId] || route.set_date < acc[wallId]) {
+        acc[wallId] = route.set_date;
+      }
       return acc;
     },
-    {} as Record<string, { grade: string; color: string }[]>
+    {} as Record<string, string>
   );
 
   const renderWallCard = (wall: Wall, index: number, total: number) => {
     const wallRoutes = routesByWall[wall.id] || [];
     const routeCount = wallRoutes.length;
-    const wallUpcomingRoutes = upcomingRoutesByWall[wall.id] || [];
+    const changingDate = changingDateByWall[wall.id] || null;
 
     let mostRecentDate = null;
     if (wallRoutes.length > 0) {
@@ -128,7 +131,7 @@ export default function SetsPageContent({
           routeCount={routeCount}
           date={mostRecentDate || undefined}
           colors={uniqueColors}
-          upcomingRoutes={wallUpcomingRoutes}
+          changingDate={changingDate}
           className="h-full relative z-10"
           onClick={saveScrollPosition}
         />

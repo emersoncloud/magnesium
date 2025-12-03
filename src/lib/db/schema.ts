@@ -39,6 +39,7 @@ export const upcomingRoutes = pgTable(
     color: text("color").notNull(),
     difficulty_label: text("difficulty_label"),
     setter_comment: text("setter_comment"),
+    set_date: text("set_date"), // YYYY-MM-DD - when the routes will be set
     created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow(),
   },

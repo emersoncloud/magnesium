@@ -70,7 +70,7 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
           </div>
         </div>
       ) : (
-        <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-8 md:gap-x-8 md:gap-y-12 max-w-7xl mx-auto">
+        <div className="grid grid-cols-3 md:flex md:flex-wrap md:justify-center md:items-center gap-3 md:gap-x-8 md:gap-y-12 max-w-7xl mx-auto justify-items-center">
           {routes.map((route) => {
             const styles = generateOrganicStyles(route.id, route.wall_id, route.grade);
             const routeIsSelected = selectedRouteId === route.id;
@@ -84,7 +84,7 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
                 onClick={() => handleRouteClick(route.id, route.color)}
                 disabled={isPending}
                 className={cn(
-                  "relative group w-[6.5rem] h-[6.5rem] md:w-36 md:h-36 lg:w-44 lg:h-44 shrink-0 transition-[z-index] duration-300",
+                  "relative group w-full aspect-square max-w-[6.5rem] md:w-36 md:h-36 md:max-w-none lg:w-44 lg:h-44 shrink-0 transition-[z-index] duration-300",
                   routeIsSelected ? "z-20" : "z-0 hover:z-10",
                   isPending && !routeIsLoading && "opacity-50"
                 )}
@@ -115,15 +115,15 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
                         <Loader2 className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 animate-spin text-black/70" />
                       </div>
                     ) : (
-                      <div className="relative z-10 bg-white/40 backdrop-blur-[2px] rounded-lg md:rounded-xl p-1 md:p-1.5 lg:p-2 min-w-[40px] md:min-w-[50px] lg:min-w-[60px] flex flex-col items-center justify-center shadow-sm">
+                      <div className="relative z-10 bg-white/40 backdrop-blur-[2px] rounded md:rounded-xl px-1.5 py-0.5 md:p-1.5 lg:p-2 flex flex-col items-center justify-center shadow-sm">
                         <GradeDisplay
                           grade={route.grade}
                           difficulty={route.difficulty_label}
                           variant="badge"
-                          className="text-base md:text-xl lg:text-3xl"
+                          className="text-lg md:text-xl lg:text-3xl"
                         />
                         {route.name && (
-                          <span className="text-[7px] md:text-[9px] lg:text-xs font-medium text-black/70 mt-0.5 truncate max-w-full px-1">
+                          <span className="text-[8px] md:text-[9px] lg:text-xs font-medium text-black/70 mt-0.5 truncate max-w-full px-1">
                             {route.name}
                           </span>
                         )}
@@ -149,25 +149,14 @@ export default function WallRouteList({ routes }: { routes: BrowserRoute[] }) {
                       </div>
                     )}
 
-                    {(route.avg_rating > 0 || route.comment_count > 0) && (
-                      <div className="absolute bottom-1 md:bottom-2 lg:bottom-4 left-0 right-0 flex items-center justify-center gap-0.5 md:gap-1 lg:gap-2 px-1">
-                        {route.avg_rating > 0 && (
-                          <div className="flex items-center gap-0.5 text-black/70 bg-white/30 backdrop-blur-[2px] px-1 md:px-1.5 py-px md:py-0.5 rounded-full shadow-sm">
-                            <Star className="w-2 h-2 md:w-2.5 md:h-2.5 lg:w-3 lg:h-3 fill-current" />
-                            <span className="text-[7px] md:text-[9px] lg:text-xs font-bold">
-                              {route.avg_rating.toFixed(1)}
-                            </span>
-                          </div>
-                        )}
-
-                        {route.comment_count > 0 && (
-                          <div className="flex items-center gap-0.5 text-black/70 bg-white/30 backdrop-blur-[2px] px-1 md:px-1.5 py-px md:py-0.5 rounded-full shadow-sm">
-                            <MessageSquare className="w-2 h-2 md:w-2.5 md:h-2.5 lg:w-3 lg:h-3" />
-                            <span className="text-[7px] md:text-[9px] lg:text-xs font-bold">
-                              {route.comment_count}
-                            </span>
-                          </div>
-                        )}
+                    {route.avg_rating > 0 && (
+                      <div className="absolute top-1 left-1 md:top-3 md:left-3">
+                        <div className="flex items-center gap-0.5 text-black/80 bg-white/60 backdrop-blur-[2px] px-1 md:px-1.5 py-0.5 rounded-full shadow-sm">
+                          <Star className="w-2.5 h-2.5 md:w-3 md:h-3 fill-current text-amber-500" />
+                          <span className="text-[8px] md:text-[10px] lg:text-xs font-bold">
+                            {route.avg_rating.toFixed(1)}
+                          </span>
+                        </div>
                       </div>
                     )}
                   </div>

@@ -10,6 +10,7 @@ interface GradeDisplayProps {
   className?: string;
   variant?: "default" | "badge";
   showSecondary?: boolean;
+  compact?: boolean;
 }
 
 export function GradeDisplay({
@@ -18,6 +19,7 @@ export function GradeDisplay({
   className,
   variant = "default",
   showSecondary = true,
+  compact = false,
 }: GradeDisplayProps) {
   const settingsContext = useContext(SettingsContext);
   const gradeDisplay = settingsContext?.gradeDisplay ?? "v-scale";
@@ -40,9 +42,17 @@ export function GradeDisplay({
       );
     }
     return (
-      <div className={cn("flex flex-col items-center leading-none", className)}>
+      <div
+        className={cn(
+          "flex flex-col items-center",
+          compact ? "leading-none gap-0" : "leading-none",
+          className
+        )}
+      >
         <span className="font-bold">{primary}</span>
-        <span className="text-[0.6em] opacity-80 font-normal">{secondary}</span>
+        <span className={cn("opacity-80 font-normal", compact ? "text-[0.5em]" : "text-[0.6em]")}>
+          {secondary}
+        </span>
       </div>
     );
   }
